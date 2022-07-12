@@ -269,7 +269,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         AlertDialog dialog = ((MainActivity) context).expOptSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
         TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.category_caps);
+        title.setText(R.string.cat_caps);
 
         dialog.setOnCancelListener(dialogInterface -> {
             if (adapter.getSelected().getId() == -1) {
@@ -299,7 +299,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         AlertDialog dialog = ((MainActivity) context).expOptSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
         TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.account_caps);
+        title.setText(R.string.acc_caps);
 
         dialog.setOnCancelListener(dialogInterface -> {
             if (adapter.getSelected().getId() == -1) {

@@ -4,17 +4,18 @@
     <string name="title_manage">Manage</string>
     <string name="title_charts">Charts</string>
     <string name="currency">SGD</string>
-    <string name="category_caps">CATEGORY</string>
-    <string name="account_caps">ACCOUNT</string>
-    <string name="category">Category</string>
-    <string name="account">Account</string>
+    <string name="exp">Expense</string>
+    <string name="cat_caps">CATEGORY</string>
+    <string name="acc_caps">ACCOUNT</string>
+    <string name="cat">Category</string>
+    <string name="acc">Account</string>
     <string name="day">Day</string>
     <string name="month">Month</string>
     <string name="year">Year</string>
     <string name="from">FROM</string>
     <string name="to">TO</string>
-    <string name="selSingle">Date</string>
-    <string name="selRange">Range</string>
+    <string name="sel_single">Date</string>
+    <string name="sel_range">Range</string>
 
     <string name="hint_amt">0.00</string>
     <string name="hint_description">Description</string>

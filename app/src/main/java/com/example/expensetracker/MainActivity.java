@@ -41,7 +41,6 @@ import com.example.expensetracker.HomePage.HomeFragment;
 import com.example.expensetracker.ManagePage.ManageChildFragment;
 import com.example.expensetracker.ManagePage.ManageFragment;
 import com.example.expensetracker.ManagePage.SectionOptDialogFragment;
-import com.example.expensetracker.databinding.ActivityMainBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.text.SimpleDateFormat;
@@ -182,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
 
         // set values
         TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.category_caps);
+        title.setText(R.string.cat_caps);
         TextView expCatName = this.expCatName;
         ImageButton expCatIcon = this.expCatIcon;
         LinearLayout expCatItem = expCat;
@@ -212,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
 
         // set values
         TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.account_caps);
+        title.setText(R.string.acc_caps);
         TextView expAccName = this.expAccName;
         ImageButton expAccIcon = this.expAccIcon;
         LinearLayout expAccItem = expAcc;
@@ -738,9 +737,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * OTHER FUNCTIONS
+     * FUNCTIONS
      */
-    // Get foreground fragment
     public Fragment getFragment() {
         Fragment navHostFragment = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_activity_main);
         return (navHostFragment == null) ? null : navHostFragment.getChildFragmentManager().getFragments().get(0);
@@ -776,7 +774,6 @@ public class MainActivity extends AppCompatActivity {
     public static ColorStateList getColorStateListFromId(Context context, int id) {
         return ColorStateList.valueOf(ContextCompat.getColor(context, id));
     }
-
     public static int getRelativeDate(Calendar cal) {
         Calendar today = Calendar.getInstance(locale);
         if (cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)) {

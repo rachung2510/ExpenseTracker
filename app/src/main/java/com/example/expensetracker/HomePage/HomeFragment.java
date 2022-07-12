@@ -257,7 +257,7 @@ public class HomeFragment extends Fragment {
     public void filterAccDialog(AccountAdapter adapter) {
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expOptSectionDialog(adapter, expOptSectionView);
-        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText("FILTER BY " + getResources().getString(R.string.account_caps));
+        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText("FILTER BY " + getResources().getString(R.string.acc_caps));
         dialogBuilder.setView(expOptSectionView);
 
         dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> {
@@ -274,7 +274,7 @@ public class HomeFragment extends Fragment {
     public void filterCatDialog(CategoryAdapter adapter) {
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expOptSectionDialog(adapter, expOptSectionView);
-        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText("FILTER BY " + getResources().getString(R.string.category_caps));
+        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText("FILTER BY " + getResources().getString(R.string.cat_caps));
         dialogBuilder.setView(expOptSectionView);
 
         dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> {
