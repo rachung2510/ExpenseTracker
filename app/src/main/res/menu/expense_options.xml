@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/delExpense"
+        android:title="Delete"
+        android:icon="@drawable/ic_baseline_delete_24" />
+
+    <item
+        android:id="@+id/selectAll"
+        android:title="Select All"
+        android:icon="@drawable/ic_select_all" />
+
+    <item
+        android:title="More"
+        android:icon="@drawable/ic_baseline_more_vert_24">
+        <menu>
+            <item
+                android:id="@+id/changeAcc"
+                android:title="Change account" />
+            <item
+                android:id="@+id/changeCat"
+                android:title="Change category" />
+            <item
+                android:id="@+id/changeDate"
+                android:title="Change date" />
+        </menu>
+    </item>
+
+</menu>

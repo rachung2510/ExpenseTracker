@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ManagePage.SectionOptDialogFragment">
+
+    <TextView
+        android:id="@+id/catOptTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:layout_constraintTop_toTopOf="parent"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:paddingStart="24dp"
+        android:textColor="?attr/colorPrimary"
+        android:fontFamily="sans-serif-black"
+        android:textFontWeight="600"
+        android:textSize="16sp"
+        android:text="CATEGORY ICON"/>
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:layout_marginTop="-5dp"
+        app:elevation="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/catOptTitle">
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/catOptTab"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:tabGravity="fill"
+            app:tabIndicatorColor="@color/text_light_gray"
+            app:tabIndicatorHeight="2dp"
+            app:tabMode="fixed"
+            app:tabTextColor="@color/text_dark_gray" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/catOptPage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

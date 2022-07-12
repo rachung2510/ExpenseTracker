@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".HomePage.HomeFragment">
+
+    <include layout="@layout/summary"
+        android:id="@+id/included"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <LinearLayout
+        android:id="@+id/homeFragLinearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/included"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="@dimen/bottom_nav_height"
+        android:gravity="center|top"
+        android:orientation="vertical">
+
+<!--    filters-->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/accFilters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="-5dp"
+            android:layout_gravity="start"/>
+
+<!--    expense list-->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/expenseList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:overScrollMode="never"
+            android:layout_marginTop="12dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp" />
+
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="24dp"
+        android:clickable="true"
+        app:tint="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/homeFragLinearLayout"
+        app:layout_constraintEnd_toEndOf="@id/homeFragLinearLayout"
+        app:srcCompat="@drawable/ic_baseline_add_24" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

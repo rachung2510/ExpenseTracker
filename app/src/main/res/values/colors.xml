@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="blue_gray_700">#344955</color>
+    <color name="blue_gray_800">#232f34</color>
+    <color name="blue_gray_600">#4a6572</color>
+    <color name="light_gray_bg">#F6F7FA</color>
+    <color name="orange_200">#fff1ee</color>
+    <color name="orange_500">#f9aa33</color>
+    <color name="orange_700">#ff793f</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="red">#f24238</color>
+    <color name="red_500">#fe5f55</color>
+    <color name="red_700">#731010</color>
+
+    <color name="text_light_gray">#A9ACB5</color>
+    <color name="text_mid_gray">#838A95</color>
+    <color name="text_dark_gray">#4a515b</color>
+    <color name="generic_icon_gray">#808080</color>
+    <color name="tag_bg_gray">#ebebeb</color>
+    <color name="tag_text_gray">#6b6b6b</color>
+    <color name="tag_bg_orange">#fcddc7</color>
+    <color name="tag_text_orange">#8f3415</color>
+    <color name="tag_icon_orange">#a1673f</color>
+
+<!--    Canadian palette-->
+    <color name="cat_jigglypuff">#ff9ff3</color>
+    <color name="cat_lotus_pink">#f368e0</color>
+    <color name="cat_casandora_yellow">#feca57</color>
+    <color name="cat_dragon_skin">#ff9f43</color>
+    <color name="cat_pastel_red">#ff6b6b</color>
+    <color name="cat_amour">#ee5253</color>
+    <color name="cat_megaman">#48dbfb</color>
+    <color name="cat_cyanite">#0abde3</color>
+    <color name="cat_caribbean_green">#1dd1a1</color>
+    <color name="cat_mountain_meadow">#10ac84</color>
+    <color name="cat_jade_dust">#00d2d3</color>
+    <color name="cat_aqua_velvet">#01a3a4</color>
+    <color name="cat_joust_blue">#54a0ff</color>
+    <color name="cat_bleu_de_france">#2e86de</color>
+    <color name="cat_nasu_purple">#5f27cd</color>
+    <color name="cat_bluebell">#341f97</color>
+    <color name="cat_blue_ballerina">#c8d6e5</color>
+    <color name="cat_storm_petrel">#8395a7</color>
+    <color name="cat_fuel_town">#576574</color>
+    <color name="cat_imperial_primer">#222f3e</color>
+    <color name="cat_june_bud">#badc58</color>
+    <color name="cat_pure_apple">#6ab04c</color>
+    <color name="cat_fiery_fuchsia">#B33771</color>
+    <color name="cat_magenta_purple">#6D214F</color>
+
+</resources>

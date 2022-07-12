@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center|top"
+    android:paddingTop="10dp"
+    android:paddingBottom="20dp">
+
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/selToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        app:selectionRequired="true"
+        app:singleSelection="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toggleRange">
+
+        <Button
+            android:id="@+id/toggleDay"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/day" />
+
+        <Button
+            android:id="@+id/toggleMonth"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/month" />
+
+        <Button
+            android:id="@+id/toggleYear"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/year" />
+
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <LinearLayout
+        android:id="@+id/selMonthYearBlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp">
+
+        <LinearLayout
+            android:id="@+id/fromSel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/fromHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/text_dark_gray"
+                android:textStyle="bold"
+                android:text="@string/from" />
+
+            <LinearLayout
+                android:id="@+id/selFromMonth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-8dp">
+
+                <NumberPicker
+                    android:id="@+id/fromMonthPicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="15dp" />
+
+                <NumberPicker
+                    android:id="@+id/fromYearPicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/toSel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="40dp"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_dark_gray"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                android:text="@string/to" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-8dp">
+
+                <NumberPicker
+                    android:id="@+id/toMonthPicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="15dp" />
+
+                <NumberPicker
+                    android:id="@+id/toYearPicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/selDayBlock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/selDayRange"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
+            android:baselineAligned="false">
+
+            <LinearLayout
+                android:id="@+id/fromDay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:padding="15dp"
+                android:gravity="center"
+                android:background="?selectableItemBackground"
+                android:foreground="@drawable/shape_rounded_rectangle_border"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:backgroundTint="@color/generic_icon_gray"
+                    android:background="@drawable/date_calendar_event" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_dark_gray"
+                    android:textStyle="bold"
+                    android:text="@string/from" />
+
+                <TextView
+                    android:id="@+id/fromDayTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_mid_gray"
+                    android:textSize="13sp"
+                    android:text="@string/example_date" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/toDay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="-1sp"
+                android:padding="15sp"
+                android:gravity="center"
+                android:background="?selectableItemBackground"
+                android:foreground="@drawable/shape_rounded_rectangle_border"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:backgroundTint="@color/generic_icon_gray"
+                    android:background="@drawable/date_calendar_event" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_dark_gray"
+                    android:textStyle="bold"
+                    android:text="@string/to" />
+
+                <TextView
+                    android:id="@+id/toDayTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_mid_gray"
+                    android:textSize="13sp"
+                    android:text="@string/example_date" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <DatePicker
+            android:id="@+id/selDayPicker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/toggleRange"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_gravity="end"
+        android:text="Select range"
+        android:textColor="@color/text_mid_gray"
+        android:checked="true"
+        android:textOff="@string/selRange"
+        android:textOn="@string/selSingle"/>
+
+</LinearLayout>

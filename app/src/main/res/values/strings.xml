@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">ExpenseTracker</string>
+    <string name="title_home">Home</string>
+    <string name="title_manage">Manage</string>
+    <string name="title_charts">Charts</string>
+    <string name="currency">SGD</string>
+    <string name="category_caps">CATEGORY</string>
+    <string name="account_caps">ACCOUNT</string>
+    <string name="category">Category</string>
+    <string name="account">Account</string>
+    <string name="day">Day</string>
+    <string name="month">Month</string>
+    <string name="year">Year</string>
+    <string name="from">FROM</string>
+    <string name="to">TO</string>
+    <string name="selSingle">Date</string>
+    <string name="selRange">Range</string>
+
+    <string name="hint_amt">0.00</string>
+    <string name="hint_description">Description</string>
+
+    <string name="opt_del">Delete</string>
+    <string name="opt_date">Date</string>
+    <string name="opt_save">Save</string>
+
+    <string name="example_cat">Food</string>
+    <string name="example_acc">Cash</string>
+    <string name="example_date">10 JAN 2022</string>
+</resources>
