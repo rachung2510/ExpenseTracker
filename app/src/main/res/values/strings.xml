@@ -18,6 +18,7 @@
     <string name="sel_range">Range</string>
 
     <string name="hint_amt">0.00</string>
+    <string name="hint_name">Name</string>
     <string name="hint_description">Description</string>
 
     <string name="opt_del">Delete</string>

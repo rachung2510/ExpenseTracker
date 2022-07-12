@@ -40,7 +40,7 @@
                     android:id="@+id/catName"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/hint_description"
+                    android:hint="@string/hint_name"
                     android:singleLine="true"
                     android:text="@string/example_cat"
                     android:textColor="#fff"
