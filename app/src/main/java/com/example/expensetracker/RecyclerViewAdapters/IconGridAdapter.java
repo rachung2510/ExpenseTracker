@@ -47,7 +47,6 @@ public class IconGridAdapter extends RecyclerView.Adapter<IconGridAdapter.ViewHo
     /**
      * INITIALISE ADAPTER
      */
-    // Set recycler view layout
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -55,7 +54,6 @@ public class IconGridAdapter extends RecyclerView.Adapter<IconGridAdapter.ViewHo
         return new IconGridAdapter.ViewHolder(view);
     }
 
-    // MAIN: set components & actions
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         int pos = holder.getAdapterPosition();

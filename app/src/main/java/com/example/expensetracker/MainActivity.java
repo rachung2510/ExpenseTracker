@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputFilter;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -96,36 +97,29 @@ public class MainActivity extends AppCompatActivity {
      * INITIALISE DEFAULTS
      */
     public void initialiseDefaultAccs() {
-        // default accounts info
-        String[] acc_color_names = {"cat_pure_apple", "cat_bluebell", "cat_amour"};
-
         for (int i = 0;i < Constants.defaultAccNames.length;i++) {
-            Account acc = new Account(this, Constants.defaultAccNames[i], Constants.defaultAccIcons[i], acc_color_names[i]);
+            Account acc = new Account(this, Constants.defaultAccNames[i], Constants.defaultAccIcons[i], Constants.defaultAccColors[i]);
             db.createAccount(acc, false);
         }
     }
     public void initialiseDefaultCats() {
-        // default categories info
-        String[] cat_color_names = {"cat_pastel_red", "cat_joust_blue", "cat_nasu_purple", "cat_fuel_town", "cat_aqua_velvet", "cat_cyanite",
-                "cat_mountain_meadow", "cat_dragon_skin", "cat_casandora_yellow", "cat_lotus_pink", "cat_storm_petrel"};
-
         for (int i = 0;i < Constants.defaultCatNames.length;i++) {
-            Category cat = new Category(this, Constants.defaultCatNames[i], Constants.defaultCatIcons[i], cat_color_names[i]);
+            Category cat = new Category(this, Constants.defaultCatNames[i], Constants.defaultCatIcons[i], Constants.defaultCatColors[i]);
             db.createCategory(cat, false);
         }
     }
     public void getIconMap() {
         iconMap = new HashMap<>();
-        for (String name : Constants.defaultAccIcons) {
+        for (String name : Constants.allAccIcons) {
             iconMap.put(getIconIdFromName(this, name), name);
         }
-        for (String name : Constants.defaultCatIcons) {
+        for (String name : Constants.allCatIcons) {
             iconMap.put(getIconIdFromName(this, name), name);
         }
     }
     public void getColorMap() {
         colorMap = new HashMap<>();
-        for (String name : Constants.defaultColors) {
+        for (String name : Constants.allColors) {
             colorMap.put(getColorIdFromName(this, name), name);
         }
     }
@@ -239,10 +233,10 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder = new AlertDialog.Builder(this);
         final View editCatView = getLayoutInflater().inflate(R.layout.dialog_section, null);
         dialogBuilder.setView(editCatView);
-        AlertDialog catDialog = dialogBuilder.create();
-        catDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // set transparent dialog bg
-        catDialog.getWindow().setGravity(Gravity.BOTTOM);
-        catDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        AlertDialog sectionDialog = dialogBuilder.create();
+        sectionDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // set transparent dialog bg
+        sectionDialog.getWindow().setGravity(Gravity.BOTTOM);
+        sectionDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         // get components by id
         catTypeView = editCatView.findViewById(R.id.catType);
@@ -252,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
         catDelBtn = editCatView.findViewById(R.id.catDelBtn);
         catSaveBtn = editCatView.findViewById(R.id.catSaveBtn);
 
-        return catDialog;
+        return sectionDialog;
     }
 
     /**

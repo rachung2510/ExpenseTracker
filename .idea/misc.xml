@@ -4,7 +4,17 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_cash.xml" value="0.1" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_dbs.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_hsbc.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_nets.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_visa.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cash.xml" value="0.1" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_clothes.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_crafts.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_drinks.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_food.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_gift.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_office.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/activity_main.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_date.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_date_select.xml" value="0.20052083333333334" />

@@ -3,20 +3,43 @@ package com.example.expensetracker;
 public class Constants {
 
     // Defaults
-    public static final String[] defaultCatNames = new String[] { "Food", "Gift", "Entertainment", "Transport", "Office", "Electronics",
-            "Social", "Online Shopping", "Crafts", "Beauty", "Others" };
-    public static final String[] defaultCatIcons = new String[] { "cat_food", "cat_gift", "cat_entertainment", "cat_transport", "cat_office", "cat_electronics",
-            "cat_social", "cat_online_shopping", "cat_crafts", "cat_beauty", "cat_others"
+    public static final String[] defaultCatNames = new String[]{
+            "Food", "Drinks", "Snacks",
+            "Home/Living", "Groceries", "Taxi",
+            "Transport", "Health", "Electronics",
+            "Social", "Shopping", "Crafts",
+            "Gifts", "Entertainment", "Others"
+    };
+    public static final String[] defaultCatIcons = new String[] {
+            "cat_food", "cat_drinks", "cat_snacks",
+            "cat_home", "cat_groceries", "cat_taxi",
+            "cat_transport", "cat_health", "cat_electronics",
+            "cat_social", "cat_shopping", "cat_crafts",
+            "cat_gift", "cat_entertainment", "cat_others"
+    };
+    public static final String[] defaultCatColors = new String[] {
+            "cat_pastel_red", "cat_megaman", "cat_casandora_yellow",
+            "cat_joust_blue", "cat_aqua_velvet", "cat_caribbean_green",
+            "cat_fuel_town", "cat_dragon_skin", "cat_blue_ballerina",
+            "cat_cyanite", "cat_lotus_pink", "cat_june_bud",
+            "cat_fiery_fuchsia", "cat_nasu_purple", "cat_storm_petrel"
     };
     public static final String[] defaultAccNames = new String[] { "Cash", "VISA", "NETS" };
     public static final String[] defaultAccIcons = new String[] { "acc_cash", "acc_visa", "acc_nets" };
-    public static final String[] defaultColors = new String[] {
-            "cat_jigglypuff", "cat_lotus_pink", "cat_casandora_yellow",
-            "cat_dragon_skin", "cat_pastel_red", "cat_amour", "cat_megaman", "cat_cyanite",
-            "cat_caribbean_green", "cat_mountain_meadow", "cat_jade_dust", "cat_aqua_velvet",
+    public static final String[] defaultAccColors = new String[] { "cat_pure_apple", "cat_bluebell", "cat_amour" };
+    public static final String[] allColors = new String[] {
+            "cat_amour", "cat_pastel_red", "cat_dragon_skin", "cat_casandora_yellow",
+            "cat_june_bud", "cat_pure_apple", "cat_caribbean_green", "cat_mountain_meadow",
+            "cat_jade_dust", "cat_megaman", "cat_cyanite", "cat_aqua_velvet",
             "cat_joust_blue", "cat_bleu_de_france", "cat_nasu_purple", "cat_bluebell",
-            "cat_blue_ballerina", "cat_storm_petrel", "cat_fuel_town", "cat_imperial_primer",
-            "cat_june_bud", "cat_pure_apple", "cat_fiery_fuchsia", "cat_magenta_purple"
+            "cat_magenta_purple", "cat_fiery_fuchsia", "cat_lotus_pink", "cat_jigglypuff",
+            "cat_blue_ballerina", "cat_storm_petrel", "cat_fuel_town", "cat_imperial_primer"
+    };
+    public static final String[] allAccIcons = new String[] { "acc_cash", "acc_visa", "acc_nets", "acc_dbs", "acc_hsbc" };
+    public static final String[] allCatIcons = new String[] {
+            "cat_food", "cat_drinks", "cat_snacks", "cat_home", "cat_office", "cat_groceries", "cat_taxi",
+            "cat_transport", "cat_health", "cat_electronics", "cat_social", "cat_shopping", "cat_clothes",
+            "cat_beauty", "cat_crafts", "cat_gift", "cat_entertainment", "cat_music", "cat_others"
     };
 
     // Page modes

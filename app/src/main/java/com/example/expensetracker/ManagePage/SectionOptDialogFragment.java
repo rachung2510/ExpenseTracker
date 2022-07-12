@@ -35,13 +35,9 @@ public class SectionOptDialogFragment extends DialogFragment {
         super();
         this.sectionType = sectionType;
         this.selectedIconPos = 0;
-
-        List<String> defaultAccIconNames = Arrays.asList(Constants.defaultAccIcons);
-        List<String> defaultCatIconNames = Arrays.asList(Constants.defaultCatIcons);
-        List<String> defaultColorNames = Arrays.asList(Constants.defaultColors);
-        if (sectionType == Constants.SECTION_ACCOUNT) this.selectedIconPos = defaultAccIconNames.indexOf(selectedIconName);
-        else if (sectionType == Constants.SECTION_CATEGORY) this.selectedIconPos = defaultCatIconNames.indexOf(selectedIconName);
-        this.selectedColorPos = defaultColorNames.indexOf(selectedColorName);
+        if (sectionType == Constants.SECTION_ACCOUNT) this.selectedIconPos = Arrays.asList(Constants.allAccIcons).indexOf(selectedIconName);
+        else if (sectionType == Constants.SECTION_CATEGORY) this.selectedIconPos = Arrays.asList(Constants.allCatIcons).indexOf(selectedIconName);
+        this.selectedColorPos = Arrays.asList(Constants.allColors).indexOf(selectedColorName);
     }
 
     @NonNull
@@ -75,9 +71,9 @@ public class SectionOptDialogFragment extends DialogFragment {
         });
         ViewPagerAdapter catOptAdapter = new ViewPagerAdapter(this);
 
-        if (sectionType == Constants.SECTION_ACCOUNT) iconFragment = new IconGridFragment(this, selectedIconPos, Constants.defaultAccIcons, IconGridAdapter.ICON_ICON);
-        else if (sectionType == Constants.SECTION_CATEGORY) iconFragment = new IconGridFragment(this, selectedIconPos, Constants.defaultCatIcons, IconGridAdapter.ICON_ICON);
-        colorFragment = new IconGridFragment(this, selectedColorPos, Constants.defaultColors, IconGridAdapter.ICON_COLOR);
+        if (sectionType == Constants.SECTION_ACCOUNT) iconFragment = new IconGridFragment(this, selectedIconPos, Constants.allAccIcons, IconGridAdapter.ICON_ICON);
+        else if (sectionType == Constants.SECTION_CATEGORY) iconFragment = new IconGridFragment(this, selectedIconPos, Constants.allCatIcons, IconGridAdapter.ICON_ICON);
+        colorFragment = new IconGridFragment(this, selectedColorPos, Constants.allColors, IconGridAdapter.ICON_COLOR);
         catOptAdapter.addFragment(iconFragment);
         catOptAdapter.addFragment(colorFragment);
         catOptPage.setAdapter(catOptAdapter);
