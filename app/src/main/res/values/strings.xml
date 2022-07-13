@@ -5,6 +5,7 @@
     <string name="title_charts">Charts</string>
     <string name="currency">SGD</string>
     <string name="exp">Expense</string>
+    <string name="exps_caps">EXPENSES</string>
     <string name="cat_caps">CATEGORY</string>
     <string name="acc_caps">ACCOUNT</string>
     <string name="cat">Category</string>
@@ -28,4 +29,10 @@
     <string name="example_cat">Food</string>
     <string name="example_acc">Cash</string>
     <string name="example_date">10 JAN 2022</string>
+    <string name="example_amt">135.00</string>
+    <string name="example_no">15</string>
+
+    <string name="charts_frag_cat">Categories</string>
+    <string name="charts_frag_time">Monthly</string>
+    <string name="charts_frag_cal">Calendar</string>
 </resources>

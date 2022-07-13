@@ -520,6 +520,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return new Calendar[] { firstDate, lastDate };
     }
+    public float getTotalAmt() {
+        float totalAmt = 0;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE;
+        Cursor c = db.rawQuery(query, null);
+        if (c.moveToFirst()) totalAmt = c.getFloat(0);
+        return totalAmt;
+    }
     public float getTotalAmtByAccount(Account acc) {
         float totalAmt = 0;
         SQLiteDatabase db = this.getReadableDatabase();
@@ -537,6 +545,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (c.moveToFirst()) totalAmt = c.getFloat(0);
         c.close();
         return totalAmt;
+    }
+    public int getNumExpensesByCategory(Category cat) {
+        int count = 0;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " = " + cat.getId();
+        Cursor c = db.rawQuery(query, null);
+        if (c.moveToFirst()) count = c.getInt(0);
+        return count;
     }
 
 }

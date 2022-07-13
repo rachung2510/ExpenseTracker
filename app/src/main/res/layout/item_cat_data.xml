@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="24dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="180dp"
+        android:layout_height="100dp"
+        app:cardCornerRadius="20dp"
+        app:strokeWidth="2dp"
+        app:strokeColor="@color/light_gray_bg"
+        android:translationX="-20dp"
+        android:translationY="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="19dp">
+
+            <View
+                android:id="@+id/border"
+                android:layout_width="5dp"
+                android:layout_height="match_parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:background="@color/black"/>
+
+            <TextView
+                android:id="@+id/catDataLabel"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                app:layout_constraintStart_toEndOf="@id/border"
+                app:layout_constraintBottom_toBottomOf="@id/catDataIcon"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text="@string/example_cat"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center|start"
+                android:layout_marginBottom="27dp"
+                app:layout_constraintStart_toStartOf="@id/catDataLabel"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginEnd="3dp"
+                    android:background="@drawable/ic_baseline_receipt_24"/>
+
+                <TextView
+                    android:id="@+id/catDataNumExpenses"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:text="@string/example_no"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="25dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:gravity="bottom">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_light_gray"
+                    android:fontFamily="sans-serif"
+                    android:textFontWeight="600"
+                    android:textSize="10sp"
+                    android:layout_marginEnd="3dp"
+                    android:text="@string/currency" />
+
+                <TextView
+                    android:id="@+id/catDataAmt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:fontFamily="sans-serif-black"
+                    android:textFontWeight="600"
+                    android:textColor="@color/text_dark_gray"
+                    android:textSize="18sp"
+                    android:text="@string/example_amt" />
+
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/catDataIconBg"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:translationX="10dp"
+                android:translationY="-10dp"
+                android:clickable="false"
+                android:src="@drawable/selector_circle"
+                android:scaleType="fitCenter"
+                android:background="@drawable/shape_circle"
+                android:backgroundTint="@color/black"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <ImageView
+                android:id="@+id/catDataIcon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:foreground="@drawable/cat_food"
+                android:foregroundTint="@color/white"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

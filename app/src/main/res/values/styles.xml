@@ -36,4 +36,9 @@
         <item name="windowMinWidthMinor">0%</item>
     </style>
 
+    <!--TabLayoutText-->
+    <style name="TabLayoutTextStyle" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">12sp</item>
+    </style>
+
 </resources>
