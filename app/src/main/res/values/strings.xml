@@ -35,4 +35,5 @@
     <string name="charts_frag_cat">Categories</string>
     <string name="charts_frag_time">Monthly</string>
     <string name="charts_frag_cal">Calendar</string>
+    <string name="app_widget_description">Quick add expense</string>
 </resources>

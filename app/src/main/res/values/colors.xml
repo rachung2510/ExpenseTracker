@@ -23,7 +23,7 @@
     <color name="tag_text_orange">#8f3415</color>
     <color name="tag_icon_orange">#a1673f</color>
 
-<!--    Canadian palette-->
+    <!--    Canadian palette-->
     <color name="cat_jigglypuff">#ff9ff3</color>
     <color name="cat_lotus_pink">#f368e0</color>
     <color name="cat_casandora_yellow">#feca57</color>
@@ -48,5 +48,9 @@
     <color name="cat_pure_apple">#6ab04c</color>
     <color name="cat_fiery_fuchsia">#B33771</color>
     <color name="cat_magenta_purple">#6D214F</color>
+    <color name="light_blue_50">#FFE1F5FE</color>
+    <color name="light_blue_200">#FF81D4FA</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="light_blue_900">#FF01579B</color>
 
 </resources>

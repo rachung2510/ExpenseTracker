@@ -10,6 +10,7 @@
     <style name="RobotoTextViewStyle" parent="android:Widget.TextView">
         <item name="android:fontFamily">sans-serif</item>
     </style>
+
     <style name="RobotoButtonStyle" parent="android:Widget.Holo.Button">
         <item name="android:fontFamily">sans-serif</item>
     </style>
@@ -18,6 +19,7 @@
     <style name="DiscardChangesDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
         <item name="buttonBarNegativeButtonStyle">@style/DiscardNegButtonStyle</item>
     </style>
+
     <style name="DiscardNegButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
         <item name="android:textColor">@color/red</item>
     </style>
@@ -26,6 +28,7 @@
     <style name="ConfirmDelDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
         <item name="buttonBarPositiveButtonStyle">@style/DelPosButtonStyle</item>
     </style>
+
     <style name="DelPosButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
         <item name="android:textColor">@color/red</item>
     </style>
@@ -39,6 +42,17 @@
     <!--TabLayoutText-->
     <style name="TabLayoutTextStyle" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="Theme.Transparent" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:fitsSystemWindows">false</item>
+        <item name="colorPrimary">@color/blue_gray_600</item>
+        <item name="colorAccent">@color/red_500</item>
     </style>
 
 </resources>

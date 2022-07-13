@@ -76,7 +76,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = inflater.inflate(R.layout.item_empty_view, parent, false);
+        View view = inflater.inflate(R.layout.empty_view, parent, false);
         return new EmptyViewHolder(view);
     }
 

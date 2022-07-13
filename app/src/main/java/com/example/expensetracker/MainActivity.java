@@ -137,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
         final View expView = getLayoutInflater().inflate(R.layout.dialog_expense, null);
         dialogBuilder.setView(expView);
         dialogBuilder.setOnDismissListener(dialogInterface -> {
-            Log.e("dismiss","");
             InputMethodManager imm1 = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
             imm1.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
         });
