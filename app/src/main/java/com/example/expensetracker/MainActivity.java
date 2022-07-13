@@ -1,16 +1,20 @@
 package com.example.expensetracker;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputFilter;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -132,6 +136,11 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder = new AlertDialog.Builder(this);
         final View expView = getLayoutInflater().inflate(R.layout.dialog_expense, null);
         dialogBuilder.setView(expView);
+        dialogBuilder.setOnDismissListener(dialogInterface -> {
+            Log.e("dismiss","");
+            InputMethodManager imm1 = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
+            imm1.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
+        });
         AlertDialog expDialog = dialogBuilder.create();
         expDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // set transparent dialog bg
         expDialog.show();
@@ -141,6 +150,11 @@ public class MainActivity extends AppCompatActivity {
         // get components by id
         expAmt = expView.findViewById(R.id.newEntry_amt);
         expAmt.setFilters(new InputFilter[] { new MoneyValueFilter() });
+        expAmt.requestFocus(); // focus on amt and open keyboard
+        expAmt.postDelayed(() -> {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(expAmt, 0);
+        }, 270);
         expDesc = expView.findViewById(R.id.newEntry_desc);
         expAccName = expView.findViewById(R.id.newEntry_accName); // name
         expCatName = expView.findViewById(R.id.newEntry_catName);
@@ -472,6 +486,8 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(MainActivity.this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
             }
+            InputMethodManager imm = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
             expDialog.dismiss();
         });
     }
@@ -481,6 +497,7 @@ public class MainActivity extends AppCompatActivity {
 
         // set values
         expAmt.setText(String.format(locale, "%.2f", exp.getAmount()));
+        expAmt.setSelection(expAmt.getText().length()); // set cursor to end of text
         expDesc.setText(exp.getDescription());
         Account acc = exp.getAccount();
         Category cat = exp.getCategory();
