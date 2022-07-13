@@ -7,8 +7,10 @@ A simple expense tracker for android which has three pages.
 <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-home.png?raw=true" alt="Home Page" width="180" /> <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-expense.png?raw=true" alt="Add Expense" width="180" /> <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-filter-date.png?raw=true" alt="Filter Date" width="180" /> <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-edit-category.png?raw=true" alt="Manage Categories" width="180" />
 
 ## Todo
-- Charts fragment
+- ~~Charts piechart fragment~~
+- Charts graph fragment
 - Import/export db
+- Raise warning when date range is invalid (TO comes before FROM)
 - ~~Hide date nav buttons when beyond range~~
 - ~~**Bug fix**: disappearing accounts in MANAGE~~
 
