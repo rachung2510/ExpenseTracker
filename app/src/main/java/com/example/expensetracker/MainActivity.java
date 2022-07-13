@@ -828,4 +828,9 @@ public class MainActivity extends AppCompatActivity {
                 context.getResources().getDisplayMetrics());
     }
 
+    public static void logDate(String TAG, String format, Calendar cal) {
+        format = (format.isEmpty()) ? Expense.DATETIME_FORMAT : format;
+        String res = new SimpleDateFormat(format).format(cal.getTime());
+        Log.e(TAG, res);
+    }
 }

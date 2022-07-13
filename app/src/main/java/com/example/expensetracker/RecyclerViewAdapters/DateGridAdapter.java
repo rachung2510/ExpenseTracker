@@ -244,8 +244,6 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         // Initialisation
         Calendar from = fromDate;
         Calendar to = toDate;
-//        MainActivity.logDate("DGA from", "", from);
-//        MainActivity.logDate("DGA to", "", to);
 
         // Set values for Day
         selDayPicker.updateDate(from.get(Calendar.YEAR), from.get(Calendar.MONTH), from.get(Calendar.DAY_OF_MONTH));
@@ -385,9 +383,12 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     }
     public static Calendar getInitSelectedDates(int range, int state) {
         Calendar cal = Calendar.getInstance(MainActivity.locale);
+        Calendar to = Calendar.getInstance(MainActivity.locale); // for checking if Sunday > Saturday
         switch (state) {
             case WEEK:
                 cal.set(Calendar.DAY_OF_WEEK, (range == FROM) ? Calendar.SUNDAY : Calendar.SATURDAY);
+                to.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+                if ((range == FROM) && cal.after(to)) cal.add(Calendar.DAY_OF_YEAR, -7); // roll back by a week
                 break;
             case MONTH:
                 cal.set(Calendar.DAY_OF_MONTH, (range == FROM) ? 1 : cal.getActualMaximum(Calendar.DATE));
