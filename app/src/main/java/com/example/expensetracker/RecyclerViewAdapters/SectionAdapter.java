@@ -267,7 +267,6 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             if (selectionMode) {
                 holder.toggleSelect(position);
                 notifyItemChanged(position);
-                notifyItemChanged(sections.size() - 1);
             } else if (isNew(position)) {
                 ((MainActivity) context).addAccount();
             } else {
@@ -289,7 +288,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
         selectedPos.clear();
     }
     public boolean isNew(int position) {
-        return mode == Constants.MANAGE && position == sections.size()-1;
+        return (mode == Constants.MANAGE) && (position == getItemCount()-1);
     }
     public static ArrayList<String> getSectionNames(ArrayList<? extends Section> sections) {
         ArrayList<String> sectionNames = new ArrayList<>();
