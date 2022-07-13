@@ -1,7 +1,6 @@
 package com.example.expensetracker;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -13,7 +12,6 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -137,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         final View expView = getLayoutInflater().inflate(R.layout.dialog_expense, null);
         dialogBuilder.setView(expView);
         dialogBuilder.setOnDismissListener(dialogInterface -> {
-            InputMethodManager imm1 = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
+            InputMethodManager imm1 = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             imm1.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
         });
         AlertDialog expDialog = dialogBuilder.create();
@@ -485,7 +483,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(MainActivity.this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
             }
-            InputMethodManager imm = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
+            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
             expDialog.dismiss();
         });

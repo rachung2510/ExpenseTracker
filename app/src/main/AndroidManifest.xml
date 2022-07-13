@@ -14,14 +14,14 @@
         android:theme="@style/Theme.ExpenseTracker"
         tools:targetApi="31">
         <activity
-            android:name=".WidgetExpenseActivity"
+            android:name=".Widget.WidgetExpenseActivity"
             android:theme="@style/Theme.Transparent"
             android:launchMode="singleInstance"
             android:excludeFromRecents="true"
             android:exported="false" />
 
         <receiver
-            android:name=".WidgetAddExpense"
+            android:name=".Widget.WidgetAddExpense"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -34,8 +34,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:label="@string/app_name">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

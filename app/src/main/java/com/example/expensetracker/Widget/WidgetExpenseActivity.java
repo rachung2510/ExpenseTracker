@@ -1,4 +1,4 @@
-package com.example.expensetracker;
+package com.example.expensetracker.Widget;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,7 +9,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.view.Gravity;
@@ -25,10 +24,18 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.expensetracker.Account;
+import com.example.expensetracker.Category;
+import com.example.expensetracker.Constants;
+import com.example.expensetracker.DatabaseHelper;
+import com.example.expensetracker.Expense;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
+import com.example.expensetracker.MainActivity;
+import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
+import com.example.expensetracker.Section;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -51,14 +58,9 @@ public class WidgetExpenseActivity extends AppCompatActivity {
         addExpense();
 
         // Make status bar transparent but not navigation bar
-        if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 21)
-            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, true);
-        if (Build.VERSION.SDK_INT >= 19)
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        if (Build.VERSION.SDK_INT >= 21) {
-            setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
-            getWindow().setStatusBarColor(Color.TRANSPARENT);
-        }
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
     }
     public static void setWindowFlag(Activity activity, final int bits, boolean on) {
         Window win = activity.getWindow();
@@ -111,7 +113,7 @@ public class WidgetExpenseActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
             }
-            InputMethodManager imm = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
+            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
             expDialog.dismiss();
         });
@@ -126,7 +128,7 @@ public class WidgetExpenseActivity extends AppCompatActivity {
         final View expView = getLayoutInflater().inflate(R.layout.dialog_expense, null);
         dialogBuilder.setView(expView);
         dialogBuilder.setOnDismissListener(dialogInterface -> {
-            InputMethodManager imm1 = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
+            InputMethodManager imm1 = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             imm1.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
             finish();
         });

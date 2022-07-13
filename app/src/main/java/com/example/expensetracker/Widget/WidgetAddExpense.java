@@ -1,12 +1,13 @@
-package com.example.expensetracker;
+package com.example.expensetracker.Widget;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
-import android.widget.ImageButton;
 import android.widget.RemoteViews;
+
+import com.example.expensetracker.R;
 
 /**
  * Implementation of App Widget functionality.

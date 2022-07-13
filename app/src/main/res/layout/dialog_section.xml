@@ -45,7 +45,7 @@
                     android:text="@string/example_cat"
                     android:textColor="#fff"
                     android:textSize="30sp"
-                    android:inputType="text"
+                    android:inputType="textCapSentences"
                     android:importantForAutofill="no"
                     app:backgroundTint="@color/text_light_gray" />
 
