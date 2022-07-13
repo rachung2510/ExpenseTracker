@@ -9,6 +9,6 @@ A simple expense tracker for android which has three pages.
 ## Todo
 - Charts fragment
 - Import/export db
-- Hide date nav buttons when beyond range
-- **Bug fix**: disappearing accounts in MANAGE
+- ~~Hide date nav buttons when beyond range~~
+- ~~**Bug fix**: disappearing accounts in MANAGE~~
 
