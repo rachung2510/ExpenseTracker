@@ -12,6 +12,6 @@ A simple expense tracker for android which has three pages.
 - Charts graph fragment
 - Import/export db
 - Raise warning when date range is invalid (TO comes before FROM)
-- ~~Hide date nav buttons when beyond range~~
+- Hide date nav buttons when beyond range
 - ~~**Bug fix**: disappearing accounts in MANAGE~~
 
