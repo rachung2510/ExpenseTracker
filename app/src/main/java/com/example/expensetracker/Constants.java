@@ -55,4 +55,8 @@ public class Constants {
     // Account/Category
     public static final int SECTION_ACCOUNT = 0;
     public static final int SECTION_CATEGORY = 1;
+
+    // Date navigation
+    public static final int PREV = -1;
+    public static final int NEXT = 1;
 }

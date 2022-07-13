@@ -107,7 +107,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:overScrollMode="never"
-                android:translationX="10dp"
+                android:translationX="15dp"
                 android:paddingLeft="15dp"
                 android:paddingRight="15dp"/>
 

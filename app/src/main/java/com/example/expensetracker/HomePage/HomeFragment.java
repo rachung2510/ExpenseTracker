@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
+import com.example.expensetracker.Constants;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
@@ -47,8 +48,6 @@ public class HomeFragment extends Fragment {
     private ImageButton prevDate, nextDate;
     private RecyclerView filterList;
     private MenuItem clearFilters;
-    private FloatingActionButton fab;
-    private Toolbar toolbar;
 
     // Filter components
     private DateGridAdapter filterDateAdapter;
@@ -57,19 +56,10 @@ public class HomeFragment extends Fragment {
     private ArrayList<Account> selAccFilters = new ArrayList<>();
     private ArrayList<Category> selCatFilters = new ArrayList<>();
 
-    // Constants
-    public static final int PREV = -1;
-    public static final int NEXT = 1;
-
     /**
      * MAIN
-     * @param inflater
-     * @param container
-     * @param savedInstanceState
-     * @return
      */
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         // summary & expense list
@@ -82,8 +72,8 @@ public class HomeFragment extends Fragment {
         // date navigation buttons
         prevDate = view.findViewById(R.id.prevDate);
         nextDate = view.findViewById(R.id.nextDate);
-        prevDate.setOnClickListener((l) -> navDateAction(PREV));
-        nextDate.setOnClickListener((l) -> navDateAction(NEXT));
+        prevDate.setOnClickListener((l) -> navDateAction(Constants.PREV));
+        nextDate.setOnClickListener((l) -> navDateAction(Constants.NEXT));
 
         // update data
         ((MainActivity) getActivity()).updateHomeData(); // update summary & expense list
@@ -93,25 +83,24 @@ public class HomeFragment extends Fragment {
         applyFilters();
 
         // floating action button
-        fab = view.findViewById(R.id.floatingActionButton);
+        FloatingActionButton fab = view.findViewById(R.id.floatingActionButton);
         fab.setOnClickListener(view1 -> ((MainActivity) getActivity()).addExpense());
 
         // toolbar
-        toolbar = view.findViewById(R.id.toolbar);
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("");
         setHasOptionsMenu(true);
 
         return view;
     }
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
     }
 
     /**
-     * Menu
+     * MENU
      */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -155,18 +144,6 @@ public class HomeFragment extends Fragment {
     }
 
     /**
-     * UPDATE
-     */
-    public void setExpenseData(LinearLayoutManager linearLayoutManager, ExpenseAdapter expAdapter) {
-        expenseList.setLayoutManager(linearLayoutManager);
-        expenseList.setAdapter(expAdapter);
-    }
-    public void setSummaryData(String summaryDateText, float summaryAmtText) {
-        summaryDate.setText(summaryDateText);
-        summaryAmt.setText(String.format("%.2f", summaryAmtText));
-    }
-
-    /**
      * FUNCTIONS
      */
     public void summaryDateAction() {
@@ -204,7 +181,7 @@ public class HomeFragment extends Fragment {
                 selDatePos = filterDateAdapter.getSelectedPos();
                 selDateState = filterDateAdapter.getSelectedState();
                 if (!filterDateAdapter.errorState) {
-                    fromDate = filterDateAdapter.getSelDateRange()[0];
+                    fromDate = (selDatePos == DateGridAdapter.ALL) ? null : filterDateAdapter.getSelDateRange()[0];
                     toDate = filterDateAdapter.getSelDateRange()[1];
                     selDatePos = filterDateAdapter.getSelectedPos();
                     selDateState = filterDateAdapter.getSelectedState();
@@ -308,6 +285,14 @@ public class HomeFragment extends Fragment {
         return selCatFilters;
     }
 
+    public void setExpenseData(LinearLayoutManager linearLayoutManager, ExpenseAdapter expAdapter) {
+        expenseList.setLayoutManager(linearLayoutManager);
+        expenseList.setAdapter(expAdapter);
+    }
+    public void setSummaryData(String summaryDateText, float summaryAmtText) {
+        summaryDate.setText(summaryDateText);
+        summaryAmt.setText(String.format(MainActivity.locale, "%.2f", summaryAmtText));
+    }
     public void setSelAccFilters(ArrayList<Account> selAccFilters) {
         this.selAccFilters = selAccFilters;
     }

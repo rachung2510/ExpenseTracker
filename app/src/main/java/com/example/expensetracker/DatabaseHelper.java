@@ -219,6 +219,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return expenses;
     }
+    public ArrayList<Expense> getExpensesByDateRangeAndCategory(Category cat, Calendar from, Calendar to) {
+        ArrayList<Expense> expenses = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " = " + cat.getId();
+        Cursor c = db.rawQuery(query, null);
+        if (c.getCount() != 0) {
+            while (c.moveToNext()) {
+                String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
+                Calendar cal = Calendar.getInstance();
+                try {
+                    cal.setTime(new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(datetime));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (cal.compareTo(from)>-1 && cal.compareTo(to)<1) {
+                    int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
+                    float amt = c.getFloat(c.getColumnIndexOrThrow(KEY_AMOUNT));
+                    String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
+                    Account acc = getAccount(c.getInt(c.getColumnIndexOrThrow(KEY_ACC_ID)));
+                    expenses.add(new Expense(id, amt, desc, acc, cat, datetime));
+                }
+            }
+        }
+        c.close();
+        return expenses;
+    }
     public ArrayList<Expense> getExpensesByFilters(ArrayList<Account> accs, ArrayList<Category> cats) {
         ArrayList<Expense> expenses = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -526,6 +552,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String query = "SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE;
         Cursor c = db.rawQuery(query, null);
         if (c.moveToFirst()) totalAmt = c.getFloat(0);
+        c.close();
         return totalAmt;
     }
     public float getTotalAmtByAccount(Account acc) {
@@ -552,7 +579,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String query = "SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " = " + cat.getId();
         Cursor c = db.rawQuery(query, null);
         if (c.moveToFirst()) count = c.getInt(0);
+        c.close();
         return count;
+    }
+    public int getNumExpensesByCategoryInRange(Category cat, Calendar from, Calendar to) {
+        ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
+        return expenses.size();
+    }
+    public float getTotalAmtByCategoryOnDate(Category cat, String datetime) {
+        float totalAmt = 0;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " = " + cat.getId() + " AND " + KEY_DATETIME + " LIKE '" + datetime + "%'";
+        Cursor c = db.rawQuery(query, null);
+        if (c.moveToFirst()) totalAmt = c.getFloat(0);
+        c.close();
+        return totalAmt;
+    }
+    public float getTotalAmtByCategoryInRange(Category cat, Calendar from, Calendar to) {
+        float totalAmt = 0;
+        ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
+        for (Expense e : expenses) {
+            totalAmt += e.getAmount();
+        }
+        return totalAmt;
     }
 
 }

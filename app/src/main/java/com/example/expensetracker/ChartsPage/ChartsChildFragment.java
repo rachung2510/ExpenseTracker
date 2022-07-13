@@ -3,6 +3,7 @@ package com.example.expensetracker.ChartsPage;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class ChartsChildFragment extends Fragment {
 
@@ -39,7 +41,7 @@ public class ChartsChildFragment extends Fragment {
 
     // Piechart components
     private PieChart pieChart;
-    private float totalAmt;
+    private float summaryAmt;
     ImageView pieIcon;
     TextView pieLabel, pieAmt;
     RecyclerView catDataGrid;
@@ -67,39 +69,50 @@ public class ChartsChildFragment extends Fragment {
                 catDataGrid = view.findViewById(R.id.catDataGrid);
 
                 pieIcon.setVisibility(ImageView.GONE);
-                totalAmt = ((MainActivity) getActivity()).db.getTotalAmt();
-                pieAmt.setText(String.format(MainActivity.locale, "%.2f", totalAmt));
-                loadPieChartData();
+                Calendar from = ((ChartsFragment) getParentFragment()).getDateRange()[0];
+                Calendar to = ((ChartsFragment) getParentFragment()).getDateRange()[1];
+                loadPieChartData(from, to);
                 setupPieChart();
                 configPieChartSelection();
                 configRecyclerView();
+
+                ((MainActivity) getActivity()).updateSummaryData(((MainActivity) getActivity()).getExpenseList());
                 break;
 
             case TYPE_GRAPH:
                 view = inflater.inflate(R.layout.fragment_charts_graph, container, false);
-                ((TextView) view.findViewById(R.id.textView)).setText("Graph segment");
+                ((TextView) view.findViewById(R.id.textView)).setText("Time segment not yet open.");
                 break;
 
             case TYPE_CALENDAR:
                 view = inflater.inflate(R.layout.fragment_charts_graph, container, false);
-                ((TextView) view.findViewById(R.id.textView)).setText("Calendar segment");
+                ((TextView) view.findViewById(R.id.textView)).setText("Calendar segment not yet open.");
                 break;
         }
         return view;
     }
 
-    /**
-     * LOCAL METHODS
-     */
+    public void setSummaryAmt(float totalAmt) {
+        summaryAmt = totalAmt;
+        pieAmt.setText(String.format(MainActivity.locale, "%.2f", summaryAmt));
+    }
+
     /**
      * Piechart functions
      */
-    public void loadPieChartData() {
+    public void loadPieChartData(Calendar from, Calendar to) {
         ArrayList<PieEntry> pieEntries = new ArrayList<>();
         ArrayList<Category> categories = ((MainActivity) getActivity()).db.getAllCategories();
         ArrayList<Integer> colors = new ArrayList<>();
         for (Category cat : categories) {
-            float amt = ((MainActivity) getActivity()).db.getTotalAmtByCategory(cat);
+            float amt;
+            if (from == null) {
+                amt = ((MainActivity) getActivity()).db.getTotalAmtByCategory(cat);
+                Log.e("[NULL] " + cat.getName(), String.format("%.2f", amt));
+            } else {
+                amt = ((MainActivity) getActivity()).db.getTotalAmtByCategoryInRange(cat, from, to);
+                Log.e(cat.getName(), String.format("%.2f", amt));
+            }
             if (amt != 0f) {
                 pieEntries.add(new PieEntry(amt, cat.getIcon()));
                 colors.add(ContextCompat.getColor(getActivity(), cat.getColorId()));
@@ -107,7 +120,7 @@ public class ChartsChildFragment extends Fragment {
             }
         }
 
-        PieDataSet dataSet = new PieDataSet(pieEntries, "aa");
+        PieDataSet dataSet = new PieDataSet(pieEntries, "data");
         dataSet.setColors(colors);
         dataSet.setSliceSpace(2f);
         dataSet.setValueTextColors(colors);
@@ -168,17 +181,24 @@ public class ChartsChildFragment extends Fragment {
             @Override
             public void onNothingSelected() {
                 pieIcon.setVisibility(ImageButton.GONE);
-                pieLabel.setText("EXPENSES");
+                pieLabel.setText(getString(R.string.exps_caps));
                 pieLabel.setTypeface(ResourcesCompat.getFont(getParentFragment().getActivity(), R.font.roboto_medium));
-                pieAmt.setText(String.format(MainActivity.locale,"%.2f",totalAmt));
+                pieAmt.setText(String.format(MainActivity.locale,"%.2f",summaryAmt));
             }
         });
         pieChart.invalidate();
     }
     public void configRecyclerView() {
-        catDataAdapter = new CatDataAdapter(getParentFragment().getActivity());
+        Calendar from = ((ChartsFragment) getParentFragment()).getDateRange()[0];
+        Calendar to = ((ChartsFragment) getParentFragment()).getDateRange()[1];
+        catDataAdapter = new CatDataAdapter(getParentFragment().getActivity(), from, to);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getParentFragment().getActivity(), 2, GridLayoutManager.VERTICAL, false);
         catDataGrid.setLayoutManager(gridLayoutManager);
+        catDataGrid.setAdapter(catDataAdapter);
+    }
+    public void updateDateFilters(Calendar from, Calendar to) {
+        loadPieChartData(from, to);
+        catDataAdapter = new CatDataAdapter(getParentFragment().getActivity(), from, to);
         catDataGrid.setAdapter(catDataAdapter);
     }
 

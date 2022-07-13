@@ -18,25 +18,36 @@ import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final ArrayList<Category> categories;
     private final Context context;
     private final LayoutInflater inflater;
+    private final DatabaseHelper db;
+    private final Calendar fromDate, toDate;
 
-    public CatDataAdapter(Context context) {
+    public CatDataAdapter(Context context, Calendar fromDate, Calendar toDate) {
         this.context = context;
         inflater = LayoutInflater.from(context);
-        DatabaseHelper db = ((MainActivity) context).db;
+        this.db = ((MainActivity) context).db;
+        this.fromDate = fromDate;
+        this.toDate = toDate;
         categories = db.getAllCategories();
-        categories.sort((cat1, cat2) -> {
-            return Float.compare(db.getTotalAmtByCategory(cat2), db.getTotalAmtByCategory(cat1)); // descending order
-        });
+        if (fromDate == null)
+            categories.sort((cat1, cat2) -> {
+                return Float.compare(db.getTotalAmtByCategory(cat2), db.getTotalAmtByCategory(cat1)); // descending order
+            });
+        else
+            categories.sort((cat1, cat2) -> {
+                return Float.compare(db.getTotalAmtByCategoryInRange(cat2, fromDate, toDate), db.getTotalAmtByCategoryInRange(cat1, fromDate, toDate)); // descending order
+            });
+
     }
 
     /**
-     * OVERRIDEN METHODS
+     * INITIALISE ADAPTER
      */
     @NonNull
     @Override
@@ -59,10 +70,9 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     /**
-     * VIEWHOLDER CLASS AND METHODS
+     * VIEWHOLDER CLASS
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
-
         View border;
         TextView catDataLabel, catDataNumExpenses, catDataAmt;
         ImageButton catDataIconBg;
@@ -81,13 +91,20 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void populateCategories(ViewHolder holder, Category cat, int position) {
         holder.catDataLabel.setText(cat.getName());
         holder.catDataIcon.setForeground(cat.getIcon());
-        holder.catDataAmt.setText(String.format(MainActivity.locale,"%.2f", ((MainActivity) context).db.getTotalAmtByCategory(cat)));
-        holder.catDataNumExpenses.setText(String.valueOf(((MainActivity) context).db.getNumExpensesByCategory(cat)));
+        float totalAmt;
+        if (fromDate == null) {
+            totalAmt = ((MainActivity) context).db.getTotalAmtByCategory(cat);
+            holder.catDataNumExpenses.setText(String.valueOf(((MainActivity) context).db.getNumExpensesByCategory(cat)));
+        } else {
+            totalAmt = ((MainActivity) context).db.getTotalAmtByCategoryInRange(cat, fromDate, toDate);
+            holder.catDataNumExpenses.setText(String.valueOf(((MainActivity) context).db.getNumExpensesByCategoryInRange(cat, fromDate, toDate)));
+        }
+        holder.catDataAmt.setText(String.format(MainActivity.locale, "%.2f", totalAmt));
 
         holder.border.setBackgroundColor(ContextCompat.getColor(context, cat.getColorId()));
         holder.catDataIconBg.setBackgroundTintList(MainActivity.getColorStateListFromId(context, cat.getColorId()));
 
-        if (((MainActivity) context).db.getTotalAmtByCategory(cat) == 0f) {
+        if (totalAmt == 0f) {
             holder.itemView.setAlpha(0.3f);
         }
     }

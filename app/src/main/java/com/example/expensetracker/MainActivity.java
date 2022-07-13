@@ -7,7 +7,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputFilter;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -32,6 +31,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
@@ -255,8 +255,8 @@ public class MainActivity extends AppCompatActivity {
     // Update
     public void updateHomeData() {
         ArrayList<Expense> expenses = getExpenseList();
-        getExpenseData(expenses);
-        getSummaryData(expenses);
+        updateExpenseData(expenses);
+        updateSummaryData(expenses);
     }
     public void updateAccFilters(ArrayList<Account> filters) {
         if (getFragment() instanceof HomeFragment) {
@@ -276,10 +276,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Expenses
-    public void getExpenseData() {
-        getExpenseData(getExpenseList());
+    public void updateExpenseData() {
+        updateExpenseData(getExpenseList());
     }
-    public void getExpenseData(ArrayList<Expense> expenses) {
+    public void updateExpenseData(ArrayList<Expense> expenses) {
         expenses = insertExpDateHeaders(sortExpenses(expenses));
         ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
@@ -301,6 +301,15 @@ public class MainActivity extends AppCompatActivity {
             db.getExpensesByFilters(fragment.getSelAccFilters(), fragment.getSelCatFilters());
             ArrayList<Expense> expensesByFilter = db.getExpensesByFilters(fragment.getSelAccFilters(), fragment.getSelCatFilters());
             expensesByDate.retainAll(expensesByFilter);
+        } else if (getFragment() instanceof ChartsFragment) {
+            ChartsFragment fragment = (ChartsFragment) getFragment();
+            Calendar from = fragment.getDateRange()[0];
+            Calendar to = fragment.getDateRange()[1];
+            if (fragment.getSelDateState() == DateGridAdapter.ALL) {
+                expensesByDate =  db.getAllExpenses();
+            } else {
+                expensesByDate = db.getExpensesByDateRange(from, to);
+            }
         }
         return expensesByDate;
     }
@@ -324,48 +333,61 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Summary
-    public void getSummaryData(ArrayList<Expense> expenses) {
+    public void updateSummaryData(ArrayList<Expense> expenses) {
+        Calendar from, to;
+        int state;
         if (getFragment() instanceof HomeFragment) {
             HomeFragment fragment = (HomeFragment) getFragment();
-            Calendar from = fragment.getDateRange()[0];
-            Calendar to = fragment.getDateRange()[1];
-            int state = fragment.getSelDateState();
-            String summaryDateText;
-            float totalAmt = 0;
+            from = fragment.getDateRange()[0];
+            to = fragment.getDateRange()[1];
+            state = fragment.getSelDateState();
+        } else if (getFragment() instanceof ChartsFragment) {
+            ChartsFragment fragment = (ChartsFragment) getFragment();
+            from = fragment.getDateRange()[0];
+            to = fragment.getDateRange()[1];
+            state = fragment.getSelDateState();
+        } else {
+            return;
+        }
 
-            if (state == DateGridAdapter.ALL) {
-                summaryDateText = "All time";
-            } else {
-                // set date
-                Calendar cal = Calendar.getInstance();
-                cal.set(to.get(Calendar.YEAR), to.get(Calendar.MONTH), to.get(Calendar. DAY_OF_MONTH), 0, 0, 0);
-                SimpleDateFormat sdf;
-                switch (state) {
-                    case DateGridAdapter.MONTH:
-                        sdf = new SimpleDateFormat("MMM yyyy", locale);
-                        break;
-                    case DateGridAdapter.YEAR:
-                        sdf = new SimpleDateFormat("yyyy", locale);
-                        break;
-                    default:
-                        sdf = new SimpleDateFormat("dd MMM yyyy", locale);
-                }
-                if (sdf.format(from.getTime()).equals(sdf.format(cal.getTime()))) {
-                    int relativeDate = getRelativeDate(from);
-                    if (state == DateGridAdapter.DAY || state == DateGridAdapter.SELECT_SINGLE) {
-                        summaryDateText = (relativeDate == Constants.TODAY) ? "Today" : (
-                                (relativeDate == Constants.YESTERDAY) ? "Yesterday" : new SimpleDateFormat("EEE", locale).format(from.getTime()));
-                        summaryDateText += new SimpleDateFormat(", dd MMM yyyy", locale).format(from.getTime());
-                    } else if (state == DateGridAdapter.MONTH)
-                        summaryDateText = new SimpleDateFormat("MMMM yyyy", locale).format(from.getTime());
-                    else
-                        summaryDateText = sdf.format(from.getTime());
-                } else {
-                    summaryDateText = sdf.format(from.getTime()) + " - " + sdf.format(to.getTime());
-                }
+        String summaryDateText;
+        float totalAmt = 0;
+        if (state == DateGridAdapter.ALL) {
+            summaryDateText = "All time";
+        } else {
+            // set date
+            Calendar cal = Calendar.getInstance();
+            cal.set(to.get(Calendar.YEAR), to.get(Calendar.MONTH), to.get(Calendar. DAY_OF_MONTH), 0, 0, 0);
+            SimpleDateFormat sdf;
+            switch (state) {
+                case DateGridAdapter.MONTH:
+                    sdf = new SimpleDateFormat("MMM yyyy", locale);
+                    break;
+                case DateGridAdapter.YEAR:
+                    sdf = new SimpleDateFormat("yyyy", locale);
+                    break;
+                default:
+                    sdf = new SimpleDateFormat("dd MMM yyyy", locale);
             }
-            for (Expense exp : expenses) totalAmt += exp.getAmount();
-            fragment.setSummaryData(summaryDateText.toUpperCase(), totalAmt);
+            if (sdf.format(from.getTime()).equals(sdf.format(cal.getTime()))) {
+                int relativeDate = getRelativeDate(from);
+                if (state == DateGridAdapter.DAY || state == DateGridAdapter.SELECT_SINGLE) {
+                    summaryDateText = (relativeDate == Constants.TODAY) ? "Today" : (
+                            (relativeDate == Constants.YESTERDAY) ? "Yesterday" : new SimpleDateFormat("EEE", locale).format(from.getTime()));
+                    summaryDateText += new SimpleDateFormat(", dd MMM yyyy", locale).format(from.getTime());
+                } else if (state == DateGridAdapter.MONTH)
+                    summaryDateText = new SimpleDateFormat("MMMM yyyy", locale).format(from.getTime());
+                else
+                    summaryDateText = sdf.format(from.getTime());
+            } else {
+                summaryDateText = sdf.format(from.getTime()) + " - " + sdf.format(to.getTime());
+            }
+        }
+        for (Expense exp : expenses) totalAmt += exp.getAmount();
+        if (getFragment() instanceof HomeFragment) {
+            ((HomeFragment) getFragment()).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
+        } else if (getFragment() instanceof ChartsFragment) {
+            ((ChartsFragment) getFragment()).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         }
     }
 
