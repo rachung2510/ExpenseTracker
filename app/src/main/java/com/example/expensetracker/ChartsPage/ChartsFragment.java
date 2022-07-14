@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.expensetracker.Constants;
+import com.example.expensetracker.Currency;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;

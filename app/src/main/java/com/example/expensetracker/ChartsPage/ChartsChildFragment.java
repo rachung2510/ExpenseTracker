@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Category;
+import com.example.expensetracker.Currency;
 import com.example.expensetracker.HelperClasses.CustomPieChartRenderer;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
@@ -43,7 +44,7 @@ public class ChartsChildFragment extends Fragment {
     private PieChart pieChart;
     private float summaryAmt;
     ImageView pieIcon;
-    TextView pieLabel, pieAmt;
+    TextView pieLabel, pieAmt, summaryCurr;
     RecyclerView catDataGrid;
     CatDataAdapter catDataAdapter;
     ArrayList<Category> pieCategories = new ArrayList<>();
@@ -67,6 +68,8 @@ public class ChartsChildFragment extends Fragment {
                 pieLabel = view.findViewById(R.id.pieLabel);
                 pieAmt = view.findViewById(R.id.pieAmt);
                 catDataGrid = view.findViewById(R.id.catDataGrid);
+                summaryCurr = view.findViewById(R.id.summaryCurrency);
+                summaryCurr.setText((new Currency()).getSymbol());
 
                 pieIcon.setVisibility(ImageView.GONE);
                 Calendar from = ((ChartsFragment) getParentFragment()).getDateRange()[0];

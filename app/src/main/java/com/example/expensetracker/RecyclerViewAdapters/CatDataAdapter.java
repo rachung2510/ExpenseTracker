@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Category;
+import com.example.expensetracker.Currency;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
@@ -74,7 +75,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         View border;
-        TextView catDataLabel, catDataNumExpenses, catDataAmt;
+        TextView catDataLabel, catDataNumExpenses, catDataAmt, catDataCurr;
         ImageButton catDataIconBg;
         ImageView catDataIcon;
 
@@ -84,6 +85,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             catDataLabel = itemView.findViewById(R.id.catDataLabel);
             catDataNumExpenses = itemView.findViewById(R.id.catDataNumExpenses);
             catDataAmt = itemView.findViewById(R.id.catDataAmt);
+            catDataCurr = itemView.findViewById(R.id.catDataCurr);
             catDataIconBg = itemView.findViewById(R.id.catDataIconBg);
             catDataIcon = itemView.findViewById(R.id.catDataIcon);
         }
@@ -91,6 +93,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void populateCategories(ViewHolder holder, Category cat, int position) {
         holder.catDataLabel.setText(cat.getName());
         holder.catDataIcon.setForeground(cat.getIcon());
+        holder.catDataCurr.setText((new Currency()).getSymbol());
         float totalAmt;
         if (fromDate == null) {
             totalAmt = ((MainActivity) context).db.getTotalAmtByCategory(cat);
