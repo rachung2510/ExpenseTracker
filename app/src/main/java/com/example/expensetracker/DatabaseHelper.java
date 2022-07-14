@@ -26,6 +26,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String TABLE_EXPENSE = "expenses";
     public static final String TABLE_CATEGORY = "categories";
     public static final String TABLE_ACCOUNT = "accounts";
+    public static final String TABLE_CURRENCY = "currencies";
 
     // Common column names
     private static final String KEY_ID = "id";
@@ -37,10 +38,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_ACC_ID = "account_id";
     private static final String KEY_DATETIME = "datetime";
 
-    // CATEGORIES & ACCOUNTS Tables - column names
+    // CATEGORIES & ACCOUNTS tables - column names
     private static final String KEY_NAME = "name";
     private static final String KEY_ICON = "icon";
     private static final String KEY_COLOR = "color";
+    private static final String KEY_CURRENCY = "currency";
 
     // Table Create Statements
     // EXPENSES table create statement
@@ -69,7 +71,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + KEY_NAME + " TEXT UNIQUE,"
                     + KEY_ICON + " TEXT,"
-                    + KEY_COLOR + " TEXT"
+                    + KEY_COLOR + " TEXT, "
+                    + KEY_CURRENCY + " TEXT"
+                    + ")";
+
+    // CURRENCY table create statement
+    private static final String CREATE_TABLE_CURRENCY =
+            "CREATE TABLE " + TABLE_CURRENCY + "("
+                    + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + KEY_NAME + " TEXT UNIQUE NOT NULL,"
+                    + KEY_DESC + " TEXT NOT NULL,"
+                    + KEY_CURRENCY + " TEXT NOT NULL"
                     + ")";
 
     /**
@@ -89,6 +101,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_EXPENSE);
         db.execSQL(CREATE_TABLE_CATEGORY);
         db.execSQL(CREATE_TABLE_ACCOUNT);
+        db.execSQL(CREATE_TABLE_CURRENCY);
     }
 
     @Override
@@ -97,6 +110,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXPENSE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORY);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ACCOUNT);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CURRENCY);
 
         // create new tables
         onCreate(db);
@@ -136,7 +150,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(table_name, null, values);
     }
     public void createAccount(Account account, boolean notify) {
-        long res = createSection(account, TABLE_ACCOUNT);
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, account.getName());
+        values.put(KEY_ICON, account.getIconName());
+        values.put(KEY_COLOR, account.getColorName());
+        values.put(KEY_CURRENCY, account.getCurrencyName());
+        long res = db.insert(TABLE_ACCOUNT, null, values);
         if (notify) {
             String toast = (res == -1) ? "Error: Failed to create account " : "Account created: ";
             Toast.makeText(context, toast + account.getName(), Toast.LENGTH_SHORT).show();
@@ -148,6 +168,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String toast = (res == -1) ? "Error: Failed to create category " : "Category created: ";
             Toast.makeText(context, toast + category.getName(), Toast.LENGTH_SHORT).show();
         }
+    }
+    public void createCurrency(String name, String desc, String symbol) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, name);
+        values.put(KEY_DESC, desc);
+        values.put(KEY_CURRENCY, symbol);
+        db.insert(TABLE_CURRENCY, null, values);
     }
 
     /**
@@ -287,10 +315,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Sections
-    public ArrayList<Section> getAllSections(String table_name) {
-        ArrayList<Section> sections = new ArrayList<>();
+    public ArrayList<Account> getAllAccounts() {
+        ArrayList<Account> accounts = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + table_name;
+        String query = "SELECT * FROM " + TABLE_ACCOUNT;
         Cursor c = db.rawQuery(query, null);
         if (c.getCount() != 0) {
             while (c.moveToNext()) {
@@ -298,27 +326,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
                 String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
                 String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
-                sections.add(new Section(context, id, name, icon, color));
+                Currency currency = MainActivity.getCurrencyFromName(c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY)));
+                accounts.add(new Account(context, id, name, icon, color, currency));
             }
         }
         c.close();
-        return sections;
-    }
-    public ArrayList<Account> getAllAccounts() {
-        ArrayList<Section> sections = getAllSections(TABLE_ACCOUNT);
-        ArrayList<Account> accounts = new ArrayList<>();
-        for (Section section : sections) {
-            accounts.add(new Account(section.context, section.id, section.name, section.icon, section.color));
-        }
         return accounts;
     }
     public ArrayList<Category> getAllCategories() {
-        ArrayList<Section> sections = getAllSections(TABLE_CATEGORY);
         ArrayList<Category> categories = new ArrayList<>();
-        for (Section section : sections) {
-            categories.add(new Category(section.context, section.id, section.name, section.icon, section.color));
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_CATEGORY;
+        Cursor c = db.rawQuery(query, null);
+        if (c.getCount() != 0) {
+            while (c.moveToNext()) {
+                int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
+                String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
+                String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
+                String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
+                categories.add(new Category(context, id, name, icon, color));
+            }
         }
+        c.close();
         return categories;
+    }
+    public Account getAccountFromCursor(Cursor c) {
+        if (c.getCount() == 0) return null;
+        int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
+        String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
+        String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
+        String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
+        Currency currency = MainActivity.getCurrencyFromName(c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY)));
+        return new Account(context, id, name, icon, color, currency);
+    }
+    public Category getCategoryFromCursor(Cursor c) {
+        if (c.getCount() == 0) return null;
+        int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
+        String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
+        String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
+        String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
+        return new Category(context, id, name, icon, color);
     }
 
     public Section getSection(String name, String table_name) {
@@ -357,12 +404,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return section;
     }
     public Account getAccount(String name) {
-        Section section = getSection(name, TABLE_ACCOUNT);
-        return new Account(context, section.id, section.name, section.icon, section.color);
+        Account account = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_ACCOUNT + " WHERE "  + KEY_NAME + " = '" + name + "'";
+        Cursor c = db.rawQuery(query, null);
+        if (c.getCount() == 0) {
+            Toast.makeText(context, "Account not found. Check name again", Toast.LENGTH_SHORT).show();
+        } else {
+            c.moveToFirst();
+            account = getAccountFromCursor(c);
+        }
+        c.close();
+        return account;
     }
     public Account getAccount(int id) {
-        Section section = getSection(id, TABLE_ACCOUNT);
-        return new Account(context, section.id, section.name, section.icon, section.color);
+        Account account = null;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_ACCOUNT + " WHERE " + KEY_ID + " = " + id;
+        Cursor c = db.rawQuery(query, null);
+        if (c.getCount() == 0) {
+            Toast.makeText(context, "Account ID: " + id + " not found", Toast.LENGTH_SHORT).show();
+        } else {
+            c.moveToFirst();
+            account = getAccountFromCursor(c);
+        }
+        c.close();
+        return account;
     }
     public Category getCategory(String name) {
         Section section = getSection(name, TABLE_CATEGORY);
@@ -371,6 +438,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public Category getCategory(int id) {
         Section section = getSection(id, TABLE_CATEGORY);
         return new Category(context, section.id, section.name, section.icon, section.color);
+    }
+
+    // Currencies
+    public ArrayList<Currency> getAllCurrencies() {
+        ArrayList<Currency> currencies = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_CURRENCY;
+        Cursor c = db.rawQuery(query, null);
+        if (c.getCount() != 0) {
+            while (c.moveToNext()) {
+                String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
+                String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
+                String symbol = c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY));
+                currencies.add(new Currency(name, desc, symbol));
+            }
+        }
+        c.close();
+        return currencies;
     }
 
     /**
@@ -387,22 +472,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.update(TABLE_EXPENSE, values, KEY_ID + " = ?",
                 new String[] { String.valueOf(expense.getId()) });
     }
-    public <T extends Section> int updateSection(T section, String table_name) {
+    public int updateAccount(Account account) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(KEY_NAME, section.getName());
-        values.put(KEY_ICON, section.getIconName());
-        values.put(KEY_COLOR, section.getColorName());
-
-        // updating row
-        return db.update(table_name, values, KEY_ID + " = ?",
-                new String[] { String.valueOf(section.getId()) });
-    }
-    public int updateAccount(Account account) {
-        return updateSection(account, TABLE_ACCOUNT);
+        values.put(KEY_NAME, account.getName());
+        values.put(KEY_ICON, account.getIconName());
+        values.put(KEY_COLOR, account.getColorName());
+        values.put(KEY_CURRENCY, account.getCurrencyName());
+        return db.update(TABLE_ACCOUNT, values, KEY_ID + " = ?",
+                new String[] { String.valueOf(account.getId()) });
     }
     public int updateCategory(Category category) {
-        return updateSection(category, TABLE_CATEGORY);
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, category.getName());
+        values.put(KEY_ICON, category.getIconName());
+        values.put(KEY_COLOR, category.getColorName());
+        return db.update(TABLE_CATEGORY, values, KEY_ID + " = ?",
+                new String[] { String.valueOf(category.getId()) });
     }
 
     public int moveExpenses(Section section, String key, String section_name) {

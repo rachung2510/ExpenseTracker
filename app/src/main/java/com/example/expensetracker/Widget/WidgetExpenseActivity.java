@@ -139,24 +139,24 @@ public class WidgetExpenseActivity extends AppCompatActivity {
         expDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         // get components by id
-        expAmt = expView.findViewById(R.id.newEntry_amt);
+        expAmt = expView.findViewById(R.id.newExpAmt);
         expAmt.setFilters(new InputFilter[] { new MoneyValueFilter() });
         expAmt.requestFocus(); // focus on amt and open keyboard
         expAmt.postDelayed(() -> {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.showSoftInput(expAmt, 0);
         }, 270);
-        expDesc = expView.findViewById(R.id.newEntry_desc);
-        expAccName = expView.findViewById(R.id.newEntry_accName); // name
-        expCatName = expView.findViewById(R.id.newEntry_catName);
-        expAccIcon = expView.findViewById(R.id.newEntry_accIcon); // icon
-        expCatIcon = expView.findViewById(R.id.newEntry_catIcon);
-        expAcc = expView.findViewById(R.id.chooseAcc); // color
-        expCat = expView.findViewById(R.id.chooseCat);
+        expDesc = expView.findViewById(R.id.newExpDesc);
+        expAccName = expView.findViewById(R.id.newExpAccName); // name
+        expCatName = expView.findViewById(R.id.newExpCatName);
+        expAccIcon = expView.findViewById(R.id.newExpAccIcon); // icon
+        expCatIcon = expView.findViewById(R.id.newExpCatIcon);
+        expAcc = expView.findViewById(R.id.newExpAccBox); // color
+        expCat = expView.findViewById(R.id.newExpCatBox);
         expDate = expView.findViewById(R.id.expDate);
-        expDelBtn = expView.findViewById(R.id.expDelBtn);
-        expDateBtn = expView.findViewById(R.id.expDateBtn);
-        expSave =  expView.findViewById(R.id.newEntry_save);
+        expDelBtn = expView.findViewById(R.id.newExpDel);
+        expDateBtn = expView.findViewById(R.id.newExpDate);
+        expSave =  expView.findViewById(R.id.newExpSave);
         expDesc.setOnFocusChangeListener((view, b) -> {
             if (b) expDesc.setBackground(MainActivity.getIconFromId(this, R.color.white));
             else expDesc.setBackground(new ColorDrawable(android.R.attr.selectableItemBackground));

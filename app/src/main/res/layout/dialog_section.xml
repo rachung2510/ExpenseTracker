@@ -18,7 +18,7 @@
             android:layout_height="wrap_content">
 
             <LinearLayout
-                android:id="@+id/catBanner"
+                android:id="@+id/sectionBanner"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
@@ -37,7 +37,7 @@
                     android:textColor="#fff" />
 
                 <EditText
-                    android:id="@+id/catName"
+                    android:id="@+id/sectionName"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_name"
@@ -57,7 +57,7 @@
                 android:gravity="end">
 
                 <ImageButton
-                    android:id="@+id/catIcon"
+                    android:id="@+id/sectionIcon"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:layout_marginEnd="20dp"
@@ -72,6 +72,38 @@
             </LinearLayout>
 
         </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/sectionCurrencyRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginStart="-1dp"
+            android:layout_marginEnd="-1dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:background="@drawable/shape_rectangle_border"
+            android:foreground="?selectableItemBackground"
+            android:clickable="true">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingStart="15dp"
+                android:textColor="@color/generic_icon_gray"
+                android:text="Currency:"/>
+
+            <TextView
+                android:id="@+id/sectionCurrency"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="20dp"
+                android:textColor="@color/generic_icon_gray"
+                android:textSize="16sp"
+                android:text="@string/default_currency"/>
+
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/expEditOptions"

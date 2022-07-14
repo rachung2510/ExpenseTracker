@@ -64,7 +64,7 @@ public class CategoryAdapter extends SectionAdapter<Category> {
      * FUNCTIONS
      */
     public void addNewCat() {
-        sections.add(new Category());
+        sections.add(new Category(context));
         notifyItemInserted(sections.size()-1);
     }
 

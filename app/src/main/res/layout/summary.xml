@@ -92,9 +92,10 @@
                     app:layout_constraintStart_toStartOf="parent">
 
                     <TextView
+                        android:id="@+id/summaryCurrency"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/currency"
+                        android:text="@string/default_currency"
                         android:fontFamily="sans-serif"
                         android:textFontWeight="600"
                         android:textColor="#dcdcdc"

@@ -94,13 +94,14 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
      */
     // ViewHolder class for normal expense entry
     public class ItemViewHolder extends RecyclerView.ViewHolder {
-        TextView expAmt, expDesc, expAccName, expCatName;
+        TextView expAmt, expCurr, expDesc, expAccName, expCatName;
         ImageButton expCatIcon;
         ConstraintLayout expRow;
 
         public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
             expAmt = itemView.findViewById(R.id.expAmt);
+            expCurr = itemView.findViewById(R.id.expCurrency);
             expDesc = itemView.findViewById(R.id.expDesc);
             expAccName = itemView.findViewById(R.id.expAccName);
             expCatName = itemView.findViewById(R.id.expCatName);
@@ -123,10 +124,12 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     }
     public void populateItemRows(ItemViewHolder holder, int position) {
-        Category cat = expenses.get(position).getCategory();
-        holder.expAmt.setText(String.format(MainActivity.locale, "%.2f", expenses.get(position).getAmount()));
-        holder.expDesc.setText(expenses.get(position).getDescription());
-        holder.expAccName.setText(expenses.get(position).getAccount().getName());
+        Expense exp = expenses.get(position);
+        Category cat = exp.getCategory();
+        holder.expAmt.setText(String.format(MainActivity.locale, "%.2f", exp.getAmount()));
+        holder.expCurr.setText(exp.getAccount().getCurrencySymbol());
+        holder.expDesc.setText(exp.getDescription());
+        holder.expAccName.setText(exp.getAccount().getName());
         holder.expCatName.setText(cat.getName());
         holder.expCatIcon.setForeground(cat.getIcon());
         holder.expCatIcon.setBackgroundTintList(MainActivity.getColorStateListFromName(context, cat.getColorName()));

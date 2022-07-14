@@ -57,7 +57,7 @@ public class AccountAdapter extends SectionAdapter<Account> {
      * FUNCTIONS
      */
     public void addNewAcc() {
-        sections.add(new Account());
+        sections.add(new Account(context));
         notifyItemInserted(sections.size()-1);
     }
 

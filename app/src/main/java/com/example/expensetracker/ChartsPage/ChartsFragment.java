@@ -114,7 +114,7 @@ public class ChartsFragment extends Fragment {
         }
         summaryDate.setOnClickListener(view -> {
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity(), R.style.WrapContentDialog);
-            final View filterDateView = getLayoutInflater().inflate(R.layout.dialog_date, null);
+            final View filterDateView = getLayoutInflater().inflate(R.layout.dialog_date_grid, null);
             RecyclerView dateGrid = filterDateView.findViewById(R.id.dateGrid);
 
             // set RecyclerView behaviour and adapter

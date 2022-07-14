@@ -180,7 +180,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
     // ViewHolder class for manage section list (accounts)
     public class ListViewHolder extends RecyclerView.ViewHolder {
-        TextView listItemName, listItemAmt;
+        TextView listItemName, listItemAmt, listItemCurr;
         ImageButton listItemIcon;
         CardView listItemRow;
         LinearLayout listItemTotal;
@@ -194,6 +194,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             listItemIcon = itemView.findViewById(R.id.listItemIcon);
             listItemRow = itemView.findViewById(R.id.listItemRow);
             listItemTotal = itemView.findViewById(R.id.listItemTotal);
+            listItemCurr = itemView.findViewById(R.id.listItemCurrency);
             separator = itemView.findViewById(R.id.separator);
         }
 
@@ -240,6 +241,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             holder.separator.setVisibility(View.GONE);
         } else {
             holder.listItemName.setText(section.getName());
+            holder.listItemCurr.setText(((Account) section).getCurrencySymbol());
             holder.listItemAmt.setText(String.format(MainActivity.locale, "%.2f", ((MainActivity) context).db.getTotalAmtByAccount((Account) section)));
             holder.listItemIcon.setForeground(section.getIcon());
             holder.listItemIcon.setForegroundTintList(MainActivity.getColorStateListFromId(context, R.color.white));

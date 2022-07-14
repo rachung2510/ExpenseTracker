@@ -18,8 +18,8 @@ public class Category extends Section {
     }
 
     // NULL category
-    public Category() {
-        super();
+    public Category(Context context) {
+        super(context);
     }
 
     /**

@@ -37,6 +37,7 @@ import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
+import com.example.expensetracker.RecyclerViewAdapters.CurrencyAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.ExpenseAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
@@ -52,6 +53,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 
+import kotlin.Triple;
+
 public class MainActivity extends AppCompatActivity {
 
     public static String TAG = "MainActivity";
@@ -63,10 +66,10 @@ public class MainActivity extends AppCompatActivity {
 
     // Dialog components
     private AlertDialog.Builder dialogBuilder;
-    private EditText expAmt, expDesc, catName;
-    private TextView expAccName, expCatName, expDate, catTypeView;
-    private ImageButton expAccIcon, expCatIcon, catIcon;
-    private LinearLayout expAcc, expCat, expDelBtn, expDateBtn, expSave, catBanner, catDelBtn, catSaveBtn;
+    private EditText expAmt, expDesc, sectionName;
+    private TextView expAccName, expCatName, expDate, sectionType, expCurr, sectionCurr;
+    private ImageButton expAccIcon, expCatIcon, sectionIcon;
+    private LinearLayout expAccBox, expCatBox, expDelBtn, expDateBtn, expSaveBtn, sectionBanner, sectionCurrRow, sectionDelBtn, sectionSaveBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
             getIconMap();
         if (colorMap.isEmpty())
             getColorMap();
+        if (db.empty(DatabaseHelper.TABLE_CURRENCY))
+            initialiseCurrencies();
 
         // Initialize the bottom navigation view
         BottomNavigationView navView = findViewById(R.id.nav_view);
@@ -125,6 +130,12 @@ public class MainActivity extends AppCompatActivity {
             colorMap.put(getColorIdFromName(this, name), name);
         }
     }
+    public void initialiseCurrencies() {
+        for (int i = 0;i < Constants.currencies.size();i++) {
+            Triple<String, String, String> triple = Constants.currencies.get(i);
+            db.createCurrency(triple.getFirst(), triple.getThird(), triple.getSecond());
+        }
+    }
 
     /**
      * DIALOG TEMPLATES
@@ -145,28 +156,29 @@ public class MainActivity extends AppCompatActivity {
         expDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         // get components by id
-        expAmt = expView.findViewById(R.id.newEntry_amt);
+        expAmt = expView.findViewById(R.id.newExpAmt);
         expAmt.setFilters(new InputFilter[] { new MoneyValueFilter() });
         expAmt.requestFocus(); // focus on amt and open keyboard
         expAmt.postDelayed(() -> {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.showSoftInput(expAmt, 0);
         }, 270);
-        expDesc = expView.findViewById(R.id.newEntry_desc);
-        expAccName = expView.findViewById(R.id.newEntry_accName); // name
-        expCatName = expView.findViewById(R.id.newEntry_catName);
-        expAccIcon = expView.findViewById(R.id.newEntry_accIcon); // icon
-        expCatIcon = expView.findViewById(R.id.newEntry_catIcon);
-        expAcc = expView.findViewById(R.id.chooseAcc); // color
-        expCat = expView.findViewById(R.id.chooseCat);
+        expDesc = expView.findViewById(R.id.newExpDesc);
+        expAccName = expView.findViewById(R.id.newExpAccName); // name
+        expCatName = expView.findViewById(R.id.newExpCatName);
+        expAccIcon = expView.findViewById(R.id.newExpAccIcon); // icon
+        expCatIcon = expView.findViewById(R.id.newExpCatIcon);
+        expAccBox = expView.findViewById(R.id.newExpAccBox); // color
+        expCatBox = expView.findViewById(R.id.newExpCatBox);
         expDate = expView.findViewById(R.id.expDate);
-        expDelBtn = expView.findViewById(R.id.expDelBtn);
-        expDateBtn = expView.findViewById(R.id.expDateBtn);
-        expSave =  expView.findViewById(R.id.newEntry_save);
+        expDelBtn = expView.findViewById(R.id.newExpDel);
+        expDateBtn = expView.findViewById(R.id.newExpDate);
+        expSaveBtn =  expView.findViewById(R.id.newExpSave);
         expDesc.setOnFocusChangeListener((view, b) -> {
             if (b) expDesc.setBackground(getIconFromId(this, R.color.white));
             else expDesc.setBackground(new ColorDrawable(android.R.attr.selectableItemBackground));
         });
+        expCurr = expView.findViewById(R.id.newExpCurrency);
 
         return expDialog;
     }
@@ -189,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
         title.setText(R.string.cat_caps);
         TextView expCatName = this.expCatName;
         ImageButton expCatIcon = this.expCatIcon;
-        LinearLayout expCatItem = expCat;
+        LinearLayout expCatItem = expCatBox;
         if (adapter.getSelectedPos().isEmpty()) {
             if (exp.getId() == -1) {
                 adapter.setSelected(0);
@@ -219,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
         title.setText(R.string.acc_caps);
         TextView expAccName = this.expAccName;
         ImageButton expAccIcon = this.expAccIcon;
-        LinearLayout expAccItem = expAcc;
+        LinearLayout expAccItem = expAccBox;
         if (adapter.getSelectedPos().isEmpty()) {
             if (exp.getId() == -1) {
                 adapter.setSelected(0);
@@ -235,6 +247,7 @@ public class MainActivity extends AppCompatActivity {
             expAccIcon.setForeground(selectedAcc.getIcon()); // set icon
             expAccIcon.setForegroundTintList(getColorStateListFromName(MainActivity.this, selectedAcc.getColorName())); // set icon color
             expAccItem.setBackgroundColor(Color.parseColor("#" + selectedAcc.getColorHex())); // set bg color
+            expCurr.setText(selectedAcc.getCurrencySymbol());
         });
 
         dialog.show();
@@ -250,12 +263,14 @@ public class MainActivity extends AppCompatActivity {
         sectionDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         // get components by id
-        catTypeView = editCatView.findViewById(R.id.catType);
-        catName = editCatView.findViewById(R.id.catName);
-        catIcon = editCatView.findViewById(R.id.catIcon);
-        catBanner = editCatView.findViewById(R.id.catBanner);
-        catDelBtn = editCatView.findViewById(R.id.catDelBtn);
-        catSaveBtn = editCatView.findViewById(R.id.catSaveBtn);
+        sectionType = editCatView.findViewById(R.id.catType);
+        sectionName = editCatView.findViewById(R.id.sectionName);
+        sectionIcon = editCatView.findViewById(R.id.sectionIcon);
+        sectionBanner = editCatView.findViewById(R.id.sectionBanner);
+        sectionCurr = editCatView.findViewById(R.id.sectionCurrency);
+        sectionCurrRow = editCatView.findViewById(R.id.sectionCurrencyRow);
+        sectionDelBtn = editCatView.findViewById(R.id.catDelBtn);
+        sectionSaveBtn = editCatView.findViewById(R.id.catSaveBtn);
 
         return sectionDialog;
     }
@@ -287,9 +302,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Expenses
-    public void updateExpenseData() {
-        updateExpenseData(getExpenseList());
-    }
     public void updateExpenseData(ArrayList<Expense> expenses) {
         expenses = insertExpDateHeaders(sortExpenses(expenses));
         ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
@@ -441,17 +453,17 @@ public class MainActivity extends AppCompatActivity {
     public void addExpense() {
         AlertDialog expDialog = expenseDialog();
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
-
         Calendar cal = Calendar.getInstance(locale);
         expDate.setText(("Today, " + new SimpleDateFormat("dd MMMM yyyy", locale).format(cal.getTime())).toUpperCase());
+        expCurr.setText(db.getAccount(1).getCurrencySymbol());
 
         // actions
-        expAcc.setOnClickListener(view -> {
+        expAccBox.setOnClickListener(view -> {
             AccountAdapter accAdapter = getAccountData();
             accAdapter.setSelected(expAccName.getText().toString());
             expOptAccDialog(accAdapter, new Expense(Calendar.getInstance()));
         });
-        expCat.setOnClickListener(view -> {
+        expCatBox.setOnClickListener(view -> {
             CategoryAdapter catAdapter = getCategoryData();
             catAdapter.setSelected(expCatName.getText().toString());
             expOptCatDialog(catAdapter, new Expense(Calendar.getInstance()));
@@ -470,7 +482,7 @@ public class MainActivity extends AppCompatActivity {
             changeDate.setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel());
             changeDate.show();
         });
-        expSave.setOnClickListener(v -> {
+        expSaveBtn.setOnClickListener(v -> {
             if (!expAmt.getText().toString().isEmpty()) {
                 float amt = Float.parseFloat(expAmt.getText().toString());
                 String desc = expDesc.getText().toString();
@@ -504,8 +516,9 @@ public class MainActivity extends AppCompatActivity {
         expCatIcon.setForeground(cat.getIcon());
         expAccIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + acc.getColorHex()))); // set icon color
         expCatIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + cat.getColorHex())));
-        expAcc.setBackgroundColor(Color.parseColor("#" + acc.getColorHex())); // set bg color
-        expCat.setBackgroundColor(Color.parseColor("#" + cat.getColorHex()));
+        expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex())); // set bg color
+        expCatBox.setBackgroundColor(Color.parseColor("#" + cat.getColorHex()));
+        expCurr.setText(acc.getCurrencySymbol());
 
         Calendar today = Calendar.getInstance(locale);
         String datePrefix = (exp.getRelativeDate() == Constants.TODAY) ? "Today" :
@@ -513,18 +526,18 @@ public class MainActivity extends AppCompatActivity {
         expDate.setText((datePrefix + ", " + exp.getDatetimeStr("dd MMMM yyyy")).toUpperCase());
 
         // actions
-        expAcc.setOnClickListener(view -> {
+        expAccBox.setOnClickListener(view -> {
             AccountAdapter accAdapter = getAccountData();
             accAdapter.setSelected(expAccName.getText().toString());
             expOptAccDialog(accAdapter, exp);
         });
-        expCat.setOnClickListener(view -> {
+        expCatBox.setOnClickListener(view -> {
             CategoryAdapter catAdapter = getCategoryData();
             catAdapter.setSelected(expCatName.getText().toString());
             expOptCatDialog(catAdapter, exp);
         });
 
-        expSave.setOnClickListener(v -> {
+        expSaveBtn.setOnClickListener(v -> {
             // get values of inputs
             if (!expAmt.getText().toString().isEmpty()) {
                 float amt = Float.parseFloat(expAmt.getText().toString());
@@ -594,26 +607,42 @@ public class MainActivity extends AppCompatActivity {
 
     public void addAccount() {
         AlertDialog addAccDialog = sectionDialog();
-        catDelBtn.setVisibility(LinearLayout.GONE);
+        sectionDelBtn.setVisibility(LinearLayout.GONE);
 
         // set values of selected category
-        catName.setText("");
-        catTypeView.setText("New Account");
+        sectionName.setText("");
+        sectionType.setText("New account");
         setEditAccOptions(iconMap.get(R.drawable.acc_cash), colorMap.get(R.color.cat_bleu_de_france));
 
         // actions
-        catIcon.setOnClickListener(view -> {
-            int iconId = (Integer) catIcon.getTag();
-            int colorId = (Integer) catBanner.getTag();
+        sectionCurrRow.setOnClickListener(view1 -> {
+            CurrencyAdapter adapter = new CurrencyAdapter(this, db.getAllCurrencies(), sectionCurr.getText().toString());
+            final View view = getLayoutInflater().inflate(R.layout.dialog_recyclerview, null);
+            RecyclerView currencyList = view.findViewById(R.id.recyclerView);
+            currencyList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+            currencyList.setAdapter(adapter);
+
+            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder.setTitle("Account currency")
+                    .setView(view)
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> sectionCurr.setText(adapter.getSelected()))
+                    .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {});
+            dialogBuilder.create().show();
+
+        });
+        sectionIcon.setOnClickListener(view -> {
+            int iconId = (Integer) sectionIcon.getTag();
+            int colorId = (Integer) sectionBanner.getTag();
             SectionOptDialogFragment sectionOptDialog = new SectionOptDialogFragment(Constants.SECTION_ACCOUNT, iconMap.get(iconId), colorMap.get(colorId));
             sectionOptDialog.show(getSupportFragmentManager(), "sectionOptDialog");
         });
-        catSaveBtn.setOnClickListener(view -> {
-            if (!catName.getText().toString().isEmpty()) {
-                String name = catName.getText().toString();
-                int icon_id = (Integer) catIcon.getTag();
-                int color_id = (Integer) catBanner.getTag();
-                Account account = new Account(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id));
+        sectionSaveBtn.setOnClickListener(view -> {
+            if (!sectionName.getText().toString().isEmpty()) {
+                String name = sectionName.getText().toString();
+                int icon_id = (Integer) sectionIcon.getTag();
+                int color_id = (Integer) sectionBanner.getTag();
+                Currency currency = getCurrencyFromName(sectionCurr.getText().toString());
+                Account account = new Account(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id), currency);
                 db.createAccount(account, true);
                 updateAccountData();
                 addAccDialog.dismiss();
@@ -625,56 +654,38 @@ public class MainActivity extends AppCompatActivity {
 
         addAccDialog.show();
     }
-    public void addCategory() {
-        AlertDialog addCatDialog = sectionDialog();
-        catDelBtn.setVisibility(LinearLayout.GONE);
-
-        // set values of selected category
-        catName.setText("");
-        catTypeView.setText("New Category");
-        setEditCatOptions(iconMap.get(R.drawable.cat_others), colorMap.get(R.color.cat_fiery_fuchsia));
-
-        // actions
-        catIcon.setOnClickListener(view -> {
-            int iconId = (Integer) catIcon.getTag();
-            int colorId = (Integer) catBanner.getTag();
-            SectionOptDialogFragment sectionOptDialog = new SectionOptDialogFragment(Constants.SECTION_CATEGORY, iconMap.get(iconId), colorMap.get(colorId));
-            sectionOptDialog.show(getSupportFragmentManager(), "sectionOptDialog");
-        });
-        catSaveBtn.setOnClickListener(view -> {
-            if (!catName.getText().toString().isEmpty()) {
-                String name = catName.getText().toString();
-                int icon_id = (Integer) catIcon.getTag();
-                int color_id = (Integer) catBanner.getTag();
-                Category cat = new Category(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id));
-                db.createCategory(cat, true);
-                updateCategoryData();
-                addCatDialog.dismiss();
-            } else {
-                Toast.makeText(MainActivity.this, "Category name cannot be empty.", Toast.LENGTH_SHORT).show();
-            }
-
-        });
-
-        addCatDialog.show();
-    }
-
     public void editAccount(Account acc) {
         AlertDialog dialog = sectionDialog();
 
         // set values of selected category
-        catName.setText(acc.getName());
-        catTypeView.setText("Account");
+        sectionName.setText(acc.getName());
+        sectionType.setText("Account");
+        sectionCurr.setText(acc.getCurrencyName());
         setEditAccOptions(acc.getIconName(), acc.getColorName());
 
         // actions
-        catIcon.setOnClickListener(view -> {
-            int iconId = (Integer) catIcon.getTag();
-            int colorId = (Integer) catBanner.getTag();
+        sectionCurrRow.setOnClickListener(view1 -> {
+            CurrencyAdapter adapter = new CurrencyAdapter(this, db.getAllCurrencies(), sectionCurr.getText().toString());
+            final View view = getLayoutInflater().inflate(R.layout.dialog_recyclerview, null);
+            RecyclerView currencyList = view.findViewById(R.id.recyclerView);
+            currencyList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+            currencyList.setAdapter(adapter);
+
+            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder.setTitle("Account currency")
+                    .setView(view)
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> sectionCurr.setText(adapter.getSelected()))
+                    .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {});
+            dialogBuilder.create().show();
+
+        });
+        sectionIcon.setOnClickListener(view -> {
+            int iconId = (Integer) sectionIcon.getTag();
+            int colorId = (Integer) sectionBanner.getTag();
             SectionOptDialogFragment sectionOptDialog = new SectionOptDialogFragment(Constants.SECTION_ACCOUNT, iconMap.get(iconId), colorMap.get(colorId));
             sectionOptDialog.show(getSupportFragmentManager(), "sectionOptDialog");
         });
-        catDelBtn.setOnClickListener(view -> {
+        sectionDelBtn.setOnClickListener(view -> {
             AlertDialog.Builder confirmDel = new AlertDialog.Builder(MainActivity.this, R.style.ConfirmDelDialog);
             confirmDel.setTitle("Delete entry");
             confirmDel.setMessage("Are you sure you want to delete? Relevant expenses will be moved to Cash.");
@@ -687,13 +698,14 @@ public class MainActivity extends AppCompatActivity {
             confirmDel.setNeutralButton(android.R.string.no, (dialog1, which) -> dialog1.cancel());
             confirmDel.show();
         });
-        catSaveBtn.setOnClickListener(view -> {
-            if (!catName.getText().toString().isEmpty()) {
+        sectionSaveBtn.setOnClickListener(view -> {
+            if (!sectionName.getText().toString().isEmpty()) {
                 int id = acc.getId();
-                String name = catName.getText().toString();
-                int icon_id = (Integer) catIcon.getTag();
-                int color_id = (Integer) catBanner.getTag();
-                db.updateAccount(new Account(MainActivity.this, id, name, iconMap.get(icon_id), colorMap.get(color_id)));
+                String name = sectionName.getText().toString();
+                int icon_id = (Integer) sectionIcon.getTag();
+                int color_id = (Integer) sectionBanner.getTag();
+                Currency currency = getCurrencyFromName(sectionCurr.getText().toString());
+                db.updateAccount(new Account(MainActivity.this, id, name, iconMap.get(icon_id), colorMap.get(color_id), currency));
                 updateAccountData();
                 updateHomeData();
             }
@@ -702,22 +714,57 @@ public class MainActivity extends AppCompatActivity {
 
         dialog.show();
     }
-    public void editCategory(Category cat) {
-        AlertDialog dialog = sectionDialog();
+    public void addCategory() {
+        AlertDialog addCatDialog = sectionDialog();
+        sectionCurrRow.setVisibility(LinearLayout.GONE);
+        sectionDelBtn.setVisibility(LinearLayout.GONE);
 
         // set values of selected category
-        catName.setText(cat.getName());
-        catTypeView.setText("Category");
-        setEditCatOptions(cat.getIconName(), cat.getColorName());
+        sectionName.setText("");
+        sectionType.setText("New category");
+        setEditCatOptions(iconMap.get(R.drawable.cat_others), colorMap.get(R.color.cat_fiery_fuchsia));
 
         // actions
-        catIcon.setOnClickListener(view -> {
-            int iconId = (Integer) catIcon.getTag();
-            int colorId = (Integer) catBanner.getTag();
+        sectionIcon.setOnClickListener(view -> {
+            int iconId = (Integer) sectionIcon.getTag();
+            int colorId = (Integer) sectionBanner.getTag();
             SectionOptDialogFragment sectionOptDialog = new SectionOptDialogFragment(Constants.SECTION_CATEGORY, iconMap.get(iconId), colorMap.get(colorId));
             sectionOptDialog.show(getSupportFragmentManager(), "sectionOptDialog");
         });
-        catDelBtn.setOnClickListener(view -> {
+        sectionSaveBtn.setOnClickListener(view -> {
+            if (!sectionName.getText().toString().isEmpty()) {
+                String name = sectionName.getText().toString();
+                int icon_id = (Integer) sectionIcon.getTag();
+                int color_id = (Integer) sectionBanner.getTag();
+                Category cat = new Category(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id));
+                db.createCategory(cat, true);
+                updateCategoryData();
+                addCatDialog.dismiss();
+            } else {
+                Toast.makeText(MainActivity.this, "Category name cannot be empty.", Toast.LENGTH_SHORT).show();
+            }
+
+        });
+
+        addCatDialog.show();
+    }
+    public void editCategory(Category cat) {
+        AlertDialog dialog = sectionDialog();
+        sectionCurrRow.setVisibility(LinearLayout.GONE);
+
+        // set values of selected category
+        sectionName.setText(cat.getName());
+        sectionType.setText("Category");
+        setEditCatOptions(cat.getIconName(), cat.getColorName());
+
+        // actions
+        sectionIcon.setOnClickListener(view -> {
+            int iconId = (Integer) sectionIcon.getTag();
+            int colorId = (Integer) sectionBanner.getTag();
+            SectionOptDialogFragment sectionOptDialog = new SectionOptDialogFragment(Constants.SECTION_CATEGORY, iconMap.get(iconId), colorMap.get(colorId));
+            sectionOptDialog.show(getSupportFragmentManager(), "sectionOptDialog");
+        });
+        sectionDelBtn.setOnClickListener(view -> {
             AlertDialog.Builder confirmDel = new AlertDialog.Builder(MainActivity.this, R.style.ConfirmDelDialog);
             confirmDel.setTitle("Delete entry");
             confirmDel.setMessage("Are you sure you want to delete? Relevant expenses will be moved to Others.");
@@ -730,12 +777,12 @@ public class MainActivity extends AppCompatActivity {
             confirmDel.setNeutralButton(android.R.string.no, (dialog1, which) -> dialog1.cancel());
             confirmDel.show();
         });
-        catSaveBtn.setOnClickListener(view -> {
-            if (!catName.getText().toString().isEmpty()) {
+        sectionSaveBtn.setOnClickListener(view -> {
+            if (!sectionName.getText().toString().isEmpty()) {
                 int id = cat.getId();
-                String name = catName.getText().toString();
-                int icon_id = (Integer) catIcon.getTag();
-                int color_id = (Integer) catBanner.getTag();
+                String name = sectionName.getText().toString();
+                int icon_id = (Integer) sectionIcon.getTag();
+                int color_id = (Integer) sectionBanner.getTag();
                 db.updateCategory(new Category(MainActivity.this, id, name, iconMap.get(icon_id), colorMap.get(color_id)));
                 updateCategoryData();
                 updateHomeData();
@@ -749,21 +796,21 @@ public class MainActivity extends AppCompatActivity {
     public void setEditSectionOptions(String iconName, String colorName) {
         Drawable icon = MainActivity.getIconFromName(this, iconName);
         String colorHex = MainActivity.getColorHexFromName(this, colorName);
-        catIcon.setForeground(icon); // set icon
-        catIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + colorHex))); // set icon color
-        catBanner.setBackgroundColor(Color.parseColor("#" + colorHex)); // set bg color
-        catIcon.setTag(MainActivity.getIconIdFromName(this, iconName));
-        catBanner.setTag(MainActivity.getColorIdFromName(this, colorName));
+        sectionIcon.setForeground(icon); // set icon
+        sectionIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + colorHex))); // set icon color
+        sectionBanner.setBackgroundColor(Color.parseColor("#" + colorHex)); // set bg color
+        sectionIcon.setTag(MainActivity.getIconIdFromName(this, iconName));
+        sectionBanner.setTag(MainActivity.getColorIdFromName(this, colorName));
     }
     public void setEditAccOptions(String iconName, String colorName) {
         setEditSectionOptions(iconName, colorName);
-        catIcon.setBackground(getIconFromId(this, R.drawable.shape_rounded_square));
-        catIcon.setImageResource(R.drawable.selector_rounded_square);
+        sectionIcon.setBackground(getIconFromId(this, R.drawable.shape_rounded_square));
+        sectionIcon.setImageResource(R.drawable.selector_rounded_square);
     }
     public void setEditCatOptions(String iconName, String colorName) {
         setEditSectionOptions(iconName, colorName);
-        catIcon.setBackground(getIconFromId(this, R.drawable.shape_circle));
-        catIcon.setImageResource(R.drawable.selector_circle);
+        sectionIcon.setBackground(getIconFromId(this, R.drawable.shape_circle));
+        sectionIcon.setImageResource(R.drawable.selector_circle);
     }
 
     /**
@@ -827,10 +874,15 @@ public class MainActivity extends AppCompatActivity {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
                 context.getResources().getDisplayMetrics());
     }
-
+    public static Currency getCurrencyFromName(String name) {
+        return new Currency(name, "", Constants.currency_map.get(name));
+    }
+    public static String getString(Context context, int id) {
+        return context.getResources().getString(id);
+    }
     public static void logDate(String TAG, String format, Calendar cal) {
         format = (format.isEmpty()) ? Expense.DATETIME_FORMAT : format;
-        String res = new SimpleDateFormat(format).format(cal.getTime());
+        String res = new SimpleDateFormat(format, locale).format(cal.getTime());
         Log.e(TAG, res);
     }
 }

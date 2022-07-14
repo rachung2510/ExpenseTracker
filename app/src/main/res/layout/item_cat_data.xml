@@ -79,7 +79,7 @@
                     android:textFontWeight="600"
                     android:textSize="10sp"
                     android:layout_marginEnd="3dp"
-                    android:text="@string/currency" />
+                    android:text="@string/default_currency" />
 
                 <TextView
                     android:id="@+id/catDataAmt"

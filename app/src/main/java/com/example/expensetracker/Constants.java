@@ -1,5 +1,9 @@
 package com.example.expensetracker;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import kotlin.Triple;
+
 public class Constants {
 
     // Defaults
@@ -41,6 +45,19 @@ public class Constants {
             "cat_transport", "cat_health", "cat_electronics", "cat_social", "cat_shopping", "cat_clothes",
             "cat_beauty", "cat_crafts", "cat_gift", "cat_entertainment", "cat_music", "cat_others"
     };
+    public static ArrayList<Triple<String, String, String>> currencies = new ArrayList<>();
+    public static HashMap<String, String> currency_map = new HashMap<>();
+    static {
+        currencies.add(new Triple<>("SGD", "$","Singaporean dollar"));
+        currencies.add(new Triple<>("GBP", "£","British pound"));
+        currencies.add(new Triple<>("USD", "$", "United States dollar"));
+        currencies.add(new Triple<>("EUR", "€", "Euro"));
+        currencies.add(new Triple<>("CNY", "¥","Chinese yuan"));
+        currencies.add(new Triple<>("JPY", "¥","Japanese yen"));
+        for (Triple<String,String,String> triple : currencies) {
+            currency_map.put(triple.getFirst(), triple.getSecond());
+        }
+    }
 
     // Page modes
     public static final int HOME = 0;

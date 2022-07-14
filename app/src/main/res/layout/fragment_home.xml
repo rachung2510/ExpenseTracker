@@ -42,6 +42,15 @@
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp" />
 
+        <TextView
+            android:id="@+id/placeholder"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="18sp"
+            android:textColor="@color/text_light_gray"
+            android:text="No expenses"/>
+
     </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

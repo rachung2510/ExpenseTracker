@@ -32,8 +32,8 @@ public class Section {
     }
 
     // NULL Section
-    public Section() {
-        this.context = null;
+    public Section(Context context) {
+        this.context = context;
         this.id = -1;
         this.name = "";
         this.icon = "";

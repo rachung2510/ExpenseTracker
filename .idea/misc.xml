@@ -29,15 +29,18 @@
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_tab_indicator.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/activity_main.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/activity_widget_expense.xml" value="0.1" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/adapter_view_layout.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_date.xml" value="0.20052083333333334" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_date_grid.xml" value="0.19947916666666668" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_date_select.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_edit_section.xml" value="0.20052083333333334" />
-        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_expense.xml" value="0.20052083333333334" />
-        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_expense_opt_section.xml" value="0.1" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_expense.xml" value="0.22" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_expense_opt_section.xml" value="0.14666666666666667" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_expense_section.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_manage_section.xml" value="0.19947916666666668" />
-        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_section.xml" value="0.1" />
-        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_section_opt.xml" value="0.1" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_recyclerview.xml" value="0.20052083333333334" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_section.xml" value="0.3333333333333333" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_section_opt.xml" value="0.16666666666666666" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/fragment_charts.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/fragment_charts_calendar.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/fragment_charts_graph.xml" value="0.19947916666666668" />
@@ -53,6 +56,7 @@
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_cat.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_cat_data.xml" value="0.5" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_cat_grid.xml" value="0.19947916666666668" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_currency.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_date_grid.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_empty_view.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_expense.xml" value="0.22" />

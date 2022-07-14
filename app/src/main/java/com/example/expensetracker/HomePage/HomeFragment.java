@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
+import com.example.expensetracker.Currency;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
@@ -44,7 +45,7 @@ public class HomeFragment extends Fragment {
 
     // Layout components
     private RecyclerView expenseList;
-    private TextView summaryDate, summaryAmt;
+    private TextView placeholder, summaryDate, summaryAmt, summaryCurr;
     private ImageButton prevDate, nextDate;
     private RecyclerView filterList;
     private MenuItem clearFilters;
@@ -65,9 +66,11 @@ public class HomeFragment extends Fragment {
         // summary & expense list
         summaryDate = view.findViewById(R.id.summaryDate);
         summaryDateAction();
+        summaryCurr = view.findViewById(R.id.summaryCurrency);
         summaryAmt = view.findViewById(R.id.summaryAmt);
         expenseList = view.findViewById(R.id.expenseList);
         ((SimpleItemAnimator) expenseList.getItemAnimator()).setSupportsChangeAnimations(false);
+        placeholder = view.findViewById(R.id.placeholder);
 
         // date navigation buttons
         prevDate = view.findViewById(R.id.prevDate);
@@ -155,7 +158,7 @@ public class HomeFragment extends Fragment {
         }
         summaryDate.setOnClickListener(view -> {
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity(), R.style.WrapContentDialog);
-            final View filterDateView = getLayoutInflater().inflate(R.layout.dialog_date, null);
+            final View filterDateView = getLayoutInflater().inflate(R.layout.dialog_date_grid, null);
             RecyclerView dateGrid = filterDateView.findViewById(R.id.dateGrid);
 
             // set RecyclerView behaviour and adapter
@@ -227,9 +230,12 @@ public class HomeFragment extends Fragment {
         FlexboxLayoutManager manager = new FlexboxLayoutManager(getActivity());
         manager.setFlexDirection(FlexDirection.ROW);
         manager.setJustifyContent(JustifyContent.FLEX_START);
-//        ((SimpleItemAnimator) dateGrid.getItemAnimator()).setSupportsChangeAnimations(false);
         filterList.setLayoutManager(manager);
         filterList.setAdapter(filterAdapter);
+        if (!selAccFilters.isEmpty())
+            summaryCurr.setText(selAccFilters.get(0).getCurrencySymbol()); // get currency of first filter
+        else
+            summaryCurr.setText(((new Currency()).getSymbol())); // default
     }
     public void filterAccDialog(AccountAdapter adapter) {
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
@@ -288,6 +294,8 @@ public class HomeFragment extends Fragment {
     public void setExpenseData(LinearLayoutManager linearLayoutManager, ExpenseAdapter expAdapter) {
         expenseList.setLayoutManager(linearLayoutManager);
         expenseList.setAdapter(expAdapter);
+        if (expAdapter.getItemCount() > 0) placeholder.setVisibility(View.GONE);
+        else placeholder.setVisibility(View.VISIBLE);
     }
     public void setSummaryData(String summaryDateText, float summaryAmtText) {
         summaryDate.setText(summaryDateText);
