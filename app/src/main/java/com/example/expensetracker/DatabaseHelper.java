@@ -6,8 +6,10 @@ import android.content.ContextWrapper;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.icu.util.Output;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -705,9 +707,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * IMPORT/EXPORT
      */
-    public String getDirectory() {
-        return context.getExternalFilesDir(Environment.getDataDirectory().getAbsolutePath()).getAbsolutePath() + "/";
-    }
     public void importDatabase(InputStream in) throws IOException {
         close();
         File outputDir = context.getCacheDir(); // context being the Activity pointer
@@ -731,9 +730,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return;
     }
     public void exportDatabase() {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, DATABASE_NAME);   // file name
+        values.put(MediaStore.MediaColumns.MIME_TYPE, "application/x-sqlite3");
+        Uri extVolumeUri = MediaStore.Files.getContentUri("external");
+        Uri fileUri = context.getContentResolver().insert(extVolumeUri, values);
+
         try {
             FileInputStream stream = new FileInputStream(new File(DATABASE_FILEPATH));
-            OutputStream output = new FileOutputStream(getDirectory() + DATABASE_NAME);
+            OutputStream output = context.getContentResolver().openOutputStream(fileUri);
             byte[] buffer = new byte[1024]; // transfer bytes from the inputfile to the outputfile
             int length;
             while ((length = stream.read(buffer)) > 0) output.write(buffer, 0, length);
@@ -742,6 +747,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             stream.close();
             Toast.makeText(context, "Export successful" , Toast.LENGTH_LONG).show();
         } catch (IOException e) {
+            Log.e(TAG, String.valueOf(e));
             Toast.makeText(context, "Export failed", Toast.LENGTH_SHORT).show();
         }
     }

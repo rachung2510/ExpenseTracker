@@ -4,10 +4,8 @@ import static android.app.Activity.RESULT_OK;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 import android.Manifest;
-import android.app.Dialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,16 +19,14 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -41,7 +37,6 @@ import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.Currency;
-import com.example.expensetracker.HelperClasses.FileUtils;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
@@ -54,17 +49,14 @@ import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
 public class HomeFragment extends Fragment {
 
     private static final String TAG = "HomeFragment";
-    private static final int PICKFILE_RESULT_CODE = 0;
 
     // Layout components
     private RecyclerView expenseList;
@@ -171,11 +163,14 @@ public class HomeFragment extends Fragment {
                             if (permissionsGranted()) {
                                 AlertDialog.Builder builderExport = new AlertDialog.Builder(getActivity());
                                 builderExport.setTitle("Export database?")
-                                        .setMessage("Database will be exported to " + ((MainActivity) getActivity()).db.getDirectory() + ".")
-                                        .setPositiveButton(android.R.string.yes, (dialogInterface12, i12) -> ((MainActivity) getActivity()).db.exportDatabase())
+                                        .setMessage("Database will be exported to Downloads folder.")
+                                        .setPositiveButton(android.R.string.yes, (dialogInterface1, i1) -> ((MainActivity) getActivity()).db.exportDatabase())
                                         .setNegativeButton(android.R.string.no, (dialogInterface1, i1) -> dialogInterface1.dismiss())
                                         .show();
-                            } else requestPermissions();
+                            } else {
+                                Toast.makeText(getActivity(), "Permissions not granted", Toast.LENGTH_SHORT).show();
+                                requestPermissions();
+                            }
                         })
                         .setNeutralButton("Import", (dialogInterface, i) -> {
                             if (permissionsGranted()) showFileChooser();
@@ -352,6 +347,7 @@ public class HomeFragment extends Fragment {
     public boolean permissionsGranted() {
         return getActivity().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED &&
                 getActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
+//                getActivity().checkSelfPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
     }
     public void requestPermissions() {
         ActivityCompat.requestPermissions(getActivity(),
