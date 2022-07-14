@@ -61,7 +61,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Category cat = categories.get(position);
         if (holder instanceof  ViewHolder) {
-            populateCategories((ViewHolder) holder, cat, position);
+            populateCategories((ViewHolder) holder, cat);
         }
     }
 
@@ -90,7 +90,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             catDataIcon = itemView.findViewById(R.id.catDataIcon);
         }
     }
-    public void populateCategories(ViewHolder holder, Category cat, int position) {
+    public void populateCategories(ViewHolder holder, Category cat) {
         holder.catDataLabel.setText(cat.getName());
         holder.catDataIcon.setForeground(cat.getIcon());
         holder.catDataCurr.setText((new Currency()).getSymbol());

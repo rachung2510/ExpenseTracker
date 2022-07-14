@@ -257,8 +257,9 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         selDayPicker.updateDate(from.get(Calendar.YEAR), from.get(Calendar.MONTH), from.get(Calendar.DAY_OF_MONTH));
 
         // Set values for NumberPickers
-        int minYear = ((MainActivity) context).db.getFirstLastDates()[0].get(Calendar.YEAR);
-        int maxYear = ((MainActivity) context).db.getFirstLastDates()[1].get(Calendar.YEAR);
+        Calendar[] pair = ((MainActivity) context).db.getFirstLastDates();
+        int minYear = (pair[0] == null) ? getInitSelectedDates(FROM, YEAR).get(Calendar.YEAR) : pair[0].get(Calendar.YEAR);
+        int maxYear = (pair[0] == null) ? minYear : pair[1].get(Calendar.YEAR);
         for (NumberPicker picker : new NumberPicker[] { fromYear, toYear }) {
             picker.setMinValue(minYear);
             picker.setMaxValue(maxYear);

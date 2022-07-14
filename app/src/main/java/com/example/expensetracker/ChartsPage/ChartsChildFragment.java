@@ -109,13 +109,8 @@ public class ChartsChildFragment extends Fragment {
         ArrayList<Integer> colors = new ArrayList<>();
         for (Category cat : categories) {
             float amt;
-            if (from == null) {
-                amt = ((MainActivity) getActivity()).db.getTotalAmtByCategory(cat);
-                Log.e("[NULL] " + cat.getName(), String.format("%.2f", amt));
-            } else {
-                amt = ((MainActivity) getActivity()).db.getTotalAmtByCategoryInRange(cat, from, to);
-                Log.e(cat.getName(), String.format("%.2f", amt));
-            }
+            if (from == null) amt = ((MainActivity) getActivity()).db.getTotalAmtByCategory(cat);
+            else amt = ((MainActivity) getActivity()).db.getTotalAmtByCategoryInRange(cat, from, to);
             if (amt != 0f) {
                 pieEntries.add(new PieEntry(amt, cat.getIcon()));
                 colors.add(ContextCompat.getColor(getActivity(), cat.getColorId()));

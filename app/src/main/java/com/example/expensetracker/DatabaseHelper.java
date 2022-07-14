@@ -610,9 +610,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT " + KEY_DATETIME + " FROM " + TABLE_EXPENSE;
         Cursor c = db.rawQuery(query, null);
-        if (c.getCount() == 0) {
-            Toast.makeText(context, "No expenses added", Toast.LENGTH_SHORT).show();
-        } else {
+        if (c.getCount() != 0) {
             while (c.moveToNext()) {
                 try {
                     Date date = new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(c.getString(0));
