@@ -47,7 +47,7 @@ public class WidgetExpenseActivity extends AppCompatActivity {
     // Dialog components
     private AlertDialog.Builder dialogBuilder;
     private EditText expAmt, expDesc;
-    private TextView expAccName, expCatName, expDate;
+    private TextView expAccName, expCatName, expDate, expCurr;
     private ImageButton expAccIcon, expCatIcon;
     private LinearLayout expAcc, expCat, expDelBtn, expDateBtn, expSave;
 
@@ -72,9 +72,9 @@ public class WidgetExpenseActivity extends AppCompatActivity {
     public void addExpense() {
         AlertDialog expDialog = expenseDialog();
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
-
         Calendar cal = Calendar.getInstance(MainActivity.locale);
         expDate.setText(("Today, " + new SimpleDateFormat("dd MMMM yyyy", MainActivity.locale).format(cal.getTime())).toUpperCase());
+        expCurr.setText(db.getAccount(1).getCurrencySymbol());
 
         // actions
         expAcc.setOnClickListener(view -> {
@@ -90,16 +90,16 @@ public class WidgetExpenseActivity extends AppCompatActivity {
         expDateBtn.setOnClickListener(view -> {
             AlertDialog.Builder changeDate = new AlertDialog.Builder(this);
             DatePicker datePicker = new DatePicker(this);
-            changeDate.setView(datePicker);
-            changeDate.setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+            changeDate.setView(datePicker)
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                 cal.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
                 int relativeDate = MainActivity.getRelativeDate(cal);
                 String datePrefix = (relativeDate == Constants.TODAY) ? "Today" :
                         ((relativeDate == Constants.YESTERDAY) ? "Yesterday" : new SimpleDateFormat("EEE", MainActivity.locale).format(cal.getTime()));
                 expDate.setText((datePrefix + ", " + new SimpleDateFormat("dd MMMM yyyy", MainActivity.locale).format(cal.getTime())).toUpperCase());
-            });
-            changeDate.setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel());
-            changeDate.show();
+            })
+                    .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())
+                    .show();
         });
         expSave.setOnClickListener(v -> {
             if (!expAmt.getText().toString().isEmpty()) {
@@ -124,10 +124,10 @@ public class WidgetExpenseActivity extends AppCompatActivity {
      */
     public AlertDialog expenseDialog() {
         // dialog
-        dialogBuilder = new AlertDialog.Builder(this);
         final View expView = getLayoutInflater().inflate(R.layout.dialog_expense, null);
-        dialogBuilder.setView(expView);
-        dialogBuilder.setOnDismissListener(dialogInterface -> {
+        dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setView(expView)
+                .setOnDismissListener(dialogInterface -> {
             InputMethodManager imm1 = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             imm1.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
             finish();
@@ -161,6 +161,7 @@ public class WidgetExpenseActivity extends AppCompatActivity {
             if (b) expDesc.setBackground(MainActivity.getIconFromId(this, R.color.white));
             else expDesc.setBackground(new ColorDrawable(android.R.attr.selectableItemBackground));
         });
+        expCurr = expView.findViewById(R.id.newExpCurrency);
 
         return expDialog;
     }
@@ -199,6 +200,7 @@ public class WidgetExpenseActivity extends AppCompatActivity {
             expAccIcon.setForeground(selectedAcc.getIcon()); // set icon
             expAccIcon.setForegroundTintList(MainActivity.getColorStateListFromName(this, selectedAcc.getColorName())); // set icon color
             expAccItem.setBackgroundColor(Color.parseColor("#" + selectedAcc.getColorHex())); // set bg color
+            expCurr.setText(selectedAcc.getCurrencySymbol());
         });
 
         dialog.show();
