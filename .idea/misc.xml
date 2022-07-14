@@ -5,6 +5,8 @@
       <map>
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable-v21/app_widget_background.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable-v21/app_widget_inner_view_background.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable-v24/selector_circle.xml" value="0.109" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_cash.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_dbs.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_hsbc.xml" value="0.111" />
@@ -18,6 +20,13 @@
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_food.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_gift.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_office.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/ic_squircle.xml" value="0.109" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/selector_circle.xml" value="0.109" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/selector_rounded_square.xml" value="0.109" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_circle.xml" value="0.1" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_circle_border.xml" value="0.109" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_tab_bg.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_tab_indicator.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/activity_main.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/activity_widget_expense.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_date.xml" value="0.20052083333333334" />
@@ -54,12 +63,14 @@
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_section_grid.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_section_list.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/summary.xml" value="0.20052083333333334" />
-        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/widget_add_expense.xml" value="0.10666666666666667" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/widget_add_expense.xml" value="0.16666666666666666" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/menu/bottom_nav_menu.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/menu/home_menu.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/menu/manage_options.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/menu/manage_options_selection.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/menu/select_expense_options.xml" value="0.20052083333333334" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.111" />
       </map>
     </option>
   </component>

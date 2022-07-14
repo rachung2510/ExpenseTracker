@@ -8,9 +8,8 @@
         android:layout_height="56dp"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:background="@drawable/shape_rounded_square"
-        android:backgroundTint="@color/red_500"
-        android:foreground="@drawable/ic_baseline_attach_money_24"
+        android:background="@drawable/ic_squircle"
+        android:foreground="@drawable/add"
         android:foregroundTint="@color/white" />
 
 </RelativeLayout>
