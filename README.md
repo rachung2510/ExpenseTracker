@@ -9,7 +9,7 @@ A simple expense tracker for android which has three pages.
 ## Todo
 - ~~Charts piechart fragment~~
 - ~~Quick add widget~~
-- Import/export db
+- ~~Import/export db~~
 - Charts graph fragment
 - Raise warning when date range is invalid (TO comes before FROM)
 
