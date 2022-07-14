@@ -9,9 +9,11 @@ A simple expense tracker for android which has three pages.
 ## Todo
 - ~~Charts piechart fragment~~
 - ~~Quick add widget~~
-- Charts graph fragment
 - Import/export db
+- Charts graph fragment
 - Raise warning when date range is invalid (TO comes before FROM)
+
+## Bug fixes
+- ~~Disappearing accounts in MANAGE~~
 - Hide date nav buttons when beyond range
-- ~~**Bug fix**: disappearing accounts in MANAGE~~
 
