@@ -2,11 +2,23 @@ package com.example.expensetracker;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+import android.os.Environment;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.example.expensetracker.HelperClasses.FileUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +33,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Database info
     private static final int DATABASE_VERSION = 1; // Database Version
     private static final String DATABASE_NAME = "ExpenseTracker.db"; // Database Name
+    public static String DATABASE_FILEPATH = "/data/data/com.example.expensetracker/databases/" + DATABASE_NAME;
 
     // Table names
     public static final String TABLE_EXPENSE = "expenses";
@@ -687,6 +700,50 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             totalAmt += e.getAmount();
         }
         return totalAmt;
+    }
+
+    /**
+     * IMPORT/EXPORT
+     */
+    public String getDirectory() {
+        return context.getExternalFilesDir(Environment.getDataDirectory().getAbsolutePath()).getAbsolutePath() + "/";
+    }
+    public void importDatabase(InputStream in) throws IOException {
+        close();
+        File outputDir = context.getCacheDir(); // context being the Activity pointer
+        File newDb = File.createTempFile("tmp", ".db", outputDir);
+        File oldDb = new File(DATABASE_FILEPATH);
+        OutputStream out = null;
+        try {
+            out = new FileOutputStream(newDb);
+            byte[] buf = new byte[1024];
+            int len;
+            while((len = in.read(buf)) >0) out.write(buf,0,len);
+        } catch (Exception e) { e.printStackTrace();
+        } finally {
+            try {
+                if ( out != null ) out.close();
+                in.close();
+            } catch ( IOException e ) { e.printStackTrace(); }
+        }
+        FileUtils.copyFile(new FileInputStream(newDb), new FileOutputStream(oldDb));
+        getWritableDatabase().close();
+        return;
+    }
+    public void exportDatabase() {
+        try {
+            FileInputStream stream = new FileInputStream(new File(DATABASE_FILEPATH));
+            OutputStream output = new FileOutputStream(getDirectory() + DATABASE_NAME);
+            byte[] buffer = new byte[1024]; // transfer bytes from the inputfile to the outputfile
+            int length;
+            while ((length = stream.read(buffer)) > 0) output.write(buffer, 0, length);
+            output.flush();
+            output.close();
+            stream.close();
+            Toast.makeText(context, "Export successful" , Toast.LENGTH_LONG).show();
+        } catch (IOException e) {
+            Toast.makeText(context, "Export failed", Toast.LENGTH_SHORT).show();
+        }
     }
 
 }

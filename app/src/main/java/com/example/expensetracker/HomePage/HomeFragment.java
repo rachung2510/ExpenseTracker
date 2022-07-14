@@ -1,6 +1,16 @@
 package com.example.expensetracker.HomePage;
 
+import static android.app.Activity.RESULT_OK;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
+import android.Manifest;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -9,11 +19,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -24,6 +41,7 @@ import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.Currency;
+import com.example.expensetracker.HelperClasses.FileUtils;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
@@ -36,12 +54,17 @@ import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
 public class HomeFragment extends Fragment {
 
     private static final String TAG = "HomeFragment";
+    private static final int PICKFILE_RESULT_CODE = 0;
 
     // Layout components
     private RecyclerView expenseList;
@@ -139,6 +162,26 @@ public class HomeFragment extends Fragment {
                 applyFilters();
                 updateClearFiltersItem();
                 ((MainActivity) getActivity()).updateHomeData(); // update summary & expense list
+                return true;
+
+            case R.id.dbAction:
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setMessage("Would you like to import or export your database?")
+                        .setPositiveButton("Export", (dialogInterface, i) -> {
+                            if (permissionsGranted()) {
+                                AlertDialog.Builder builderExport = new AlertDialog.Builder(getActivity());
+                                builderExport.setTitle("Export database?")
+                                        .setMessage("Database will be exported to " + ((MainActivity) getActivity()).db.getDirectory() + ".")
+                                        .setPositiveButton(android.R.string.yes, (dialogInterface12, i12) -> ((MainActivity) getActivity()).db.exportDatabase())
+                                        .setNegativeButton(android.R.string.no, (dialogInterface1, i1) -> dialogInterface1.dismiss())
+                                        .show();
+                            } else requestPermissions();
+                        })
+                        .setNeutralButton("Import", (dialogInterface, i) -> {
+                            if (permissionsGranted()) showFileChooser();
+                            else requestPermissions();
+                        })
+                        .show();
                 return true;
 
             default:
@@ -273,6 +316,47 @@ public class HomeFragment extends Fragment {
     }
     public void updateClearFiltersItem() {
         clearFilters.setVisible(!selAccFilters.isEmpty() || !selCatFilters.isEmpty());
+    }
+    private void showFileChooser() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        launcher.launch(intent);
+    }
+    ActivityResultLauncher<Intent> launcher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent data = result.getData();
+                    Uri uri = data.getData();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.ConfirmDelDialog);
+                    builder.setTitle("Import database")
+                            .setMessage("Are you sure you want to import? This will overwrite all current data.")
+                            .setPositiveButton("Overwrite", (dialogInterface, i) -> {
+                                try {
+                                    InputStream input = getActivity().getContentResolver().openInputStream(uri);
+                                    ((MainActivity) getActivity()).db.importDatabase(input);
+                                    Toast.makeText(getActivity(), "Import successful", Toast.LENGTH_SHORT).show();
+                                    ((MainActivity) getActivity()).updateHomeData();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(getActivity(), "Import failed", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .setNeutralButton(android.R.string.no, (dialog, which) -> {
+                                dialog.cancel(); // close dialog
+                            })
+                            .show();
+                }
+            });
+    public boolean permissionsGranted() {
+        return getActivity().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED &&
+                getActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
+    }
+    public void requestPermissions() {
+        ActivityCompat.requestPermissions(getActivity(),
+                new String[] { Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                0);
     }
 
     /**

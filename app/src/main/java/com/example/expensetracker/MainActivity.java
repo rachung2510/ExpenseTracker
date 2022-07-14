@@ -142,10 +142,10 @@ public class MainActivity extends AppCompatActivity {
      */
     public AlertDialog expenseDialog() {
         // dialog
-        dialogBuilder = new AlertDialog.Builder(this);
         final View expView = getLayoutInflater().inflate(R.layout.dialog_expense, null);
-        dialogBuilder.setView(expView);
-        dialogBuilder.setOnDismissListener(dialogInterface -> {
+        dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setView(expView)
+                .setOnDismissListener(dialogInterface -> {
             InputMethodManager imm1 = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             imm1.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
         });
@@ -471,16 +471,16 @@ public class MainActivity extends AppCompatActivity {
         expDateBtn.setOnClickListener(view -> {
             AlertDialog.Builder changeDate = new AlertDialog.Builder(MainActivity.this);
             DatePicker datePicker = new DatePicker(MainActivity.this);
-            changeDate.setView(datePicker);
-            changeDate.setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+            changeDate.setView(datePicker)
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                 cal.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
                 int relativeDate = getRelativeDate(cal);
                 String datePrefix = (relativeDate == Constants.TODAY) ? "Today" :
                         ((relativeDate == Constants.YESTERDAY) ? "Yesterday" : new SimpleDateFormat("EEE", locale).format(cal.getTime()));
                 expDate.setText((datePrefix + ", " + new SimpleDateFormat("dd MMMM yyyy", locale).format(cal.getTime())).toUpperCase());
-            });
-            changeDate.setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel());
-            changeDate.show();
+            })
+                    .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())
+                    .show();
         });
         expSaveBtn.setOnClickListener(v -> {
             if (!expAmt.getText().toString().isEmpty()) {
@@ -557,18 +557,18 @@ public class MainActivity extends AppCompatActivity {
 
         expDelBtn.setOnClickListener(view -> {
             AlertDialog.Builder confirmDel = new AlertDialog.Builder(MainActivity.this, R.style.ConfirmDelDialog);
-            confirmDel.setTitle("Delete expense");
-            confirmDel.setMessage("Are you sure you want to delete?");
-            confirmDel.setPositiveButton("Delete", (dialogInterface, i) -> {
+            confirmDel.setTitle("Delete expense")
+                    .setMessage("Are you sure you want to delete?")
+                    .setPositiveButton("Delete", (dialogInterface, i) -> {
                 db.deleteExpense(exp);
                 Toast.makeText(MainActivity.this, "Expense deleted", Toast.LENGTH_SHORT).show();
                 updateHomeData();
                 expDialog.dismiss();
-            });
-            confirmDel.setNeutralButton(android.R.string.no, (dialog, which) -> {
+            })
+                    .setNeutralButton(android.R.string.no, (dialog, which) -> {
                 dialog.cancel(); // close dialog
-            });
-            confirmDel.show();
+            })
+                    .show();
         });
 
         expDateBtn.setOnClickListener(view -> {
@@ -576,8 +576,8 @@ public class MainActivity extends AppCompatActivity {
             DatePicker datePicker = new DatePicker(MainActivity.this);
             Calendar expDatetime = exp.getDatetime();
             datePicker.updateDate(expDatetime.get(Calendar.YEAR), expDatetime.get(Calendar.MONTH), expDatetime.get(Calendar.DAY_OF_MONTH));
-            changeDate.setView(datePicker);
-            changeDate.setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+            changeDate.setView(datePicker)
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                 expDatetime.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
                 exp.setDatetime(expDatetime);
                 String datePrefix1 = "";
@@ -586,22 +586,11 @@ public class MainActivity extends AppCompatActivity {
                     datePrefix1 = (dateDiff == 0) ? "TODAY, " : ((dateDiff == -1) ? "YESTERDAY, " : "");
                 }
                 expDate.setText(datePrefix1 + exp.getDatetimeStr("dd MMMM yyyy").toUpperCase());
-            });
-            changeDate.setNeutralButton(android.R.string.no, (dialog, which) -> {
+            })
+                    .setNeutralButton(android.R.string.no, (dialog, which) -> {
                 dialog.cancel(); // close dialog
-            });
-            changeDate.show();
-        });
-
-        expDialog.setOnCancelListener(dialogInterface -> {
-            AlertDialog.Builder confirmCancel = new AlertDialog.Builder(MainActivity.this, R.style.DiscardChangesDialog);
-            confirmCancel.setMessage("Discard changes to this entry?");
-            confirmCancel.setPositiveButton("keep editing", (dialog, which) -> {
-                dialog.cancel(); // close dialog
-                expDialog.show();
-            });
-            confirmCancel.setNegativeButton("Discard changes", (dialog, which) -> expDialog.dismiss());
-//                confirmCancel.show();
+            })
+                    .show();
         });
     }
 
@@ -687,16 +676,16 @@ public class MainActivity extends AppCompatActivity {
         });
         sectionDelBtn.setOnClickListener(view -> {
             AlertDialog.Builder confirmDel = new AlertDialog.Builder(MainActivity.this, R.style.ConfirmDelDialog);
-            confirmDel.setTitle("Delete entry");
-            confirmDel.setMessage("Are you sure you want to delete? Relevant expenses will be moved to Cash.");
-            confirmDel.setPositiveButton("Delete", (dialogInterface, i) -> {
+            confirmDel.setTitle("Delete entry")
+                    .setMessage("Are you sure you want to delete? Relevant expenses will be moved to Cash.")
+                    .setPositiveButton("Delete", (dialogInterface, i) -> {
                 db.deleteAccount(acc, true);
                 updateAccountData();
                 updateHomeData();
                 dialog.dismiss();
-            });
-            confirmDel.setNeutralButton(android.R.string.no, (dialog1, which) -> dialog1.cancel());
-            confirmDel.show();
+            })
+                    .setNeutralButton(android.R.string.no, (dialog1, which) -> dialog1.cancel())
+                    .show();
         });
         sectionSaveBtn.setOnClickListener(view -> {
             if (!sectionName.getText().toString().isEmpty()) {
@@ -766,16 +755,16 @@ public class MainActivity extends AppCompatActivity {
         });
         sectionDelBtn.setOnClickListener(view -> {
             AlertDialog.Builder confirmDel = new AlertDialog.Builder(MainActivity.this, R.style.ConfirmDelDialog);
-            confirmDel.setTitle("Delete entry");
-            confirmDel.setMessage("Are you sure you want to delete? Relevant expenses will be moved to Others.");
-            confirmDel.setPositiveButton("Delete", (dialogInterface, i) -> {
+            confirmDel.setTitle("Delete entry")
+                    .setMessage("Are you sure you want to delete? Relevant expenses will be moved to Others.")
+                    .setPositiveButton("Delete", (dialogInterface, i) -> {
                 db.deleteCategory(cat, true);
                 updateCategoryData();
                 updateHomeData();
                 dialog.dismiss();
-            });
-            confirmDel.setNeutralButton(android.R.string.no, (dialog1, which) -> dialog1.cancel());
-            confirmDel.show();
+            })
+                    .setNeutralButton(android.R.string.no, (dialog1, which) -> dialog1.cancel())
+                    .show();
         });
         sectionSaveBtn.setOnClickListener(view -> {
             if (!sectionName.getText().toString().isEmpty()) {
