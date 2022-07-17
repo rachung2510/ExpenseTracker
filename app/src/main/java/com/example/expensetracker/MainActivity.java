@@ -281,6 +281,14 @@ public class MainActivity extends AppCompatActivity {
         updateExpenseData(expenses);
         updateSummaryData(expenses);
     }
+    public void updateExpenseData(ArrayList<Expense> expenses) {
+        expenses = insertExpDateHeaders(sortExpenses(expenses, Constants.DESCENDING));
+        ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        if (getFragment() instanceof HomeFragment)
+            ((HomeFragment) getFragment()).setExpenseData(linearLayoutManager, expAdapter);
+    }
     public void updateSummaryData(ArrayList<Expense> expenses) {
         Calendar from, to;
         int state;
@@ -334,14 +342,6 @@ public class MainActivity extends AppCompatActivity {
         } else if (getFragment() instanceof ChartsFragment) {
             ((ChartsFragment) getFragment()).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         }
-    }
-    public void updateExpenseData(ArrayList<Expense> expenses) {
-        expenses = insertExpDateHeaders(sortExpenses(expenses, Constants.DESCENDING));
-        ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        if (getFragment() instanceof HomeFragment)
-            ((HomeFragment) getFragment()).setExpenseData(linearLayoutManager, expAdapter);
     }
     public void updateAccountData() {
         AccountAdapter adapter = getAccountData(Constants.MANAGE);
@@ -669,7 +669,7 @@ public class MainActivity extends AppCompatActivity {
         sectionDelBtn.setOnClickListener(view -> {
             AlertDialog.Builder confirmDel = new AlertDialog.Builder(MainActivity.this, R.style.ConfirmDelDialog);
             confirmDel.setTitle("Delete entry")
-                    .setMessage("Are you sure you want to delete? Relevant expenses will be moved to Cash.")
+                    .setMessage("Are you sure you want to delete? Relevant expenses will be moved to " + Constants.defaultAccount + ".")
                     .setPositiveButton("Delete", (dialogInterface, i) -> {
                 db.deleteAccount(acc, true);
                 updateAccountData();
@@ -748,7 +748,7 @@ public class MainActivity extends AppCompatActivity {
         sectionDelBtn.setOnClickListener(view -> {
             AlertDialog.Builder confirmDel = new AlertDialog.Builder(MainActivity.this, R.style.ConfirmDelDialog);
             confirmDel.setTitle("Delete entry")
-                    .setMessage("Are you sure you want to delete? Relevant expenses will be moved to Others.")
+                    .setMessage("Are you sure you want to delete? Relevant expenses will be moved to " + Constants.defaultCategory + ".")
                     .setPositiveButton("Delete", (dialogInterface, i) -> {
                 db.deleteCategory(cat, true);
                 updateCategoryData();

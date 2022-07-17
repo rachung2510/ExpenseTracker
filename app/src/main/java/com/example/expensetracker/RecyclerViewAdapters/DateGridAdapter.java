@@ -19,6 +19,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.expensetracker.ChartsPage.ChartsChildFragment;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.google.android.material.button.MaterialButtonToggleGroup;
@@ -327,17 +328,18 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
                 switch (selToggle.getCheckedButtonId()) {
                     case R.id.toggleDay:
                         fromDate.set(selDayPicker.getYear(), selDayPicker.getMonth(), selDayPicker.getDayOfMonth(), 0, 0, 0);
-                        toDate.set(selDayPicker.getYear(), selDayPicker.getMonth(), selDayPicker.getDayOfMonth());
+                        toDate = MainActivity.getCalendarCopy(fromDate, DateGridAdapter.TO);
                         break;
                     case R.id.toggleMonth:
-                        toDate.set(Calendar.MONTH, fromDate.get(Calendar.MONTH));
-                        toDate.set(Calendar.YEAR, fromDate.get(Calendar.YEAR));
+                        toDate = MainActivity.getCalendarCopy(fromDate, DateGridAdapter.TO);
+                        toDate.set(Calendar.DAY_OF_MONTH, fromDate.getActualMaximum(Calendar.DAY_OF_MONTH));
                         break;
                     case R.id.toggleYear:
-                        toDate.set(Calendar.YEAR, fromDate.get(Calendar.YEAR));
+                        toDate = MainActivity.getCalendarCopy(fromDate, DateGridAdapter.TO);
+                        toDate.set(toDate.get(Calendar.YEAR), 12, 31);
                         break;
                 }
-                toDate.set(toDate.get(Calendar.YEAR), toDate.get(Calendar.MONTH), toDate.get(Calendar.DAY_OF_MONTH), 23, 59, 59);
+                toDate = MainActivity.getCalendarCopy(toDate, DateGridAdapter.TO);
                 if (parentDialog != null) parentDialog.dismiss();
                 selDateDialog.dismiss();
             }
