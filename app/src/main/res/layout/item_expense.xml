@@ -8,9 +8,20 @@
     android:layout_marginBottom="10dp"
     android:background="@color/white">
 
-    <LinearLayout
+    <View
+        android:id="@+id/separator"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="1dp"
+        android:translationY="1dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:foreground="#dddddd"
+        app:layout_constraintBottom_toTopOf="@id/linearLayout" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
         android:foreground="@drawable/shape_rounded_rectangle_border"
         android:background="?selectableItemBackground"
         android:orientation="horizontal"
@@ -113,4 +124,5 @@
         </LinearLayout>
 
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

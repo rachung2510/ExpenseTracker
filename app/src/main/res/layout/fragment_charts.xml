@@ -54,8 +54,10 @@
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="110dp"
         android:layout_marginBottom="@dimen/bottom_nav_height"
+        android:backgroundTint="@color/red_500"
         app:layout_constraintTop_toBottomOf="@id/frameLayout"
         app:layout_constraintBottom_toBottomOf="parent"/>
 

@@ -76,4 +76,6 @@ public class Constants {
     // Date navigation
     public static final int PREV = -1;
     public static final int NEXT = 1;
+    public static final int ASCENDING = 1;
+    public static final int DESCENDING = -1;
 }

@@ -32,30 +32,30 @@
             <corners android:radius="@dimen/cardCornerRadius" />
         </shape>
     </item>
-    <item>
-        <shape>
-            <padding
-                android:top="@dimen/cardShadowOffset" />
-            <solid android:color="#50CCCCCC" />
-            <corners android:radius="@dimen/cardCornerRadius" />
-        </shape>
-    </item>
-    <item>
-        <shape>
-            <padding
-                android:top="@dimen/cardShadowOffset" />
-            <solid android:color="#60CCCCCC" />
-            <corners android:radius="@dimen/cardCornerRadius" />
-        </shape>
-    </item>
-    <item>
-        <shape>
-            <padding
-                android:top="@dimen/cardShadowOffset" />
-            <solid android:color="#70CCCCCC" />
-            <corners android:radius="@dimen/cardCornerRadius" />
-        </shape>
-    </item>
+<!--    <item>-->
+<!--        <shape>-->
+<!--            <padding-->
+<!--                android:top="@dimen/cardShadowOffset" />-->
+<!--            <solid android:color="#50CCCCCC" />-->
+<!--            <corners android:radius="@dimen/cardCornerRadius" />-->
+<!--        </shape>-->
+<!--    </item>-->
+<!--    <item>-->
+<!--        <shape>-->
+<!--            <padding-->
+<!--                android:top="@dimen/cardShadowOffset" />-->
+<!--            <solid android:color="#60CCCCCC" />-->
+<!--            <corners android:radius="@dimen/cardCornerRadius" />-->
+<!--        </shape>-->
+<!--    </item>-->
+<!--    <item>-->
+<!--        <shape>-->
+<!--            <padding-->
+<!--                android:top="@dimen/cardShadowOffset" />-->
+<!--            <solid android:color="#70CCCCCC" />-->
+<!--            <corners android:radius="@dimen/cardCornerRadius" />-->
+<!--        </shape>-->
+<!--    </item>-->
 
     <!-- Background -->
     <item>

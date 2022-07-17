@@ -9,16 +9,17 @@ import com.github.mikephil.charting.animation.ChartAnimator;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.IValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IPieDataSet;
 import com.github.mikephil.charting.renderer.PieChartRenderer;
-import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.utils.MPPointF;
 import com.github.mikephil.charting.utils.Utils;
 import com.github.mikephil.charting.utils.ViewPortHandler;
 
 import java.util.List;
 
+/**
+ * Adapted from Nicolas - https://stackoverflow.com/questions/60906962/
+ */
 public class CustomPieChartRenderer extends PieChartRenderer {
 
     private final float circleRadius;
@@ -30,58 +31,44 @@ public class CustomPieChartRenderer extends PieChartRenderer {
 
     @Override
     public void drawValues(Canvas c) {
-        super.drawValues(c);
+//        super.drawValues(c);
 
         MPPointF center = mChart.getCenterCircleBox();
 
-        // get whole the radius
+        // get the whole radius
         float radius = mChart.getRadius();
         float rotationAngle = mChart.getRotationAngle();
         float[] drawAngles = mChart.getDrawAngles();
         float[] absoluteAngles = mChart.getAbsoluteAngles();
-
         float phaseX = mAnimator.getPhaseX();
         float phaseY = mAnimator.getPhaseY();
-
         final float roundedRadius = (radius - (radius * mChart.getHoleRadius() / 100f)) / 2f;
         final float holeRadiusPercent = mChart.getHoleRadius() / 100.f;
         float labelRadiusOffset = radius / 10f * 3.6f;
 
         if (mChart.isDrawHoleEnabled()) {
             labelRadiusOffset = (radius - (radius * holeRadiusPercent)) / 2f;
-
             if (!mChart.isDrawSlicesUnderHoleEnabled() && mChart.isDrawRoundedSlicesEnabled()) {
                 // Add curved circle slice and spacing to rotation angle, so that it sits nicely inside
                 rotationAngle += roundedRadius * 360 / (Math.PI * 2 * radius);
             }
         }
 
-        final float labelRadius = radius - labelRadiusOffset;
-
         PieData data = mChart.getData();
         List<IPieDataSet> dataSets = data.getDataSets();
-
-        float yValueSum = data.getYValueSum();
-
-        boolean drawEntryLabels = mChart.isDrawEntryLabelsEnabled();
-
+        final float labelRadius = radius - labelRadiusOffset;
+        float offset = Utils.convertDpToPixel(15.f);
         float angle;
         int xIndex = 0;
 
         c.save();
 
-        float offset = Utils.convertDpToPixel(15.f);
 
         for (int i = 0; i < dataSets.size(); i++) {
-
             IPieDataSet dataSet = dataSets.get(i);
-
-            float lineHeight = Utils.calcTextHeight(mValuePaint, "Q")
-                    + Utils.convertDpToPixel(4f);
-
-            IValueFormatter formatter = dataSet.getValueFormatter();
-
             final float sliceSpace = getSliceSpace(dataSet);
+            dataSet.setDrawValues(false); // values at end of line
+            dataSet.setDrawIcons(false);
 
             for (int j = 0; j < dataSet.getEntryCount(); j++) {
                 PieEntry entry = dataSet.getEntryForIndex(j);
@@ -92,11 +79,10 @@ public class CustomPieChartRenderer extends PieChartRenderer {
                 final float angleOffset = (sliceAngle - sliceSpaceMiddleAngle / 2.f) / 2.f;
                 angle = angle + angleOffset;
 
-//                if (dataSet.getValueLineColor() != ColorTemplate.COLOR_NONE) {
                 final float transformedAngle = rotationAngle + angle * phaseY;
 
-                float value = mChart.isUsePercentValuesEnabled() ? entry.getY()
-                        / yValueSum * 100f : entry.getY();
+//                float value = mChart.isUsePercentValuesEnabled() ? entry.getY()
+//                        / data.getYValueSum() * 100f : entry.getY();
 
                 final float sliceXBase = (float) Math.cos(transformedAngle * Utils.FDEG2RAD);
                 final float sliceYBase = (float) Math.sin(transformedAngle * Utils.FDEG2RAD);
@@ -107,7 +93,6 @@ public class CustomPieChartRenderer extends PieChartRenderer {
 
                 float pt2x, pt2y;
                 float labelPtx, labelPty;
-
                 float line1Radius;
 
                 if (mChart.isDrawHoleEnabled())
@@ -143,16 +128,14 @@ public class CustomPieChartRenderer extends PieChartRenderer {
                 }
                 labelPty = pt2y;
 
-                // draw lines
-                int lineColor = ColorTemplate.COLOR_NONE;
-
-                lineColor = dataSet.getColor(j);
-
+                // draw lines at end of lines
+                int lineColor = dataSet.getColor(j); // ColorTemplate.COLOR_NONE;
                 mValueLinePaint.setColor(lineColor);
+                mValueLinePaint.setStrokeWidth(5f);
                 c.drawLine(pt0x, pt0y, pt1x, pt1y, mValueLinePaint);
                 c.drawLine(pt1x, pt1y, pt2x, pt2y, mValueLinePaint);
 
-                // draw icons
+                // draw icons at end of lines
                 if (entry.getIcon() != null) {
                     Drawable icon = entry.getIcon();
                     Drawable wrappedIcon = DrawableCompat.wrap(icon);
@@ -165,16 +148,10 @@ public class CustomPieChartRenderer extends PieChartRenderer {
                             100,
                             100);
                 }
-
-                dataSet.setDrawValues(false);
-                dataSet.setDrawIcons(false);
-
-//                }
                 xIndex++;
             }
         }
         MPPointF.recycleInstance(center);
         c.restore();
-
     }
 }

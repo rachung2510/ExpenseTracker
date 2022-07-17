@@ -14,6 +14,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.expensetracker.HelperClasses.FileUtils;
+import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,11 +22,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -655,6 +661,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return totalAmt;
     }
+    public float getTotalAmtOnDate(Calendar cal) {
+        float totalAmt = 0;
+        Calendar from = MainActivity.getCalendarCopy(cal, DateGridAdapter.FROM);
+        Calendar to = MainActivity.getCalendarCopy(cal, DateGridAdapter.TO);
+        ArrayList<Expense> expenses = getExpensesByDateRange(from, to);
+        for (Expense e : expenses) totalAmt += e.getAmount();
+        return totalAmt;
+    }
+    public float getTotalAmtInRange(Calendar from, Calendar to) {
+        float totalAmt = 0;
+        ArrayList<Expense> expenses = getExpensesByDateRange(from, to);
+        for (Expense e : expenses) totalAmt += e.getAmount();
+        return totalAmt;
+    }
     public float getTotalAmtByAccount(Account acc) {
         float totalAmt = 0;
         SQLiteDatabase db = this.getReadableDatabase();
@@ -703,6 +723,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return totalAmt;
     }
+    public float getAverage(int period, Calendar from, Calendar to) {
+        ArrayList<Expense> expenses = getExpensesByDateRange(from, to);
+        float totalAmt = 0;
+        int count = 0;
+        HashMap<String,Boolean> dates = new HashMap<>();
+        for (Expense e : expenses) {
+            totalAmt += e.getAmount();
+            String date = (period == DateGridAdapter.MONTH) ? e.getDatetimeStr("MM-yyyy") :
+                    ((period == DateGridAdapter.WEEK) ? e.getDatetime().get(Calendar.WEEK_OF_YEAR) + "-" + e.getDatetimeStr("yyyy") :
+                            e.getDatetimeStr("dd-MM-yyyy"));
+            if (!dates.containsKey(date)) {
+                dates.put(date, true);
+                count++;
+            }
+        }
+        return (count > 0) ? totalAmt / count : totalAmt;
+    }
+    public float getDayAverage(Calendar from, Calendar to) {
+        return getAverage(DateGridAdapter.DAY, from, to);
+    }
+    public float getWeekAverage(Calendar from, Calendar to) {
+        return getAverage(DateGridAdapter.WEEK, from, to);
+    }
+    public float getMonthAverage(Calendar from, Calendar to) {
+        return getAverage(DateGridAdapter.MONTH, from, to);
+    }
+
 
     /**
      * IMPORT/EXPORT
@@ -745,7 +792,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             output.flush();
             output.close();
             stream.close();
-            Toast.makeText(context, "Export successful" , Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "Database exported to Downloads" , Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             Log.e(TAG, String.valueOf(e));
             Toast.makeText(context, "Export failed", Toast.LENGTH_SHORT).show();

@@ -2,6 +2,7 @@ package com.example.expensetracker;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -99,6 +100,12 @@ public class Expense {
         Date date = datetime.getTime();
         DateFormat dateFormat = new SimpleDateFormat(dtf, MainActivity.locale);
         return dateFormat.format(date);
+    }
+
+    public static float getTotal(ArrayList<Expense> expenses) {
+        float totalAmt = 0;
+        for (Expense e : expenses) totalAmt += expenses.size();
+        return totalAmt;
     }
 
     /**

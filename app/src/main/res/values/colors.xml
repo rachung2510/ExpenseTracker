@@ -11,6 +11,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="red">#f24238</color>
     <color name="red_500">#fe5f55</color>
+    <color name="red_600">#be3b35</color>
     <color name="red_700">#731010</color>
 
     <color name="text_light_gray">#A9ACB5</color>

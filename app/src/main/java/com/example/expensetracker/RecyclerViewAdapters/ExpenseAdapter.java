@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,6 +41,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private final ArrayList<Expense> expenses;
     private final Context context;
     private final LayoutInflater inflater;
+    private boolean viewOnly = false;
 
     // actions and selections
     private ActionMode actionMode;
@@ -53,6 +55,12 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         this.expenses = expenses;
         this.context = context;
         this.inflater = LayoutInflater.from(context);
+    }
+    public ExpenseAdapter(Context context, ArrayList<Expense> expenses, boolean viewOnly) {
+        this.expenses = expenses;
+        this.context = context;
+        this.inflater = LayoutInflater.from(context);
+        this.viewOnly = viewOnly;
     }
 
     /**
@@ -97,6 +105,8 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         TextView expAmt, expCurr, expDesc, expAccName, expCatName;
         ImageButton expCatIcon;
         ConstraintLayout expRow;
+        View separator;
+        LinearLayout expLayout;
 
         public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -107,6 +117,8 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             expCatName = itemView.findViewById(R.id.expCatName);
             expCatIcon = itemView.findViewById(R.id.expCatIcon);
             expRow = itemView.findViewById(R.id.expenseRow);
+            separator = itemView.findViewById(R.id.separator);
+            expLayout = itemView.findViewById(R.id.linearLayout);
         }
 
         public void select() {
@@ -133,29 +145,37 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.expCatName.setText(cat.getName());
         holder.expCatIcon.setForeground(cat.getIcon());
         holder.expCatIcon.setBackgroundTintList(MainActivity.getColorStateListFromName(context, cat.getColorName()));
+        holder.separator.setVisibility((viewOnly && expenses.get(position-1).getId() >= -1) ? View.VISIBLE : View.GONE);
+        if (viewOnly) holder.expLayout.setForeground(null);
+        if (expenses.get(position-1).getId() == -1) {
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) holder.separator.getLayoutParams();
+            params.setMargins(0, 0, 0, 0);
+            holder.separator.setLayoutParams(params);
+        }
 
         // Selection behaviour
         if (selectedPos.contains(position)) holder.select();
         else holder.deselect();
 
-        holder.itemView.setOnLongClickListener(view -> {
-            if (actionMode != null)
-                return false;
-            selectionMode = true;
-            holder.toggleSelect(position);
-            notifyItemChanged(position);
-            actionMode = ((Activity) context).startActionMode(actionModeCallback);
-            return true;
-        });
-
-        holder.itemView.setOnClickListener(view -> {
-            if (selectionMode) {
+        if (!viewOnly) {
+            holder.itemView.setOnLongClickListener(view -> {
+                if (actionMode != null)
+                    return false;
+                selectionMode = true;
                 holder.toggleSelect(position);
-            } else {
-                ((MainActivity) context).editExpense(expenses.get(position).getId());
-            }
-            notifyItemChanged(position);
-        });
+                notifyItemChanged(position);
+                actionMode = ((Activity) context).startActionMode(actionModeCallback);
+                return true;
+            });
+            holder.itemView.setOnClickListener(view -> {
+                if (selectionMode) {
+                    holder.toggleSelect(position);
+                } else {
+                    ((MainActivity) context).editExpense(expenses.get(position).getId());
+                }
+                notifyItemChanged(position);
+            });
+        }
     }
     private final ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
         @Override

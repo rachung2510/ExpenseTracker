@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.expensetracker.ChartsPage.ChartsChildFragment;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
@@ -47,9 +48,11 @@ import com.example.expensetracker.ManagePage.ManageFragment;
 import com.example.expensetracker.ManagePage.SectionOptDialogFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -303,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Expenses
     public void updateExpenseData(ArrayList<Expense> expenses) {
-        expenses = insertExpDateHeaders(sortExpenses(expenses));
+        expenses = insertExpDateHeaders(sortExpenses(expenses, Constants.DESCENDING));
         ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -336,7 +339,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return expensesByDate;
     }
-    public ArrayList<Expense> insertExpDateHeaders(ArrayList<Expense> expenses) {
+    public static ArrayList<Expense> insertExpDateHeaders(ArrayList<Expense> expenses) {
         int day = -1;
         ArrayList<Expense> newLst = new ArrayList<>();
         for (Expense exp : expenses) {
@@ -348,10 +351,15 @@ public class MainActivity extends AppCompatActivity {
         }
         return newLst;
     }
-    public ArrayList<Expense> sortExpenses(ArrayList<Expense> expenses) {
-        expenses.sort((e1, e2) -> {
-            return e2.getDatetime().compareTo(e1.getDatetime()); // descending order
-        });
+    public static ArrayList<Expense> sortExpenses(ArrayList<Expense> expenses, int order) {
+        if (order == Constants.ASCENDING)
+            expenses.sort((e1, e2) -> {
+                return e1.getDatetime().compareTo(e2.getDatetime()); // descending order
+            });
+        else
+            expenses.sort((e1, e2) -> {
+                return e2.getDatetime().compareTo(e1.getDatetime()); // descending order
+            });
         return expenses;
     }
 
@@ -381,29 +389,27 @@ public class MainActivity extends AppCompatActivity {
             // set date
             Calendar cal = Calendar.getInstance();
             cal.set(to.get(Calendar.YEAR), to.get(Calendar.MONTH), to.get(Calendar. DAY_OF_MONTH), 0, 0, 0);
-            SimpleDateFormat sdf;
+            String format = "";
             switch (state) {
                 case DateGridAdapter.MONTH:
-                    sdf = new SimpleDateFormat("MMM yyyy", locale);
+                    format = "MMM yyyy";
                     break;
                 case DateGridAdapter.YEAR:
-                    sdf = new SimpleDateFormat("yyyy", locale);
+                    format = "yyyy";
                     break;
                 default:
-                    sdf = new SimpleDateFormat("dd MMM yyyy", locale);
+                    format = "dd MMM yyyy";
             }
-            if (sdf.format(from.getTime()).equals(sdf.format(cal.getTime()))) {
-                int relativeDate = getRelativeDate(from);
+            if (getDatetimeStr(from, format).equals(getDatetimeStr(cal, format))) {
                 if (state == DateGridAdapter.DAY || state == DateGridAdapter.SELECT_SINGLE) {
-                    summaryDateText = (relativeDate == Constants.TODAY) ? "Today" : (
-                            (relativeDate == Constants.YESTERDAY) ? "Yesterday" : new SimpleDateFormat("EEE", locale).format(from.getTime()));
-                    summaryDateText += new SimpleDateFormat(", dd MMM yyyy", locale).format(from.getTime());
+                    summaryDateText = getRelativePrefix(from);
+                    summaryDateText += getDatetimeStr(from, ", dd MMM yyyy");
                 } else if (state == DateGridAdapter.MONTH)
-                    summaryDateText = new SimpleDateFormat("MMMM yyyy", locale).format(from.getTime());
+                    summaryDateText = getDatetimeStr(from, "MMMM yyyy");
                 else
-                    summaryDateText = sdf.format(from.getTime());
+                    summaryDateText = getDatetimeStr(from, format);
             } else {
-                summaryDateText = sdf.format(from.getTime()) + " - " + sdf.format(to.getTime());
+                summaryDateText = getDatetimeStr(from, format) + " - " + getDatetimeStr(to, format);
             }
         }
         for (Expense exp : expenses) totalAmt += exp.getAmount();
@@ -454,7 +460,7 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog expDialog = expenseDialog();
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
         Calendar cal = Calendar.getInstance(locale);
-        expDate.setText(("Today, " + new SimpleDateFormat("dd MMMM yyyy", locale).format(cal.getTime())).toUpperCase());
+        expDate.setText(("Today, " + getDatetimeStr(cal, "dd MMMM yyyy")).toUpperCase());
         expCurr.setText(db.getAccount(1).getCurrencySymbol());
 
         // actions
@@ -474,10 +480,7 @@ public class MainActivity extends AppCompatActivity {
             changeDate.setView(datePicker)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                 cal.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-                int relativeDate = getRelativeDate(cal);
-                String datePrefix = (relativeDate == Constants.TODAY) ? "Today" :
-                        ((relativeDate == Constants.YESTERDAY) ? "Yesterday" : new SimpleDateFormat("EEE", locale).format(cal.getTime()));
-                expDate.setText((datePrefix + ", " + new SimpleDateFormat("dd MMMM yyyy", locale).format(cal.getTime())).toUpperCase());
+                expDate.setText((getRelativePrefix(cal) + getDatetimeStr(cal, ", dd MMM yyyy")).toUpperCase());
             })
                     .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())
                     .show();
@@ -488,7 +491,7 @@ public class MainActivity extends AppCompatActivity {
                 String desc = expDesc.getText().toString();
                 Account acc = db.getAccount(expAccName.getText().toString());
                 Category cat = db.getCategory(expCatName.getText().toString());
-                String datetime = new SimpleDateFormat(Expense.DATETIME_FORMAT, locale).format(cal.getTime());
+                String datetime = getDatetimeStr(cal, "");
                 Expense expense = new Expense(amt, desc, acc, cat, datetime);
                 db.createExpense(expense);
                 updateHomeData(); // update summary & expense list
@@ -820,7 +823,7 @@ public class MainActivity extends AppCompatActivity {
         return getIconFromId(context, getIconIdFromName(context, name));
     }
     public static Drawable getIconFromId(Context context, int id) {
-        return ResourcesCompat.getDrawable(context.getResources(), id, null);
+        return ContextCompat.getDrawable(context, id);
     }
     public static int getColorIdFromName(Context context, String name) {
         return context.getResources().getIdentifier(name, "color", context.getPackageName());
@@ -859,6 +862,15 @@ public class MainActivity extends AppCompatActivity {
         }
         return -1;
     }
+    public static String getRelativePrefix(Calendar cal) {
+        int relativeDate = getRelativeDate(cal);
+        return (relativeDate == Constants.TODAY) ? "Today" : (
+                    (relativeDate == Constants.YESTERDAY) ? "Yesterday" : getDatetimeStr(cal, "EEE"));
+    }
+    public static String getDatetimeStr(Calendar cal, String format) {
+        format = (format.isEmpty()) ? Expense.DATETIME_FORMAT : format;
+        return new SimpleDateFormat(format, locale).format(cal.getTime());
+    }
     public static float convertDpToPx(Context context, float dp) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
                 context.getResources().getDisplayMetrics());
@@ -869,9 +881,13 @@ public class MainActivity extends AppCompatActivity {
     public static String getString(Context context, int id) {
         return context.getResources().getString(id);
     }
-    public static void logDate(String TAG, String format, Calendar cal) {
-        format = (format.isEmpty()) ? Expense.DATETIME_FORMAT : format;
-        String res = new SimpleDateFormat(format, locale).format(cal.getTime());
-        Log.e(TAG, res);
+
+    public static Calendar getCalendarCopy(Calendar cal, int range) {
+        Calendar copy = Calendar.getInstance();
+        if (range == DateGridAdapter.FROM)
+            copy.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 0,0,0);
+        else
+            copy.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 23,59,59);
+        return copy;
     }
 }

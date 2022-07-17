@@ -1,7 +1,6 @@
 package com.example.expensetracker.ChartsPage;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +18,6 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.expensetracker.Constants;
-import com.example.expensetracker.Currency;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;
@@ -31,8 +29,9 @@ import java.util.Calendar;
 
 public class ChartsFragment extends Fragment {
 
+    private static final String TAG = "ChartsFragment";
     private int indicatorWidth;
-    public String[] fragmentTitles = new String[] { "Categories", "Monthly", "Calendar" };
+    public String[] fragmentTitles = new String[] { "Categories", "Time", "Calendar" };
     private TextView summaryDate;
     private ImageButton prevDate, nextDate;
 
@@ -41,16 +40,10 @@ public class ChartsFragment extends Fragment {
     private Calendar fromDate, toDate;
     private int selDatePos, selDateState;
 
-    /**
-     * CONSTRUCTOR
-     */
     public ChartsFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * MAIN
-     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charts, container, false);
@@ -77,7 +70,7 @@ public class ChartsFragment extends Fragment {
         ViewPagerAdapter adapter = new ViewPagerAdapter(this);
         adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_PIECHART));
         adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_GRAPH));
-        adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_CALENDAR));
+//        adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_CALENDAR));
         viewPager2.setAdapter(adapter);
 
         // configure tab layout
@@ -100,6 +93,15 @@ public class ChartsFragment extends Fragment {
                 float translationOffset = (positionOffset + position) * indicatorWidth;
                 params.leftMargin = (int) translationOffset;
                 tabIndicator.setLayoutParams(params);
+                if (position == 1 && selDateState == DateGridAdapter.ALL) {
+                    selDatePos = DateGridAdapter.MONTH;
+                    selDateState = DateGridAdapter.MONTH;
+                    prevDate.setVisibility(ImageButton.VISIBLE);
+                    nextDate.setVisibility(ImageButton.VISIBLE);
+                    fromDate = DateGridAdapter.getInitSelectedDates(DateGridAdapter.FROM, selDateState);
+                    toDate = DateGridAdapter.getInitSelectedDates(DateGridAdapter.TO, selDateState);
+                    ((MainActivity) getActivity()).updateSummaryData(((MainActivity) getActivity()).getExpenseList()); // update summary
+                }
             }
         });
 
@@ -122,6 +124,11 @@ public class ChartsFragment extends Fragment {
             ((SimpleItemAnimator) dateGrid.getItemAnimator()).setSupportsChangeAnimations(false);
             GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
             filterDateAdapter = new DateGridAdapter(getActivity(), new int[] { selDatePos, selDateState }, fromDate, toDate);
+            if (getChildFragmentManager().getFragments().size() > 1) {
+                Fragment childFrag = getChildFragmentManager().getFragments().get(1);
+                if (childFrag.isVisible())
+                    filterDateAdapter.setDisabledPos(new String[] { "All time" });
+            }
 
             dateGrid.setLayoutManager(gridLayoutManager);
             dateGrid.setAdapter(filterDateAdapter);
@@ -137,7 +144,6 @@ public class ChartsFragment extends Fragment {
             dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
 
             dialog.setOnDismissListener(dialogInterface -> {
-                Log.e("dialog dismiss","");
                 filterDateAdapter.updateState();
                 selDatePos = filterDateAdapter.getSelectedPos();
                 selDateState = filterDateAdapter.getSelectedState();
@@ -189,12 +195,18 @@ public class ChartsFragment extends Fragment {
     public int getSelDateState() {
         return selDateState;
     }
+    public int getSelDatePos() {
+        return selDatePos;
+    }
     public void setSummaryData(String summaryDateText, float summaryAmt) {
-        if (summaryDateText.equals("ALL TIME")) Log.e((fromDate==null)?"NULL":"NOTNULL", "");
         summaryDate.setText(summaryDateText);
-        ChartsChildFragment piechartFrag = (ChartsChildFragment) getChildFragmentManager().getFragments().get(0);
-        piechartFrag.setSummaryAmt(summaryAmt);
-        piechartFrag.updateDateFilters(fromDate, toDate);
+        ChartsChildFragment pieChartFrag = (ChartsChildFragment) getChildFragmentManager().getFragments().get(0);
+        pieChartFrag.setPieChartTotalAmt(summaryAmt);
+        pieChartFrag.updateDateFilters(fromDate, toDate);
+        if (getChildFragmentManager().getFragments().size() > 1) {
+            ChartsChildFragment lineChartFrag = (ChartsChildFragment) getChildFragmentManager().getFragments().get(1);
+            lineChartFrag.updateDateFilters(fromDate, toDate);
+        }
     }
 
 }

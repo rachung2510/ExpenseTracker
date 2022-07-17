@@ -2,6 +2,7 @@ package com.example.expensetracker.RecyclerViewAdapters;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,17 +30,17 @@ import java.util.Calendar;
 
 public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHolder>{
 
+    private static final String TAG = "DateGridAdapter";
     private final ArrayList<String> filterDateIconNames;
     private final ArrayList<String> filterDateNames;
-    private final ColorStateList iconGray;
-    private final ColorStateList iconWhite;
-    private final ColorStateList bgSelectOrange;
+    private final ColorStateList iconGray, iconLightGray, iconWhite, bgSelectOrange;
 
     private final Context context;
     private final LayoutInflater inflater;
     private int selectedPos;
     private int state;
     public boolean errorState = false;
+    private boolean[] disabledPos = { false,false,false,false,false,false };
 
     // components
     private Calendar fromDate, toDate;
@@ -80,6 +81,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         toDayPicker = new DatePicker(context);
 
         iconGray = MainActivity.getColorStateListFromId(context, R.color.generic_icon_gray);
+        iconLightGray = MainActivity.getColorStateListFromId(context, R.color.tag_bg_gray);
         iconWhite = MainActivity.getColorStateListFromId(context, R.color.white);
         bgSelectOrange = MainActivity.getColorStateListFromId(context, R.color.orange_500);
     }
@@ -106,13 +108,13 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         } else {
             holder.filterDateName.setText(filterDateNames.get(pos));
         }
-        holder.filterDateIcon.setForegroundTintList(iconGray);
-        holder.itemView.setOnClickListener(view -> Toast.makeText(context, filterDateNames.get(pos), Toast.LENGTH_SHORT).show());
+//            holder.itemView.setOnClickListener(view -> Toast.makeText(context, filterDateNames.get(pos), Toast.LENGTH_SHORT).show());
 
         if (pos < 5 && pos == selectedPos) holder.select();
         else if (pos == 5 && selectedPos >= 5) holder.select();
-        else holder.deselect();
-        holder.itemView.setOnClickListener(view -> {
+        else holder.deselect(pos);
+        if (!disabledPos[pos])
+            holder.itemView.setOnClickListener(view -> {
             int oldPos = selectedPos;
             if ((pos<5 && pos!=selectedPos) || (pos>=5 && selectedPos<5))
                 selectedPos = pos;
@@ -156,10 +158,10 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
             filterDateName.setTextColor(ContextCompat.getColor(context, R.color.white));
         }
 
-        public void deselect() {
+        public void deselect(int pos) {
             itemView.setBackgroundTintList(null);
-            filterDateIcon.setForegroundTintList(iconGray);
-            filterDateName.setTextColor(ContextCompat.getColor(context, R.color.text_mid_gray));
+            filterDateIcon.setForegroundTintList(disabledPos[pos] ? iconLightGray : iconGray);
+            filterDateName.setTextColor(disabledPos[pos] ? ContextCompat.getColor(context, R.color.tag_bg_gray) : ContextCompat.getColor(context, R.color.text_mid_gray));
         }
     }
 
@@ -383,13 +385,21 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         }
     }
     public static Calendar getInitSelectedDates(int range, int state) {
+        return getInitSelectedDates(range, state, Calendar.SUNDAY);
+    }
+    public static Calendar getInitSelectedDates(int range, int state, int firstDayOfWeek) {
         Calendar cal = Calendar.getInstance(MainActivity.locale);
-        Calendar to = Calendar.getInstance(MainActivity.locale); // for checking if Sunday > Saturday
+        Calendar ref = MainActivity.getCalendarCopy(cal, FROM); // for checking if Sunday > Saturday
+        int lastDayOfWeek = (firstDayOfWeek == Calendar.MONDAY) ? Calendar.SUNDAY : Calendar.SATURDAY;
         switch (state) {
             case WEEK:
-                cal.set(Calendar.DAY_OF_WEEK, (range == FROM) ? Calendar.SUNDAY : Calendar.SATURDAY);
-                to.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-                if ((range == FROM) && cal.after(to)) cal.add(Calendar.DAY_OF_YEAR, -7); // roll back by a week
+                if ((range == DateGridAdapter.FROM) && ref.get(Calendar.DAY_OF_WEEK) == firstDayOfWeek)
+                    break;
+                if ((range == DateGridAdapter.TO) && ref.get(Calendar.DAY_OF_WEEK) == lastDayOfWeek)
+                    break;
+                cal.set(Calendar.DAY_OF_WEEK, (range == FROM) ? firstDayOfWeek : lastDayOfWeek);
+                if ((range == FROM) && cal.after(ref)) cal.add(Calendar.DATE, -7); // roll back by a week
+                if ((range == TO) && ref.after(cal)) cal.add(Calendar.DATE, 7); // append by a week
                 break;
             case MONTH:
                 cal.set(Calendar.DAY_OF_MONTH, (range == FROM) ? 1 : cal.getActualMaximum(Calendar.DATE));
@@ -428,5 +438,8 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     }
     public Calendar[] getSelDateRange() {
         return new Calendar[] { fromDate, toDate };
+    }
+    public void setDisabledPos(String[] exclude) {
+        for (String s : exclude) disabledPos[filterDateNames.indexOf(s)] = true;
     }
 }

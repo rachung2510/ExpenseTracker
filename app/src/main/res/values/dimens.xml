@@ -6,6 +6,6 @@
     <dimen name="chooseCatMaxHeight">485dp</dimen>
     <dimen name="actionBarSize">56dp</dimen>
     <dimen name="spacing">5dp</dimen>
-    <dimen name="cardCornerRadius">24dp</dimen>
+    <dimen name="cardCornerRadius">30dp</dimen>
     <dimen name="cardShadowOffset">2dp</dimen>
 </resources>

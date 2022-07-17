@@ -12,6 +12,8 @@
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_hsbc.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_nets.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/acc_visa.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/card_no_shadiw.xml" value="0.1" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/card_no_shadow.xml" value="0.109" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/card_shadow.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cash.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_clothes.xml" value="0.111" />
@@ -20,16 +22,23 @@
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_food.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_gift.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/cat_office.xml" value="0.111" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/custom_marker.xml" value="0.1" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/custom_marker_view_layout.xml" value="0.109" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/date_calendar_event.xml" value="0.1" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/fade_red.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/ic_squircle.xml" value="0.109" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/selector_circle.xml" value="0.109" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/selector_rounded_square.xml" value="0.109" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_circle.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_circle_border.xml" value="0.109" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_circle_dotted_border.xml" value="0.109" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_rectangle_border.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_tab_bg.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/drawable/shape_tab_indicator.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/activity_main.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/activity_widget_expense.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/adapter_view_layout.xml" value="0.20052083333333334" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/custom_marker_view_layout.xml" value="0.6666666666666666" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_date.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_date_grid.xml" value="0.19947916666666668" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_date_select.xml" value="0.20052083333333334" />
@@ -43,7 +52,7 @@
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/dialog_section_opt.xml" value="0.16666666666666666" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/fragment_charts.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/fragment_charts_calendar.xml" value="0.20052083333333334" />
-        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/fragment_charts_graph.xml" value="0.19947916666666668" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/fragment_charts_graph.xml" value="0.3333333333333333" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/fragment_charts_piechart.xml" value="0.22" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/fragment_dashboard.xml" value="0.1" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/fragment_home.xml" value="0.20052083333333334" />
@@ -59,7 +68,7 @@
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_currency.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_date_grid.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_empty_view.xml" value="0.1" />
-        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_expense.xml" value="0.22" />
+        <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_expense.xml" value="0.36058700209643607" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_expense_date_header.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_expense_list.xml" value="0.20052083333333334" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/layout/item_icon_grid.xml" value="0.19947916666666668" />
