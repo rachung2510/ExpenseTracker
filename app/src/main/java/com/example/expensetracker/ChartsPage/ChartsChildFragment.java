@@ -86,14 +86,13 @@ public class ChartsChildFragment extends Fragment {
     ArrayList<Expense> expenses = new ArrayList<>();
     ArrayList<String> dates = new ArrayList<>();
     int num_units = 1;
-    float scale = 1;
     private int selDateState;
     private boolean isSelRange = false;
 
     public static final int TYPE_PIECHART = 0;
     public static final int TYPE_GRAPH = 1;
     public static final int TYPE_CALENDAR = 2;
-    private static final int granDivisor = 9;
+    private static final float granDivisor = 10f;
 
     public ChartsChildFragment(int chartType) {
         this.chartType = chartType;
@@ -180,9 +179,8 @@ public class ChartsChildFragment extends Fragment {
                     if (from == null) {
                         from = DateGridAdapter.getInitSelectedDates(DateGridAdapter.FROM, DateGridAdapter.MONTH);
                         to = DateGridAdapter.getInitSelectedDates(DateGridAdapter.TO, DateGridAdapter.MONTH);
-                    } else {
+                    } else
                         to = ((MainActivity) getActivity()).db.getFirstLastDates()[1];
-                    }
                 }
                 Calendar old = MainActivity.getCalendarCopy(from, DateGridAdapter.FROM);
                 from = updateDateRange(from, DateGridAdapter.FROM);
@@ -339,12 +337,12 @@ public class ChartsChildFragment extends Fragment {
             totalAmt += e.getAmount();
         }
 //        for (Entry v : values) Log.e(TAG, "x=" + v.getX() + ", y=" + v.getY());
+
         float xMin = (float) (-num_units*0.08);
         float xMax = (float) (num_units*1.08-1);
         values.add(0, new Entry(xMin, 0f));
         values.add(new Entry(xMax, 0f));
         updateXLabels(num_units / granDivisor);
-
         float yMin = (float) (maxAmt == 0f ? -0.45 : -0.45 * maxAmt);
         float yMax = (float) (maxAmt == 0f ? 1.2 : 1.2 * maxAmt);
         lineChart.getAxisLeft().setAxisMinimum(yMin);
@@ -407,7 +405,7 @@ public class ChartsChildFragment extends Fragment {
         lineChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-                if (e.getX() % 1 != 0) return;
+                if (e.getX() < 0 || e.getX() > num_units) return;
                 lineAmt.setText(String.format(MainActivity.locale,"%.2f",e.getY()));
                 highlightLineAmt(true);
                 int x = (int) e.getX();
@@ -454,18 +452,20 @@ public class ChartsChildFragment extends Fragment {
                 else
                     updateXLabels((float) (end.x - start.x) / granDivisor);
             }
-
-            @Override
-            public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
-
-            }
             @Override
             public void onChartGestureEnd(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
                 if (lastPerformedGesture == ChartTouchListener.ChartGesture.X_ZOOM) {
                     scale *= scaleX;
                     if (scale <= 1) scale = 1;
+//                    Log.e(TAG, "scaleX=" + String.format("%.2f", scaleX) + ", scale=" + String.format("%.2f", scale));
+//                    Log.e(TAG, "gran=" + (num_units / scale /granDivisor));
                     updateXLabels(num_units / scale / granDivisor);
                 }
+            }
+
+            @Override
+            public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
+
             }
             @Override
             public void onChartLongPressed(MotionEvent me) {
@@ -575,9 +575,10 @@ public class ChartsChildFragment extends Fragment {
                     } else if (selDateState <= DateGridAdapter.WEEK) {
                         return MainActivity.getDatetimeStr(cal, "EEE").toUpperCase();
                     } else {
+//                        Log.e(TAG, "num_units=" + num_units + ", gran=" + granularityRef);
                         float granularity;
                         if (granularityRef < 1) granularity = 1;
-                        else if (granularityRef < 3) granularity = 2;
+                        else if (granularityRef < 2.2) granularity = 2;
                         else if (granularityRef < 5) granularity = 5;
                         else granularity = 10;
                         String d = MainActivity.getDatetimeStr(cal, "d");
