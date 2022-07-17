@@ -228,7 +228,7 @@
         android:layout_gravity="end"
         android:text="Select range"
         android:textColor="@color/text_mid_gray"
-        android:checked="true"
+        android:checked="false"
         android:textOff="@string/sel_range"
         android:textOn="@string/sel_single"/>
 

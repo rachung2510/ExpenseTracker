@@ -56,8 +56,8 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     public final static int MONTH = 2;
     public final static int YEAR = 3;
     public final static int ALL = 4;
-    public final static int SELECT_RANGE = 5;
-    public final static int SELECT_SINGLE = 6;
+    public final static int SELECT_SINGLE = 5;
+    public final static int SELECT_RANGE = 6;
     public final static int FROM = 0;
     public final static int TO = 1;
     public final static String[] months = new String[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -227,6 +227,20 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         if (state == MONTH) selToggle.check(R.id.toggleMonth);
         else if (state == YEAR) selToggle.check(R.id.toggleYear);
         else selToggle.check(R.id.toggleDay);
+        if (selectedPos == SELECT_SINGLE) {
+            selDayRange.setVisibility(LinearLayout.GONE);
+            selDayPicker.setVisibility(DatePicker.VISIBLE);
+            toSel.setVisibility(LinearLayout.GONE);
+            fromHeader.setVisibility(TextView.GONE);
+            toggleRange.setChecked(false);
+        } else if (selectedPos == SELECT_RANGE) {
+            selDayRange.setVisibility(LinearLayout.VISIBLE);
+            selDayPicker.setVisibility(DatePicker.GONE);
+            toSel.setVisibility(LinearLayout.VISIBLE);
+            fromHeader.setVisibility(TextView.VISIBLE);
+            selectedPos = SELECT_RANGE;
+            toggleRange.setChecked(true);
+        }
         toggleRange.setOnCheckedChangeListener((compoundButton, b) -> {
             if (b) {
                 selDayRange.setVisibility(LinearLayout.VISIBLE);
