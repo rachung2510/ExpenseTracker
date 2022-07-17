@@ -246,6 +246,12 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         // Initialisation
         Calendar from = fromDate;
         Calendar to = toDate;
+        if (from == null) {
+            from = getInitSelectedDates(FROM, MONTH);
+            to = getInitSelectedDates(TO, MONTH);
+            fromDate = MainActivity.getCalendarCopy(from, FROM);
+            toDate = MainActivity.getCalendarCopy(to, TO);
+        }
 
         // Set values for Day
         selDayPicker.updateDate(from.get(Calendar.YEAR), from.get(Calendar.MONTH), from.get(Calendar.DAY_OF_MONTH));

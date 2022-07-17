@@ -23,7 +23,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -33,7 +32,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.expensetracker.ChartsPage.ChartsChildFragment;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
@@ -48,11 +46,9 @@ import com.example.expensetracker.ManagePage.ManageFragment;
 import com.example.expensetracker.ManagePage.SectionOptDialogFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -78,20 +74,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        binding = ActivityMainBinding.inflate(getLayoutInflater());
-//        setContentView(binding.getRoot());
 
         // Initialize default accounts/categories
         if (db.empty(DatabaseHelper.TABLE_ACCOUNT))
             initialiseDefaultAccs();
         if (db.empty(DatabaseHelper.TABLE_CATEGORY))
             initialiseDefaultCats();
+        if (db.empty(DatabaseHelper.TABLE_CURRENCY))
+            initialiseCurrencies();
         if (iconMap.isEmpty())
             getIconMap();
         if (colorMap.isEmpty())
             getColorMap();
-        if (db.empty(DatabaseHelper.TABLE_CURRENCY))
-            initialiseCurrencies();
 
         // Initialize the bottom navigation view
         BottomNavigationView navView = findViewById(R.id.nav_view);
@@ -118,6 +112,12 @@ public class MainActivity extends AppCompatActivity {
             db.createCategory(cat, false);
         }
     }
+    public void initialiseCurrencies() {
+        for (int i = 0;i < Constants.currencies.size();i++) {
+            Triple<String, String, String> triple = Constants.currencies.get(i);
+            db.createCurrency(triple.getFirst(), triple.getThird(), triple.getSecond());
+        }
+    }
     public void getIconMap() {
         iconMap = new HashMap<>();
         for (String name : Constants.allAccIcons) {
@@ -131,12 +131,6 @@ public class MainActivity extends AppCompatActivity {
         colorMap = new HashMap<>();
         for (String name : Constants.allColors) {
             colorMap.put(getColorIdFromName(this, name), name);
-        }
-    }
-    public void initialiseCurrencies() {
-        for (int i = 0;i < Constants.currencies.size();i++) {
-            Triple<String, String, String> triple = Constants.currencies.get(i);
-            db.createCurrency(triple.getFirst(), triple.getThird(), triple.getSecond());
         }
     }
 
@@ -185,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
 
         return expDialog;
     }
-    public <T extends SectionAdapter<? extends Section>> AlertDialog.Builder expOptSectionDialog(T adapter, View expOptSectionView) {
+    public <T extends SectionAdapter<? extends Section>> AlertDialog.Builder expenseSectionDialog(T adapter, View expOptSectionView) {
         dialogBuilder = new AlertDialog.Builder(this);
         RecyclerView sectionGrid = expOptSectionView.findViewById(R.id.sectionGrid);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
@@ -194,9 +188,9 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder.setView(expOptSectionView);
         return dialogBuilder;
     }
-    public void expOptCatDialog(CategoryAdapter adapter, Expense exp) {
+    public void expenseCatDialog(CategoryAdapter adapter, Expense exp) {
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog dialog = expOptSectionDialog(adapter, expOptSectionView).create();
+        AlertDialog dialog = expenseSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
 
         // set values
@@ -224,9 +218,9 @@ public class MainActivity extends AppCompatActivity {
 
         dialog.show();
     }
-    public void expOptAccDialog(AccountAdapter adapter, Expense exp) {
+    public void expenseAccDialog(AccountAdapter adapter, Expense exp) {
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog dialog = expOptSectionDialog(adapter, expOptSectionView).create();
+        AlertDialog dialog = expenseSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
 
         // set values
@@ -287,6 +281,86 @@ public class MainActivity extends AppCompatActivity {
         updateExpenseData(expenses);
         updateSummaryData(expenses);
     }
+    public void updateSummaryData(ArrayList<Expense> expenses) {
+        Calendar from, to;
+        int state;
+        if (getFragment() instanceof HomeFragment) {
+            HomeFragment fragment = (HomeFragment) getFragment();
+            from = fragment.getDateRange()[0];
+            to = fragment.getDateRange()[1];
+            state = fragment.getSelDateState();
+        } else if (getFragment() instanceof ChartsFragment) {
+            ChartsFragment fragment = (ChartsFragment) getFragment();
+            from = fragment.getDateRange()[0];
+            to = fragment.getDateRange()[1];
+            state = fragment.getSelDateState();
+        } else {
+            return;
+        }
+
+        String summaryDateText;
+        float totalAmt = 0;
+        if (state == DateGridAdapter.ALL) {
+            summaryDateText = "All time";
+            totalAmt = db.getTotalAmt();
+        } else {
+            Calendar cal = getCalendarCopy(to, DateGridAdapter.FROM);
+            String dtf = "";
+            switch (state) {
+                case DateGridAdapter.MONTH:
+                    dtf = "MMM yyyy";
+                    break;
+                case DateGridAdapter.YEAR:
+                    dtf = "yyyy";
+                    break;
+                default:
+                    dtf = "dd MMM yyyy";
+            }
+            if (getDatetimeStr(from, dtf).equals(getDatetimeStr(cal, dtf))) {
+                if (state == DateGridAdapter.DAY || state == DateGridAdapter.SELECT_SINGLE) {
+                    summaryDateText = getRelativePrefix(from);
+                    summaryDateText += getDatetimeStr(from, ", dd MMM yyyy");
+                } else if (state == DateGridAdapter.MONTH)
+                    summaryDateText = getDatetimeStr(from, "MMMM yyyy");
+                else
+                    summaryDateText = getDatetimeStr(from, dtf);
+            } else {
+                summaryDateText = getDatetimeStr(from, dtf) + " - " + getDatetimeStr(to, dtf);
+            }
+            for (Expense exp : expenses) totalAmt += exp.getAmount();
+        }
+        if (getFragment() instanceof HomeFragment) {
+            ((HomeFragment) getFragment()).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
+        } else if (getFragment() instanceof ChartsFragment) {
+            ((ChartsFragment) getFragment()).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
+        }
+    }
+    public void updateExpenseData(ArrayList<Expense> expenses) {
+        expenses = insertExpDateHeaders(sortExpenses(expenses, Constants.DESCENDING));
+        ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        if (getFragment() instanceof HomeFragment)
+            ((HomeFragment) getFragment()).setExpenseData(linearLayoutManager, expAdapter);
+    }
+    public void updateAccountData() {
+        AccountAdapter adapter = getAccountData(Constants.MANAGE);
+        adapter.addNewAcc();
+        Fragment childFragment = null;
+        if (getFragment() instanceof ManageFragment)
+            childFragment = getFragment().getChildFragmentManager().getFragments().get(0);
+        if (childFragment instanceof ManageChildFragment)
+            ((ManageChildFragment<AccountAdapter>) childFragment).setAdapter(adapter);
+    }
+    public void updateCategoryData() {
+        CategoryAdapter adapter = getCategoryData(Constants.MANAGE);
+        adapter.addNewCat();
+        Fragment childFragment = null;
+        if (getFragment() instanceof ManageFragment)
+            childFragment = getFragment().getChildFragmentManager().getFragments().get(1);
+        if (childFragment instanceof ManageChildFragment)
+            ((ManageChildFragment<CategoryAdapter>) childFragment).setAdapter(adapter);
+    }
     public void updateAccFilters(ArrayList<Account> filters) {
         if (getFragment() instanceof HomeFragment) {
             HomeFragment fragment = (HomeFragment) getFragment();
@@ -305,14 +379,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Expenses
-    public void updateExpenseData(ArrayList<Expense> expenses) {
-        expenses = insertExpDateHeaders(sortExpenses(expenses, Constants.DESCENDING));
-        ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        if (getFragment() instanceof HomeFragment)
-            ((HomeFragment) getFragment()).setExpenseData(linearLayoutManager, expAdapter);
-    }
     public ArrayList<Expense> getExpenseList() {
         ArrayList<Expense> expensesByDate = new ArrayList<>();
         if (getFragment() instanceof HomeFragment) {
@@ -363,63 +429,6 @@ public class MainActivity extends AppCompatActivity {
         return expenses;
     }
 
-    // Summary
-    public void updateSummaryData(ArrayList<Expense> expenses) {
-        Calendar from, to;
-        int state;
-        if (getFragment() instanceof HomeFragment) {
-            HomeFragment fragment = (HomeFragment) getFragment();
-            from = fragment.getDateRange()[0];
-            to = fragment.getDateRange()[1];
-            state = fragment.getSelDateState();
-        } else if (getFragment() instanceof ChartsFragment) {
-            ChartsFragment fragment = (ChartsFragment) getFragment();
-            from = fragment.getDateRange()[0];
-            to = fragment.getDateRange()[1];
-            state = fragment.getSelDateState();
-        } else {
-            return;
-        }
-
-        String summaryDateText;
-        float totalAmt = 0;
-        if (state == DateGridAdapter.ALL) {
-            summaryDateText = "All time";
-        } else {
-            // set date
-            Calendar cal = Calendar.getInstance();
-            cal.set(to.get(Calendar.YEAR), to.get(Calendar.MONTH), to.get(Calendar. DAY_OF_MONTH), 0, 0, 0);
-            String format = "";
-            switch (state) {
-                case DateGridAdapter.MONTH:
-                    format = "MMM yyyy";
-                    break;
-                case DateGridAdapter.YEAR:
-                    format = "yyyy";
-                    break;
-                default:
-                    format = "dd MMM yyyy";
-            }
-            if (getDatetimeStr(from, format).equals(getDatetimeStr(cal, format))) {
-                if (state == DateGridAdapter.DAY || state == DateGridAdapter.SELECT_SINGLE) {
-                    summaryDateText = getRelativePrefix(from);
-                    summaryDateText += getDatetimeStr(from, ", dd MMM yyyy");
-                } else if (state == DateGridAdapter.MONTH)
-                    summaryDateText = getDatetimeStr(from, "MMMM yyyy");
-                else
-                    summaryDateText = getDatetimeStr(from, format);
-            } else {
-                summaryDateText = getDatetimeStr(from, format) + " - " + getDatetimeStr(to, format);
-            }
-        }
-        for (Expense exp : expenses) totalAmt += exp.getAmount();
-        if (getFragment() instanceof HomeFragment) {
-            ((HomeFragment) getFragment()).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
-        } else if (getFragment() instanceof ChartsFragment) {
-            ((ChartsFragment) getFragment()).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
-        }
-    }
-
     // Sections
     public CategoryAdapter getCategoryData() {
         return new CategoryAdapter(this, db.getAllCategories());
@@ -433,29 +442,10 @@ public class MainActivity extends AppCompatActivity {
     public AccountAdapter getAccountData(int mode) {
         return new AccountAdapter(this, db.getAllAccounts(), mode);
     }
-    public void updateAccountData() {
-        AccountAdapter adapter = getAccountData(Constants.MANAGE);
-        adapter.addNewAcc();
-        Fragment childFragment = null;
-        if (getFragment() instanceof ManageFragment)
-            childFragment = getFragment().getChildFragmentManager().getFragments().get(0);
-        if (childFragment instanceof ManageChildFragment)
-            ((ManageChildFragment<AccountAdapter>) childFragment).setAdapter(adapter);
-    }
-    public void updateCategoryData() {
-        CategoryAdapter adapter = getCategoryData(Constants.MANAGE);
-        adapter.addNewCat();
-        Fragment childFragment = null;
-        if (getFragment() instanceof ManageFragment)
-            childFragment = getFragment().getChildFragmentManager().getFragments().get(1);
-        if (childFragment instanceof ManageChildFragment)
-            ((ManageChildFragment<CategoryAdapter>) childFragment).setAdapter(adapter);
-    }
 
     /**
      * ADD/EDIT DIALOGS
      */
-    // Expenses
     public void addExpense() {
         AlertDialog expDialog = expenseDialog();
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
@@ -467,12 +457,12 @@ public class MainActivity extends AppCompatActivity {
         expAccBox.setOnClickListener(view -> {
             AccountAdapter accAdapter = getAccountData();
             accAdapter.setSelected(expAccName.getText().toString());
-            expOptAccDialog(accAdapter, new Expense(Calendar.getInstance()));
+            expenseAccDialog(accAdapter, new Expense(Calendar.getInstance()));
         });
         expCatBox.setOnClickListener(view -> {
             CategoryAdapter catAdapter = getCategoryData();
             catAdapter.setSelected(expCatName.getText().toString());
-            expOptCatDialog(catAdapter, new Expense(Calendar.getInstance()));
+            expenseCatDialog(catAdapter, new Expense(Calendar.getInstance()));
         });
         expDateBtn.setOnClickListener(view -> {
             AlertDialog.Builder changeDate = new AlertDialog.Builder(MainActivity.this);
@@ -532,12 +522,12 @@ public class MainActivity extends AppCompatActivity {
         expAccBox.setOnClickListener(view -> {
             AccountAdapter accAdapter = getAccountData();
             accAdapter.setSelected(expAccName.getText().toString());
-            expOptAccDialog(accAdapter, exp);
+            expenseAccDialog(accAdapter, exp);
         });
         expCatBox.setOnClickListener(view -> {
             CategoryAdapter catAdapter = getCategoryData();
             catAdapter.setSelected(expCatName.getText().toString());
-            expOptCatDialog(catAdapter, exp);
+            expenseCatDialog(catAdapter, exp);
         });
 
         expSaveBtn.setOnClickListener(v -> {
@@ -596,7 +586,6 @@ public class MainActivity extends AppCompatActivity {
                     .show();
         });
     }
-
     public void addAccount() {
         AlertDialog addAccDialog = sectionDialog();
         sectionDelBtn.setVisibility(LinearLayout.GONE);

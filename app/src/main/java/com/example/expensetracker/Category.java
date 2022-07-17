@@ -8,7 +8,7 @@ public class Category extends Section {
      * CONSTRUCTORS
      */
     // no id given - create basic Category
-    public Category (Context context, String name, String icon, String color) {
+    public Category(Context context, String name, String icon, String color) {
         super(context, name, icon, color);
     }
 

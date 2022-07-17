@@ -289,7 +289,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void bulkChangeCat(ActionMode mode, CategoryAdapter adapter) {
         bulkNoAction();
         final View expOptSectionView = inflater.inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog dialog = ((MainActivity) context).expOptSectionDialog(adapter, expOptSectionView).create();
+        AlertDialog dialog = ((MainActivity) context).expenseSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
         TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
         title.setText(R.string.cat_caps);
@@ -319,7 +319,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void bulkChangeAcc(ActionMode mode, AccountAdapter adapter) {
         bulkNoAction();
         final View expOptSectionView = inflater.inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog dialog = ((MainActivity) context).expOptSectionDialog(adapter, expOptSectionView).create();
+        AlertDialog dialog = ((MainActivity) context).expenseSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
         TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
         title.setText(R.string.acc_caps);

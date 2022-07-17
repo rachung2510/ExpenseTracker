@@ -5,10 +5,8 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,7 +24,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -277,7 +274,7 @@ public class HomeFragment extends Fragment {
     }
     public void filterAccDialog(AccountAdapter adapter) {
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expOptSectionDialog(adapter, expOptSectionView);
+        AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expenseSectionDialog(adapter, expOptSectionView);
         ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText("FILTER BY " + getResources().getString(R.string.acc_caps));
         dialogBuilder.setView(expOptSectionView);
 
@@ -294,7 +291,7 @@ public class HomeFragment extends Fragment {
     }
     public void filterCatDialog(CategoryAdapter adapter) {
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expOptSectionDialog(adapter, expOptSectionView);
+        AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expenseSectionDialog(adapter, expOptSectionView);
         ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText("FILTER BY " + getResources().getString(R.string.cat_caps));
         dialogBuilder.setView(expOptSectionView);
 

@@ -2,13 +2,10 @@ package com.example.expensetracker;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.icu.util.Output;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
@@ -22,11 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -41,7 +34,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Database info
     private static final int DATABASE_VERSION = 1; // Database Version
     private static final String DATABASE_NAME = "ExpenseTracker.db"; // Database Name
-    public static String DATABASE_FILEPATH = "/data/data/com.example.expensetracker/databases/" + DATABASE_NAME;
 
     // Table names
     public static final String TABLE_EXPENSE = "expenses";
@@ -124,7 +116,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_ACCOUNT);
         db.execSQL(CREATE_TABLE_CURRENCY);
     }
-
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // on upgrade drop older tables
@@ -136,7 +127,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // create new tables
         onCreate(db);
     }
-
     public void closeDB() {
         SQLiteDatabase db = this.getReadableDatabase();
         if (db != null && db.isOpen())
@@ -151,31 +141,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public void createExpense(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_AMOUNT, expense.getAmount());
-        values.put(KEY_DESC, expense.getDescription());
-        values.put(KEY_ACC_ID, expense.getAccount().getId());
-        values.put(KEY_CAT_ID, expense.getCategory().getId());
-        values.put(KEY_DATETIME, expense.getDatetimeStr());
-
+        ContentValues values = createExpenseValues(expense);
         long res = db.insert(TABLE_EXPENSE, null, values);
         String toast = (res == -1) ? "Error: Failed to create expense" : "Expense created";
         Toast.makeText(context, toast, Toast.LENGTH_SHORT).show();
     }
-    public long createSection(Section section, String table_name) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_NAME, section.getName());
-        values.put(KEY_ICON, section.getIconName());
-        values.put(KEY_COLOR, section.getColorName());
-        return db.insert(table_name, null, values);
-    }
     public void createAccount(Account account, boolean notify) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_NAME, account.getName());
-        values.put(KEY_ICON, account.getIconName());
-        values.put(KEY_COLOR, account.getColorName());
+        ContentValues values = createSectionValues(account);
         values.put(KEY_CURRENCY, account.getCurrencyName());
         long res = db.insert(TABLE_ACCOUNT, null, values);
         if (notify) {
@@ -184,7 +157,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
     public void createCategory(Category category, boolean notify) {
-        long res = createSection(category, TABLE_CATEGORY);
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = createSectionValues(category);
+        long res = db.insert(TABLE_CATEGORY, null, values);
         if (notify) {
             String toast = (res == -1) ? "Error: Failed to create category " : "Category created: ";
             Toast.makeText(context, toast + category.getName(), Toast.LENGTH_SHORT).show();
@@ -205,132 +180,84 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Expenses
     public ArrayList<Expense> getAllExpenses() {
         ArrayList<Expense> expenses = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_EXPENSE;
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() != 0) {
-            while (c.moveToNext()) {
-                int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
-                float amt = c.getFloat(c.getColumnIndexOrThrow(KEY_AMOUNT));
-                String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
-                Account acc = getAccount(c.getInt(c.getColumnIndexOrThrow(KEY_ACC_ID)));
-                Category cat = getCategory(c.getInt(c.getColumnIndexOrThrow(KEY_CAT_ID)));
-                String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-                expenses.add(new Expense(id, amt, desc, acc, cat, datetime));
-            }
-        }
+        Cursor c = getCursorFromQueryOrNull(getQuerySelectAll(TABLE_EXPENSE), "");
+        if (c == null)
+            return expenses;
+        while (c.moveToNext())
+            expenses.add(getExpenseFromCursor(c));
         c.close();
         return expenses;
     }
     public Expense getExpense(int id) {
-        Expense exp = null;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE "  + KEY_ID + " = " + id;
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() == 0) {
-            Toast.makeText(context, "Expense ID: " + id + " not found", Toast.LENGTH_SHORT).show();
-        } else {
-            c.moveToFirst();
-            float amt = c.getFloat(c.getColumnIndexOrThrow(KEY_AMOUNT));
-            String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
-            Account acc = getAccount(c.getInt(c.getColumnIndexOrThrow(KEY_ACC_ID)));
-            Category cat = getCategory(c.getInt(c.getColumnIndexOrThrow(KEY_CAT_ID)));
-            String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-            exp = new Expense(id, amt, desc, acc, cat, datetime);
-        }
+        Expense exp = new Expense();
+        Cursor c = getCursorFromQuery(
+                getQuerySelectId(TABLE_EXPENSE, KEY_ID, id),
+                "Expense ID: " + id + " not found");
+        if (c.moveToFirst()) exp = getExpenseFromCursor(c);
         c.close();
         return exp;
     }
     public ArrayList<Expense> getExpensesByDateRange(Calendar from, Calendar to) {
         ArrayList<Expense> expenses = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_EXPENSE;
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() != 0) {
-            while (c.moveToNext()) {
-                String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-                Calendar cal = Calendar.getInstance();
-                try {
-                    cal.setTime(new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(datetime));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                if (cal.compareTo(from)>-1 && cal.compareTo(to)<1) {
-                    int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
-                    float amt = c.getFloat(c.getColumnIndexOrThrow(KEY_AMOUNT));
-                    String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
-                    Account acc = getAccount(c.getInt(c.getColumnIndexOrThrow(KEY_ACC_ID)));
-                    Category cat = getCategory(c.getInt(c.getColumnIndexOrThrow(KEY_CAT_ID)));
-                    expenses.add(new Expense(id, amt, desc, acc, cat, datetime));
-                }
-            }
+        Cursor c = getCursorFromQueryOrNull(getQuerySelectAll(TABLE_EXPENSE), "");
+        if (c == null)
+            return expenses;
+        while (c.moveToNext()) {
+            String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
+            Calendar cal = Calendar.getInstance();
+            try { cal.setTime(new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(datetime)); }
+            catch (Exception e) { e.printStackTrace(); }
+            if (cal.compareTo(from)>-1 && cal.compareTo(to)<1)
+                expenses.add(getExpenseFromCursor(c));
         }
         c.close();
         return expenses;
     }
     public ArrayList<Expense> getExpensesByDateRangeAndCategory(Category cat, Calendar from, Calendar to) {
         ArrayList<Expense> expenses = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " = " + cat.getId();
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() != 0) {
-            while (c.moveToNext()) {
-                String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-                Calendar cal = Calendar.getInstance();
-                try {
-                    cal.setTime(new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(datetime));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                if (cal.compareTo(from)>-1 && cal.compareTo(to)<1) {
-                    int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
-                    float amt = c.getFloat(c.getColumnIndexOrThrow(KEY_AMOUNT));
-                    String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
-                    Account acc = getAccount(c.getInt(c.getColumnIndexOrThrow(KEY_ACC_ID)));
-                    expenses.add(new Expense(id, amt, desc, acc, cat, datetime));
-                }
-            }
+        Cursor c = getCursorFromQueryOrNull(getQuerySelectId(TABLE_EXPENSE, KEY_CAT_ID, cat.getId()), "");
+        if (c == null)
+            return expenses;
+        while (c.moveToNext()) {
+            String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
+            Calendar cal = Calendar.getInstance();
+            try { cal.setTime(new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(datetime)); }
+            catch (Exception e) { e.printStackTrace(); }
+            if (cal.compareTo(from)>-1 && cal.compareTo(to)<1)
+                expenses.add(getExpenseFromCursor(c));
         }
         c.close();
         return expenses;
     }
     public ArrayList<Expense> getExpensesByFilters(ArrayList<Account> accs, ArrayList<Category> cats) {
         ArrayList<Expense> expenses = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String accList = "";
-        String catList = "";
+        String accListStr = "";
+        String catListStr = "";
         for (int i = 0;i < accs.size();i++) {
-            accList += accs.get(i).getId();
-            if (i != accs.size()-1) accList += ",";
+            accListStr += accs.get(i).getId();
+            if (i != accs.size()-1) accListStr += ",";
         }
         for (int i = 0;i < cats.size();i++) {
-            catList += cats.get(i).getId();
-            if (i != cats.size()-1) catList += ",";
+            catListStr += cats.get(i).getId();
+            if (i != cats.size()-1) catListStr += ",";
         }
         String query;
         if (accs.isEmpty() && cats.isEmpty()) { // no filters
             return getAllExpenses();
         } else if (accs.isEmpty() && !cats.isEmpty()) { // cat filters
-            query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " IN (" + catList + ")";
+            query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " IN (" + catListStr + ")";
         } else if (cats.isEmpty()) { // acc filters
-            query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " IN (" + accList + ")";
+            query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " IN (" + accListStr + ")";
         } else { // both filters
             query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE "
-                    + KEY_ACC_ID + " IN (" + accList + ") AND "
-                    + KEY_CAT_ID + " IN (" + catList + ")";
+                    + KEY_ACC_ID + " IN (" + accListStr + ") AND "
+                    + KEY_CAT_ID + " IN (" + catListStr + ")";
         }
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() != 0) {
-            while (c.moveToNext()) {
-                int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
-                float amt = c.getFloat(c.getColumnIndexOrThrow(KEY_AMOUNT));
-                String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
-                Account acc = getAccount(c.getInt(c.getColumnIndexOrThrow(KEY_ACC_ID)));
-                Category cat = getCategory(c.getInt(c.getColumnIndexOrThrow(KEY_CAT_ID)));
-                String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-                expenses.add(new Expense(id, amt, desc, acc, cat, datetime));
-            }
-        }
+        Cursor c = getCursorFromQueryOrNull(query, "");
+        if (c == null)
+            return expenses;
+        while (c.moveToNext())
+            expenses.add(getExpenseFromCursor(c));
         c.close();
         return expenses;
     }
@@ -338,41 +265,251 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Sections
     public ArrayList<Account> getAllAccounts() {
         ArrayList<Account> accounts = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_ACCOUNT;
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() != 0) {
-            while (c.moveToNext()) {
-                int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
-                String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
-                String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
-                String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
-                Currency currency = MainActivity.getCurrencyFromName(c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY)));
-                accounts.add(new Account(context, id, name, icon, color, currency));
-            }
-        }
+        Cursor c = getCursorFromQueryOrNull(getQuerySelectAll(TABLE_ACCOUNT), "");
+        if (c == null)
+            return accounts;
+        while (c.moveToNext())
+            accounts.add(getAccountFromCursor(c));
         c.close();
         return accounts;
     }
     public ArrayList<Category> getAllCategories() {
         ArrayList<Category> categories = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_CATEGORY;
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() != 0) {
-            while (c.moveToNext()) {
-                int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
-                String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
-                String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
-                String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
-                categories.add(new Category(context, id, name, icon, color));
-            }
-        }
+        Cursor c = getCursorFromQueryOrNull(getQuerySelectAll(TABLE_CATEGORY), "");
+        if (c == null)
+            return categories;
+        while (c.moveToNext())
+            categories.add(getCategoryFromCursor(c));
         c.close();
         return categories;
     }
+    public Account getAccount(String name) {
+        Account account = new Account(context);
+        Cursor c = getCursorFromQuery(
+                getQuerySelectWhere(TABLE_ACCOUNT, KEY_NAME, name),
+                "Account not found. Check name again");
+        if (c.moveToFirst()) account = getAccountFromCursor(c);
+        c.close();
+        return account;
+    }
+    public Account getAccount(int id) {
+        Account account = new Account(context);
+        Cursor c = getCursorFromQuery(getQuerySelectId(
+                TABLE_ACCOUNT, KEY_ID, id),
+                "Account ID: " + id + " not found");
+        if (c.moveToFirst()) account = getAccountFromCursor(c);
+        c.close();
+        return account;
+    }
+    public Category getCategory(String name) {
+        Category category = new Category(context);
+        Cursor c = getCursorFromQuery(
+                getQuerySelectWhere(TABLE_CATEGORY, KEY_NAME, name),
+                "Category not found. Check name again");
+        if (c.moveToFirst()) category = getCategoryFromCursor(c);
+        c.close();
+        return category;
+    }
+    public Category getCategory(int id) {
+        Category category = new Category(context);
+        Cursor c = getCursorFromQuery(
+                getQuerySelectId(TABLE_CATEGORY, KEY_ID, id),
+                "Category ID: " + id + " not found");
+        if (c.moveToFirst()) category = getCategoryFromCursor(c);
+        c.close();
+        return category;
+    }
+
+    // Currencies
+    public ArrayList<Currency> getAllCurrencies() {
+        ArrayList<Currency> currencies = new ArrayList<>();
+        Cursor c = getCursorFromQueryOrNull(getQuerySelectAll(TABLE_CURRENCY), "");
+        if (c == null)
+            return currencies;
+        while (c.moveToNext()) {
+            String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
+            String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
+            String symbol = c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY));
+            currencies.add(new Currency(name, desc, symbol));
+        }
+        c.close();
+        return currencies;
+    }
+
+    /**
+     * UPDATE
+     */
+    public int updateExpense(Expense expense) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = createExpenseValues(expense);
+        return db.update(TABLE_EXPENSE, values, KEY_ID + " = ?",
+                new String[] { String.valueOf(expense.getId()) });
+    }
+    public int updateAccount(Account account) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = createSectionValues(account);
+        values.put(KEY_CURRENCY, account.getCurrencyName());
+        return db.update(TABLE_ACCOUNT, values, KEY_ID + " = ?",
+                new String[] { String.valueOf(account.getId()) });
+    }
+    public int updateCategory(Category category) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = createSectionValues(category);
+        return db.update(TABLE_CATEGORY, values, KEY_ID + " = ?",
+                new String[] { String.valueOf(category.getId()) });
+    }
+
+    public int moveExpenses(Section section, String key_id, String section_name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = getCursorFromQueryOrNull(getQuerySelectId(TABLE_EXPENSE, key_id, section.getId()), "");
+        int res = 1;
+        if (c == null)
+            return res;
+        while (c.moveToNext()) {
+            int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
+            ContentValues values = new ContentValues();
+            if (key_id.equals(KEY_ACC_ID))
+                values.put(key_id, getAccount(section_name).getId());
+            else if (key_id.equals(KEY_CAT_ID))
+                values.put(key_id, getCategory(section_name).getId());
+            res = db.update(TABLE_EXPENSE, values, KEY_ID + " = ?",
+                    new String[] { String.valueOf(id) });
+        }
+        c.close();
+        return res;
+    }
+    public int moveExpensesToCash(Account acc) {
+        return moveExpenses(acc, KEY_ACC_ID, Constants.defaultAccount);
+    }
+    public int moveExpensesToOthers(Category cat) {
+        return moveExpenses(cat, KEY_CAT_ID, Constants.defaultCategory);
+    }
+
+    /**
+     * DELETE
+     */
+    public void deleteExpense(Expense expense) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_EXPENSE + " WHERE "  + KEY_ID + " = " + expense.getId());
+    }
+    public <T extends Section> int deleteSection(String table_name, T section) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(table_name, KEY_ID + " = ?",new String[] { String.valueOf(section.getId()) });
+    }
+    public void deleteAccount(Account acc, boolean notify) {
+        if (acc.getName().equals(Constants.defaultAccount)) {
+            Toast.makeText(context, "Cannot delete account " + Constants.defaultAccount, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int moveRes = moveExpensesToCash(acc);
+        if (moveRes == 0)
+            return;
+        int res = deleteSection(TABLE_ACCOUNT, acc);
+        if (res == 0)
+            Toast.makeText(context, "Error: Failed to delete account", Toast.LENGTH_SHORT).show();
+        else if (notify)
+            Toast.makeText(context, "Account deleted", Toast.LENGTH_SHORT).show();
+    }
+    public void deleteCategory(Category cat, boolean notify) {
+        if (cat.getName().equals(Constants.defaultCategory)) {
+            Toast.makeText(context, "Cannot delete category " + Constants.defaultCategory, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int moveRes = moveExpensesToOthers(cat);
+        if (moveRes == 0)
+            return;
+        int res = deleteSection(TABLE_CATEGORY, cat);
+        if (res == 0)
+            Toast.makeText(context, "Error: Failed to delete category", Toast.LENGTH_SHORT).show();
+        else if (notify)
+            Toast.makeText(context, "Category deleted", Toast.LENGTH_SHORT).show();
+    }
+    public void deleteAllSections(String table_name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + table_name);
+        db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE name='" + table_name + "'");
+    }
+    public void deleteAllAccounts() {
+        ArrayList<Account> accounts = getAllAccounts();
+        for (Account acc : accounts) {
+            if (!Arrays.asList(Constants.defaultAccNames).contains(acc.getName()))
+                moveExpensesToCash(acc);
+        }
+        deleteAllSections(TABLE_ACCOUNT);
+    }
+    public void deleteAllCategories() {
+        ArrayList<Category> categories = getAllCategories();
+        for (Category cat : categories) {
+            if (!Arrays.asList(Constants.defaultCatNames).contains(cat.getName()))
+                moveExpensesToOthers(cat);
+        }
+        deleteAllSections(TABLE_CATEGORY);
+    }
+
+    /**
+     * HELPER FUNCTIONS
+     */
+    public ContentValues createExpenseValues(Expense expense) {
+        ContentValues values = new ContentValues();
+        values.put(KEY_AMOUNT, expense.getAmount());
+        values.put(KEY_DESC, expense.getDescription());
+        values.put(KEY_ACC_ID, expense.getAccount().getId());
+        values.put(KEY_CAT_ID, expense.getCategory().getId());
+        values.put(KEY_DATETIME, expense.getDatetimeStr());
+        return values;
+    }
+    public ContentValues createSectionValues(Section section) {
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, section.getName());
+        values.put(KEY_ICON, section.getIconName());
+        values.put(KEY_COLOR, section.getColorName());
+        return values;
+    }
+    public boolean empty(String table_name) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + table_name;
+        Cursor c = db.rawQuery(query, null);
+        boolean res = (c.getCount() == 0);
+        c.close();
+        return res;
+    }
+    public String getQuerySelectAll(String table) {
+        return "SELECT * FROM " + table;
+    }
+    public String getQuerySelectWhere(String table, String key, String value) {
+        return "SELECT * FROM " + table + " WHERE " + key + " = " + value;
+    }
+    public String getQuerySelectId(String table, String key, int id) {
+        return getQuerySelectWhere(table, key, String.valueOf(id));
+    }
+    public Cursor getCursorFromQueryOrNull(String query, String toast) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(query, null);
+        if (c.getCount() != 0)
+            return c;
+        if (!toast.isEmpty())
+            Toast.makeText(context, toast, Toast.LENGTH_SHORT).show();
+        return null;
+    }
+    public Cursor getCursorFromQuery(String query, String toast) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(query, null);
+        if (c.getCount() ==0 && !toast.isEmpty())
+            Toast.makeText(context, toast, Toast.LENGTH_SHORT).show();
+        return c;
+    }
+    public Expense getExpenseFromCursor(Cursor c) {
+        if (c.getCount() == 0) return new Expense();
+        int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
+        float amt = c.getFloat(c.getColumnIndexOrThrow(KEY_AMOUNT));
+        String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
+        Account acc = getAccount(c.getInt(c.getColumnIndexOrThrow(KEY_ACC_ID)));
+        Category cat = getCategory(c.getInt(c.getColumnIndexOrThrow(KEY_CAT_ID)));
+        String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
+        return new Expense(id, amt, desc, acc, cat, datetime);
+    }
     public Account getAccountFromCursor(Cursor c) {
-        if (c.getCount() == 0) return null;
+        if (c.getCount() == 0) return new Account(context);
         int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
         String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
         String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
@@ -389,264 +526,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return new Category(context, id, name, icon, color);
     }
 
-    public Section getSection(String name, String table_name) {
-        Section section = null;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + table_name + " WHERE "  + KEY_NAME + " = '" + name + "'";
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() == 0) {
-            String toast = (table_name.equals(TABLE_ACCOUNT)) ? "Account" : "Category";
-            Toast.makeText(context, toast + " not found. Check name again", Toast.LENGTH_SHORT).show();
-        } else {
-            c.moveToFirst();
-            int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
-            String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
-            String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
-            section = new Section(context, id, name, icon, color);
-        }
-        c.close();
-        return section;
-    }
-    public Section getSection(int id, String table_name) {
-        Section section = null;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + table_name + " WHERE "  + KEY_ID + " = " + id;
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() == 0) {
-            Toast.makeText(context, "Category ID: " + id + " not found", Toast.LENGTH_SHORT).show();
-        } else {
-            c.moveToFirst();
-            String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
-            String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
-            String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
-            section = new Section(context, id, name, icon, color);
-        }
-        c.close();
-        return section;
-    }
-    public Account getAccount(String name) {
-        Account account = null;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_ACCOUNT + " WHERE "  + KEY_NAME + " = '" + name + "'";
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() == 0) {
-            Toast.makeText(context, "Account not found. Check name again", Toast.LENGTH_SHORT).show();
-        } else {
-            c.moveToFirst();
-            account = getAccountFromCursor(c);
-        }
-        c.close();
-        return account;
-    }
-    public Account getAccount(int id) {
-        Account account = null;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_ACCOUNT + " WHERE " + KEY_ID + " = " + id;
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() == 0) {
-            Toast.makeText(context, "Account ID: " + id + " not found", Toast.LENGTH_SHORT).show();
-        } else {
-            c.moveToFirst();
-            account = getAccountFromCursor(c);
-        }
-        c.close();
-        return account;
-    }
-    public Category getCategory(String name) {
-        Section section = getSection(name, TABLE_CATEGORY);
-        return new Category(context, section.id, section.name, section.icon, section.color);
-    }
-    public Category getCategory(int id) {
-        Section section = getSection(id, TABLE_CATEGORY);
-        return new Category(context, section.id, section.name, section.icon, section.color);
-    }
-
-    // Currencies
-    public ArrayList<Currency> getAllCurrencies() {
-        ArrayList<Currency> currencies = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_CURRENCY;
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() != 0) {
-            while (c.moveToNext()) {
-                String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
-                String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
-                String symbol = c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY));
-                currencies.add(new Currency(name, desc, symbol));
-            }
-        }
-        c.close();
-        return currencies;
-    }
-
-    /**
-     * UPDATE
-     */
-    public int updateExpense(Expense expense) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_AMOUNT, expense.getAmount());
-        values.put(KEY_DESC, expense.getDescription());
-        values.put(KEY_ACC_ID, expense.getAccount().getId());
-        values.put(KEY_CAT_ID, expense.getCategory().getId());
-        values.put(KEY_DATETIME, expense.getDatetimeStr());
-        return db.update(TABLE_EXPENSE, values, KEY_ID + " = ?",
-                new String[] { String.valueOf(expense.getId()) });
-    }
-    public int updateAccount(Account account) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_NAME, account.getName());
-        values.put(KEY_ICON, account.getIconName());
-        values.put(KEY_COLOR, account.getColorName());
-        values.put(KEY_CURRENCY, account.getCurrencyName());
-        return db.update(TABLE_ACCOUNT, values, KEY_ID + " = ?",
-                new String[] { String.valueOf(account.getId()) });
-    }
-    public int updateCategory(Category category) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_NAME, category.getName());
-        values.put(KEY_ICON, category.getIconName());
-        values.put(KEY_COLOR, category.getColorName());
-        return db.update(TABLE_CATEGORY, values, KEY_ID + " = ?",
-                new String[] { String.valueOf(category.getId()) });
-    }
-
-    public int moveExpenses(Section section, String key, String section_name) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        String query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + key + " = " + section.getId();
-        Cursor c = db.rawQuery(query, null);
-        int res = 1;
-        if (c.getCount() != 0) {
-            while (c.moveToNext()) {
-                int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
-                ContentValues values = new ContentValues();
-                if (key.equals(KEY_ACC_ID)) {
-                    values.put(key, getAccount(section_name).getId());
-                } else if (key.equals(KEY_CAT_ID)) {
-                    values.put(key, getCategory(section_name).getId());
-                }
-                res = db.update(TABLE_EXPENSE, values, KEY_ID + " = ?",
-                        new String[] { String.valueOf(id) });
-            }
-        }
-        c.close();
-        return res;
-    }
-    public int moveExpensesToCash(Account acc) {
-        return moveExpenses(acc, KEY_ACC_ID, "Cash");
-    }
-    public int moveExpensesToOthers(Category cat) {
-        return moveExpenses(cat, KEY_CAT_ID, "Others");
-    }
-
-    /**
-     * DELETE
-     */
-    public void deleteExpense(Expense expense) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM " + TABLE_EXPENSE + " WHERE "  + KEY_ID + " = " + expense.getId());
-    }
-    public <T extends Section> int deleteSection(String table_name, T section) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(table_name, KEY_ID + " = ?",new String[] { String.valueOf(section.getId()) });
-    }
-    public void deleteAccount(Account acc, boolean notify) {
-        if (acc.getName().equals("Cash")) {
-            Toast.makeText(context, "Cannot delete account Cash", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        int moveRes = moveExpensesToCash(acc);
-        if (moveRes == 0) return;
-        int res = deleteSection(TABLE_ACCOUNT, acc);
-        if (res == 0)
-            Toast.makeText(context, "Error: Failed to delete account", Toast.LENGTH_SHORT).show();
-        else if (notify)
-            Toast.makeText(context, "Account deleted", Toast.LENGTH_SHORT).show();
-    }
-    public void deleteCategory(Category cat, boolean notify) {
-        if (cat.getName().equals("Others")) {
-            Toast.makeText(context, "Cannot delete category Others", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        int moveRes = moveExpensesToOthers(cat);
-        if (moveRes == 0) {
-            return;
-        }
-        int res = deleteSection(TABLE_CATEGORY, cat);
-        if (res == 0)
-            Toast.makeText(context, "Error: Failed to delete category", Toast.LENGTH_SHORT).show();
-        else if (notify)
-            Toast.makeText(context, "Category deleted", Toast.LENGTH_SHORT).show();
-    }
-
-    public void deleteAllSections(String table_name) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM " + table_name);
-        db.execSQL("DELETE FROM SQLITE_SEQUENCE WHERE name='" + table_name + "'");
-    }
-    public void deleteAllAccounts() {
-        ArrayList<Account> accounts = getAllAccounts();
-        for (Account acc : accounts) {
-            if (!Arrays.asList(Constants.defaultAccNames).contains(acc.getName())) {
-                moveExpensesToCash(acc);
-            }
-        }
-        deleteAllSections(TABLE_ACCOUNT);
-    }
-    public void deleteAllCategories() {
-        ArrayList<Category> categories = getAllCategories();
-        for (Category cat : categories) {
-            if (!Arrays.asList(Constants.defaultCatNames).contains(cat.getName())) {
-                moveExpensesToOthers(cat);
-            }
-        }
-        deleteAllSections(TABLE_CATEGORY);
-    }
-
-    /**
-     * END CRUD OPERATIONS
-     */
-
-    /**
-     * CHECKS
-     */
-    // Check if not empty
-    public boolean empty(String table_name) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM " + table_name;
-        Cursor c = db.rawQuery(query, null);
-        boolean res = (c.getCount() == 0);
-        c.close();
-        return res;
-    }
-
     /**
      * COMPUTATION
      */
     public Calendar[] getFirstLastDates() {
         Calendar firstDate = null;
         Calendar lastDate = Calendar.getInstance();
-        SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT " + KEY_DATETIME + " FROM " + TABLE_EXPENSE;
-        Cursor c = db.rawQuery(query, null);
-        if (c.getCount() != 0) {
-            while (c.moveToNext()) {
-                try {
-                    Date date = new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(c.getString(0));
-                    if (firstDate == null) {
-                        firstDate = Calendar.getInstance();
-                        firstDate.setTime(date);
-                        lastDate.setTime(date);
-                    }
-                    if (firstDate.getTime().compareTo(date) > 0)
-                        firstDate.setTime(date);
-                    if (lastDate.getTime().compareTo(date) < 0)
-                        lastDate.setTime(date);
-                } catch (Exception e) {
-                    e.printStackTrace();
+        Cursor c = getCursorFromQueryOrNull(query, "");
+        if (c == null)
+            return null;
+        while (c.moveToNext()) {
+            try {
+                Date date = new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(c.getString(0));
+                if (firstDate == null) {
+                    firstDate = Calendar.getInstance();
+                    firstDate.setTime(date);
+                    lastDate.setTime(date);
                 }
+                if (firstDate.getTime().compareTo(date) > 0) // first > date
+                    firstDate.setTime(date);
+                if (lastDate.getTime().compareTo(date) < 0) // last < date
+                    lastDate.setTime(date);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         c.close();
@@ -654,32 +557,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     public float getTotalAmt() {
         float totalAmt = 0;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE;
-        Cursor c = db.rawQuery(query, null);
+        Cursor c = getCursorFromQuery("SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE, "");
         if (c.moveToFirst()) totalAmt = c.getFloat(0);
         c.close();
         return totalAmt;
     }
-    public float getTotalAmtOnDate(Calendar cal) {
-        float totalAmt = 0;
-        Calendar from = MainActivity.getCalendarCopy(cal, DateGridAdapter.FROM);
-        Calendar to = MainActivity.getCalendarCopy(cal, DateGridAdapter.TO);
-        ArrayList<Expense> expenses = getExpensesByDateRange(from, to);
-        for (Expense e : expenses) totalAmt += e.getAmount();
-        return totalAmt;
-    }
-    public float getTotalAmtInRange(Calendar from, Calendar to) {
-        float totalAmt = 0;
-        ArrayList<Expense> expenses = getExpensesByDateRange(from, to);
-        for (Expense e : expenses) totalAmt += e.getAmount();
-        return totalAmt;
-    }
     public float getTotalAmtByAccount(Account acc) {
         float totalAmt = 0;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " = " + acc.getId();
-        Cursor c = db.rawQuery(query, null);
+        Cursor c = getCursorFromQuery("SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " = " + acc.getId(), "");
         if (c.moveToFirst()) totalAmt = c.getFloat(0);
         c.close();
         return totalAmt;
@@ -695,9 +580,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     public int getNumExpensesByCategory(Category cat) {
         int count = 0;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " = " + cat.getId();
-        Cursor c = db.rawQuery(query, null);
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " = " + cat.getId(), "");
         if (c.moveToFirst()) count = c.getInt(0);
         c.close();
         return count;
@@ -706,21 +589,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
         return expenses.size();
     }
-    public float getTotalAmtByCategoryOnDate(Category cat, String datetime) {
-        float totalAmt = 0;
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " = " + cat.getId() + " AND " + KEY_DATETIME + " LIKE '" + datetime + "%'";
-        Cursor c = db.rawQuery(query, null);
-        if (c.moveToFirst()) totalAmt = c.getFloat(0);
-        c.close();
-        return totalAmt;
-    }
     public float getTotalAmtByCategoryInRange(Category cat, Calendar from, Calendar to) {
         float totalAmt = 0;
         ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
-        for (Expense e : expenses) {
-            totalAmt += e.getAmount();
-        }
+        for (Expense e : expenses) totalAmt += e.getAmount();
         return totalAmt;
     }
     public float getAverage(int period, Calendar from, Calendar to) {
@@ -750,15 +622,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return getAverage(DateGridAdapter.MONTH, from, to);
     }
 
-
     /**
      * IMPORT/EXPORT
      */
+    public File getDatabaseFile() {
+        return context.getDatabasePath(DATABASE_NAME);
+    }
     public void importDatabase(InputStream in) throws IOException {
         close();
         File outputDir = context.getCacheDir(); // context being the Activity pointer
         File newDb = File.createTempFile("tmp", ".db", outputDir);
-        File oldDb = new File(DATABASE_FILEPATH);
+        File oldDb = getDatabaseFile();
         OutputStream out = null;
         try {
             out = new FileOutputStream(newDb);
@@ -774,7 +648,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         FileUtils.copyFile(new FileInputStream(newDb), new FileOutputStream(oldDb));
         getWritableDatabase().close();
-        return;
     }
     public void exportDatabase() {
         ContentValues values = new ContentValues();
@@ -784,7 +657,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Uri fileUri = context.getContentResolver().insert(extVolumeUri, values);
 
         try {
-            FileInputStream stream = new FileInputStream(new File(DATABASE_FILEPATH));
+            FileInputStream stream = new FileInputStream(getDatabaseFile());
             OutputStream output = context.getContentResolver().openOutputStream(fileUri);
             byte[] buffer = new byte[1024]; // transfer bytes from the inputfile to the outputfile
             int length;
@@ -798,5 +671,4 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Toast.makeText(context, "Export failed", Toast.LENGTH_SHORT).show();
         }
     }
-
 }

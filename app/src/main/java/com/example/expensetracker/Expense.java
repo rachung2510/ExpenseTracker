@@ -69,20 +69,24 @@ public class Expense {
         this.datetime = datetime;
     }
 
+    // null expense
+    public Expense() {
+        this.id = -1;
+        this.amount = 0;
+        this.description = "";
+        this.account = null;
+        this.category = null;
+        this.datetime = Calendar.getInstance(MainActivity.locale);
+    }
+
     /**
      * GETTERS
      */
-    public int getId() {
-        return id;
+    public Account getAccount() {
+        return account;
     }
     public float getAmount() {
         return amount;
-    }
-    public String getDescription() {
-        return description;
-    }
-    public Account getAccount() {
-        return account;
     }
     public Category getCategory() {
         return category;
@@ -90,7 +94,6 @@ public class Expense {
     public Calendar getDatetime() {
         return datetime;
     }
-
     public String getDatetimeStr() {
         Date date = datetime.getTime();
         DateFormat dateFormat = new SimpleDateFormat(DATETIME_FORMAT, MainActivity.locale);
@@ -101,11 +104,14 @@ public class Expense {
         DateFormat dateFormat = new SimpleDateFormat(dtf, MainActivity.locale);
         return dateFormat.format(date);
     }
-
-    public static float getTotal(ArrayList<Expense> expenses) {
-        float totalAmt = 0;
-        for (Expense e : expenses) totalAmt += expenses.size();
-        return totalAmt;
+    public String getDescription() {
+        return description;
+    }
+    public int getId() {
+        return id;
+    }
+    public int getRelativeDate() {
+        return MainActivity.getRelativeDate(this.getDatetime());
     }
 
     /**
@@ -129,7 +135,5 @@ public class Expense {
         return id == expense.id;
     }
 
-    public int getRelativeDate() {
-        return MainActivity.getRelativeDate(this.getDatetime());
-    }
+
 }

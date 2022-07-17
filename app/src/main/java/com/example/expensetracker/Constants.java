@@ -72,6 +72,8 @@ public class Constants {
     // Account/Category
     public static final int SECTION_ACCOUNT = 0;
     public static final int SECTION_CATEGORY = 1;
+    public static String defaultAccount = "Cash";
+    public static String defaultCategory = "Others";
 
     // Date navigation
     public static final int PREV = -1;
