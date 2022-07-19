@@ -256,6 +256,7 @@ public class ChartsChildFragment extends Fragment {
                 selAccFilters.clear();
                 selCatFilters.clear();
                 applyFilters();
+                resetOnClick();
                 return true;
 
             default:
