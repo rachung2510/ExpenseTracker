@@ -8,13 +8,13 @@ public class Category extends Section {
      * CONSTRUCTORS
      */
     // no id given - create basic Category
-    public Category(Context context, String name, String icon, String color) {
-        super(context, name, icon, color);
+    public Category(Context context, String name, String icon, String color, int pos) {
+        super(context, name, icon, color, pos);
     }
 
     // specify id - recall Category from database
-    public Category(Context context, int id, String name, String icon, String color) {
-        super(context, id, name, icon, color);
+    public Category(Context context, int id, String name, String icon, String color, int pos) {
+        super(context, id, name, icon, color, pos);
     }
 
     // NULL category

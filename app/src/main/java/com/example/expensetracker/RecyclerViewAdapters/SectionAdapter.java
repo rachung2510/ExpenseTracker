@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Account;
@@ -36,7 +37,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     protected static AlertDialog dialog;
     protected ArrayList<T> sections;
     protected ArrayList<String> sectionNames;
-    protected int mode;
+    protected int page;
 
     // Constants
     public final Drawable iconCheck;
@@ -45,6 +46,9 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     // Selection components
     protected boolean selectionMode = false;
     protected final ArrayList<Integer> selectedPos = new ArrayList<>();
+
+    protected ItemTouchHelper itemTouchHelper;
+    public void setItemTouchHelper(ItemTouchHelper itemTouchHelper) { this.itemTouchHelper = itemTouchHelper; }
 
     /**
      * CONSTRUCTOR
@@ -57,7 +61,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         this.sections = sections;
         this.sectionNames = getSectionNames(sections);
-        this.mode = Constants.HOME;
+        this.page = Constants.HOME;
     }
     public SectionAdapter(Context context, ArrayList<T> sections, int mode) {
         this.context = context;
@@ -67,7 +71,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         this.sections = sections;
         this.sectionNames = getSectionNames(sections);
-        this.mode = mode;
+        this.page = mode;
     }
 
     /**
@@ -129,7 +133,6 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             else selectedPos.add(position);
 
         }
-
     }
     public void populateSectionGrid(GridViewHolder holder, Section section, int position) {
         // set components
@@ -147,34 +150,47 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             holder.gridItemIcon.setBackgroundTintList(MainActivity.getColorStateListFromName(context, section.getColorName()));
         }
 
-        // selection behaviour
+        // Multiple selection mode
         if (selectionMode) {
             if (isNew(position)) holder.gridItemIcon.setVisibility(View.GONE);
             if (selectedPos.contains(position)) holder.select();
             else holder.deselect(section);
-        } else {
-            if (mode == Constants.HOME && (selectedPos.isEmpty() || position != selectedPos.get(0))) {
-                holder.itemView.setAlpha(0.3f);
-            } else {
-                holder.itemView.setAlpha(1f);
-            }
-        }
-
-        holder.gridItemIcon.setOnClickListener(view -> {
-            if (selectionMode) {
+            holder.gridItemIcon.setOnClickListener(view -> {
                 holder.toggleSelect(position);
                 notifyItemChanged(position);
-            } else if (isNew(position)) {
-                ((MainActivity) context).addCategory();
-            } else {
+            });
+            return;
+        }
+
+        // HOME: Single selection mode for expense options
+        if (page == Constants.HOME) {
+            if (selectedPos.isEmpty() || position != selectedPos.get(0))
+                holder.itemView.setAlpha(0.3f);
+            else
+                holder.itemView.setAlpha(1f);
+            holder.gridItemIcon.setOnClickListener(view -> {
                 selectedPos.add(0, position);
-                notifyDataSetChanged();
-                if (mode == Constants.HOME) dialog.cancel();
-                else if (mode == Constants.MANAGE) {
-                    ((MainActivity) context).editCategory((Category) sections.get(selectedPos.get(0)));
-                    selectedPos.remove(0);
-                }
+                dialog.cancel();
+            });
+            return;
+        }
+
+        // MANAGE: add/edit cat, drag to reorder
+        holder.itemView.setAlpha(1f);
+        holder.gridItemIcon.setOnClickListener(view -> {
+            if (isNew(position))
+                ((MainActivity) context).addCategory();
+            else {
+                Log.e(TAG, "pos=" + position);
+                ((MainActivity) context).editCategory((Category) sections.get(position));
+                notifyItemChanged(position);
             }
+        });
+        holder.gridItemIcon.setOnLongClickListener(view -> {
+            if (section.getName().equals(((MainActivity) context).getImmutableCat()))
+                return false;
+            itemTouchHelper.startDrag(holder);
+            return true;
         });
     }
 
@@ -251,68 +267,66 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             holder.separator.setVisibility(View.VISIBLE);
         }
         // extend separator before new account
-        if (position == getItemCount() - 2) {
-            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) holder.separator.getLayoutParams();
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) holder.separator.getLayoutParams();
+        if (position == getItemCount() - 2)
             params.setMargins(0, 0, 0, 0);
-            holder.separator.setLayoutParams(params);
-        }
+        else
+            params.setMargins(24, 0, 24, 0);
+        holder.separator.setLayoutParams(params);
 
-        // selection behaviour
+        // Multiple selection mode
         if (selectionMode) {
             if (isNew(position)) holder.itemView.setVisibility(View.GONE);
             if (selectedPos.contains(position)) holder.select();
             else holder.deselect(position);
-        } else {
-            holder.deselect(position);
-        }
-        holder.listItemRow.setOnClickListener(view -> {
-            if (selectionMode) {
+            holder.listItemRow.setOnClickListener(view -> {
                 holder.toggleSelect(position);
                 notifyItemChanged(position);
-            } else if (isNew(position)) {
+            });
+            return;
+        }
+
+        holder.itemView.setAlpha(1f);
+        holder.listItemRow.setOnClickListener(view -> {
+            if (isNew(position))
                 ((MainActivity) context).addAccount();
-            } else {
-                selectedPos.add(0, position);
+            else {
+                ((MainActivity) context).editAccount((Account) sections.get(position));
                 notifyItemChanged(position);
-                ((MainActivity) context).editAccount((Account) sections.get(selectedPos.get(0)));
-                selectedPos.remove(0);
             }
+        });
+        holder.listItemRow.setOnLongClickListener(view -> {
+            itemTouchHelper.startDrag(holder);
+            return false;
         });
     }
 
     /**
      * FUNCTIONS
      */
-    public void setDialog(AlertDialog alertDialog) {
-        dialog = alertDialog;
-    }
     public void clearSelected() {
         selectedPos.clear();
     }
     public boolean isNew(int position) {
-        return (mode == Constants.MANAGE) && (position == getItemCount()-1);
+        return (page == Constants.MANAGE) && (position == getItemCount()-1);
     }
-    public static ArrayList<String> getSectionNames(ArrayList<? extends Section> sections) {
-        ArrayList<String> sectionNames = new ArrayList<>();
-        for (Section section : sections) {
-            sectionNames.add(section.getName());
-        }
-        return sectionNames;
+    public void setDialog(AlertDialog alertDialog) {
+        dialog = alertDialog;
+    }
+    public void resetPositions() {}
+    public void updatePositions() {
+
+    }
+    public void clearAllSelected() {
+        selectedPos.clear();
+    }
+    public boolean isSelected(int pos) {
+        return selectedPos.contains(pos);
     }
 
     /**
      * GETTERS & SETTERS
      */
-    public ArrayList<T> getList() {
-        return sections;
-    }
-    public T getSelected() {
-        int pos = selectedPos.get(0);
-        if (pos >= 0 && pos < getItemCount())
-            return sections.get(pos);
-        else
-            return null;
-    }
     public ArrayList<T> getAllSelected() {
         ArrayList<T> selected_sections = new ArrayList<>();
         for (int pos : selectedPos) {
@@ -320,14 +334,31 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
         }
         return selected_sections;
     }
+    public ArrayList<T> getList() {
+        return sections;
+    }
+    public T getSection(int pos) { return sections.get(pos); }
+    public static ArrayList<String> getSectionNames(ArrayList<? extends Section> sections) {
+        ArrayList<String> sectionNames = new ArrayList<>();
+        for (Section section : sections) {
+            sectionNames.add(section.getName());
+        }
+        return sectionNames;
+    }
+    public T getSelected(int pos) {
+        if (pos >= 0 && pos < getItemCount())
+            return sections.get(pos);
+        else
+            return null;
+    }
+    public T getSelected() {
+        return getSelected(selectedPos.get(0));
+    }
     public ArrayList<Integer> getSelectedPos() {
         return selectedPos;
     }
 
-    public void setSelectionMode(boolean selectionMode) {
-        this.selectionMode = selectionMode;
-        notifyDataSetChanged();
-    }
+    public void setList(ArrayList<T> list) { this.sections = list; }
     public void setSelected(int position) {
         int oldPos = 0;
         if (!selectedPos.isEmpty())
@@ -343,7 +374,12 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
         notifyItemChanged(oldPos);
         notifyItemChanged(selectedPos.get(0));
     }
+    public void setSelectionMode(boolean selectionMode) {
+        this.selectionMode = selectionMode;
+        notifyItemRangeChanged(0, getItemCount());
+    }
 
+    // debug
     public void printSelectedPos() {
         String msg = "";
         for (int pos : selectedPos) {

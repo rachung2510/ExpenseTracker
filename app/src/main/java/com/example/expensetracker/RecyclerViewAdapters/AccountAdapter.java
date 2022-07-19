@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Constants;
+import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class AccountAdapter extends SectionAdapter<Account> {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (mode == Constants.MANAGE) {
+        if (page == Constants.MANAGE) {
             View view = inflater.inflate(R.layout.item_section_list, parent, false);
             return new ListViewHolder(view);
         } else {
@@ -59,6 +60,20 @@ public class AccountAdapter extends SectionAdapter<Account> {
     public void addNewAcc() {
         sections.add(new Account(context));
         notifyItemInserted(sections.size()-1);
+    }
+    @Override
+    public void resetPositions() {
+        for (Account acc : sections) {
+            acc.setPosition(acc.getId() - 1);
+            ((MainActivity) context).db.updateAccount(acc);
+        }
+    }
+    public void updatePositions() {
+        for (int i = 0;i < getItemCount()-1;i++) {
+            Account acc = sections.get(i);
+            acc.setPosition(i);
+            ((MainActivity) context).db.updateAccount(acc);
+        }
     }
 
 }

@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Category;
+import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 
 import java.util.ArrayList;
@@ -66,6 +67,20 @@ public class CategoryAdapter extends SectionAdapter<Category> {
     public void addNewCat() {
         sections.add(new Category(context));
         notifyItemInserted(sections.size()-1);
+    }
+    @Override
+    public void resetPositions() {
+        for (Category cat : sections) {
+            cat.setPosition(cat.getId() - 1);
+            ((MainActivity) context).db.updateCategory(cat);
+        }
+    }
+    public void updatePositions() {
+        for (int i = 0;i < getItemCount()-2;i++) {
+            Category cat = sections.get(i);
+            cat.setPosition(i+1);
+            ((MainActivity) context).db.updateCategory(cat);
+        }
     }
 
 }

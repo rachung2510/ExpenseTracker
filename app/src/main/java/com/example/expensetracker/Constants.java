@@ -7,26 +7,26 @@ import kotlin.Triple;
 public class Constants {
 
     // Defaults
-    public static final String[] defaultCatNames = new String[]{
+    public static final String[] defaultCatNames = new String[] { "Others",
             "Food", "Drinks", "Snacks",
             "Home/Living", "Groceries", "Taxi",
             "Transport", "Health", "Electronics",
             "Social", "Shopping", "Crafts",
-            "Gifts", "Entertainment", "Others"
+            "Gifts", "Entertainment"
     };
-    public static final String[] defaultCatIcons = new String[] {
+    public static final String[] defaultCatIcons = new String[] { "cat_others",
             "cat_food", "cat_drinks", "cat_snacks",
             "cat_home", "cat_groceries", "cat_taxi",
             "cat_transport", "cat_health", "cat_electronics",
             "cat_social", "cat_shopping", "cat_crafts",
-            "cat_gift", "cat_entertainment", "cat_others"
+            "cat_gift", "cat_entertainment"
     };
-    public static final String[] defaultCatColors = new String[] {
+    public static final String[] defaultCatColors = new String[] { "cat_storm_petrel",
             "cat_pastel_red", "cat_megaman", "cat_casandora_yellow",
             "cat_joust_blue", "cat_aqua_velvet", "cat_caribbean_green",
             "cat_fuel_town", "cat_dragon_skin", "cat_blue_ballerina",
             "cat_cyanite", "cat_lotus_pink", "cat_june_bud",
-            "cat_fiery_fuchsia", "cat_nasu_purple", "cat_storm_petrel"
+            "cat_fiery_fuchsia", "cat_nasu_purple"
     };
     public static final String[] defaultAccNames = new String[] { "Cash", "VISA", "NETS" };
     public static final String[] defaultAccIcons = new String[] { "acc_cash", "acc_visa", "acc_nets" };
@@ -62,6 +62,7 @@ public class Constants {
     // Page modes
     public static final int HOME = 0;
     public static final int MANAGE = 1;
+    public static final int CHARTS = 2;
 
     // Relative dates
     public static final int TODAY = 0;

@@ -19,7 +19,6 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.expensetracker.ChartsPage.ChartsChildFragment;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.google.android.material.button.MaterialButtonToggleGroup;
@@ -41,7 +40,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     private int selectedPos;
     private int state;
     public boolean errorState = false;
-    private boolean[] disabledPos = { false,false,false,false,false,false };
+    private final boolean[] disabledPos = { false,false,false,false,false,false };
 
     // components
     private Calendar fromDate, toDate;
@@ -79,7 +78,9 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         this.fromDate = fromDate;
         this.toDate = toDate;
         fromDayPicker = new DatePicker(context);
+        fromDayPicker.setFirstDayOfWeek(((MainActivity) context).getDefaultFirstDayOfWeek());
         toDayPicker = new DatePicker(context);
+        toDayPicker.setFirstDayOfWeek(((MainActivity) context).getDefaultFirstDayOfWeek());
 
         iconGray = MainActivity.getColorStateListFromId(context, R.color.generic_icon_gray);
         iconLightGray = MainActivity.getColorStateListFromId(context, R.color.tag_bg_gray);
@@ -128,8 +129,8 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
                 showSelDateDialog();
             else {
                 errorState = false;
-                fromDate = getInitSelectedDates(FROM, state);
-                toDate = getInitSelectedDates(TO, state);
+                fromDate = ((MainActivity) context).getInitSelectedDates(FROM, state);
+                toDate = ((MainActivity) context).getInitSelectedDates(TO, state);
                 if (parentDialog != null) parentDialog.dismiss();
             }
         });
@@ -188,6 +189,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
 
         // select
         DatePicker selDayPicker = datePicker.findViewById(R.id.selDayPicker);
+        selDayPicker.setFirstDayOfWeek(((MainActivity) context).getDefaultFirstDayOfWeek());
 
         // range
         LinearLayout fromDay = datePicker.findViewById(R.id.fromDay);
@@ -262,8 +264,8 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         Calendar from = fromDate;
         Calendar to = toDate;
         if (from == null) {
-            from = getInitSelectedDates(FROM, MONTH);
-            to = getInitSelectedDates(TO, MONTH);
+            from = ((MainActivity) context).getInitSelectedDates(FROM, MONTH);
+            to = ((MainActivity) context).getInitSelectedDates(TO, MONTH);
             fromDate = MainActivity.getCalendarCopy(from, FROM);
             toDate = MainActivity.getCalendarCopy(to, TO);
         }
@@ -281,7 +283,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
 
         // Set values for NumberPickers
         Calendar[] pair = ((MainActivity) context).db.getFirstLastDates();
-        int minYear = (pair[0] == null) ? getInitSelectedDates(FROM, YEAR).get(Calendar.YEAR) : pair[0].get(Calendar.YEAR);
+        int minYear = (pair[0] == null) ? ((MainActivity) context).getInitSelectedDates(FROM, YEAR).get(Calendar.YEAR) : pair[0].get(Calendar.YEAR);
         int maxYear = (pair[0] == null) ? minYear : pair[1].get(Calendar.YEAR);
         for (NumberPicker picker : new NumberPicker[] { fromYear, toYear }) {
             picker.setMinValue(minYear);
@@ -405,9 +407,6 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
                 }
             }
         }
-    }
-    public static Calendar getInitSelectedDates(int range, int state) {
-        return getInitSelectedDates(range, state, Calendar.SUNDAY);
     }
     public static Calendar getInitSelectedDates(int range, int state, int firstDayOfWeek) {
         Calendar cal = Calendar.getInstance(MainActivity.locale);

@@ -1,23 +1,23 @@
 package com.example.expensetracker;
 
-import kotlin.Triple;
+import android.content.Context;
 
 public class Currency {
     private static final String TAG = "Currency";
-    private String name;
-    private String description;
-    private String symbol;
+    private final String name;
+    private final String description;
+    private final String symbol;
 
     public Currency(String name, String description, String symbol) {
         this.name = name;
         this.description = description;
         this.symbol = symbol;
     }
-    public Currency() {
-        Triple<String, String, String> triple = Constants.currencies.get(0);
-        this.name = triple.getFirst();
-        this.description = triple.getThird();
-        this.symbol = triple.getSecond();
+    public Currency(Context context) {
+        String defaultCurrency = ((MainActivity) context).getDefaultCurrency();
+        this.name = defaultCurrency;
+        this.description = "";
+        this.symbol = Constants.currency_map.get(defaultCurrency);
     }
 
     public String getName() {

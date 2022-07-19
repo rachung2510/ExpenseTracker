@@ -10,29 +10,29 @@ public class Account extends Section {
      * CONSTRUCTORS
      */
     // no id given - create basic Account
-    public Account(Context context, String name, String icon, String color) {
-        super(context, name, icon, color);
-        this.currency = new Currency();
+    public Account(Context context, String name, String icon, String color, int pos) {
+        super(context, name, icon, color, pos);
+        this.currency = new Currency(context);
     }
-    public Account(Context context, String name, String icon, String color, Currency currency) {
-        super(context, name, icon, color);
+    public Account(Context context, String name, String icon, String color, int pos, Currency currency) {
+        super(context, name, icon, color, pos);
         this.currency = currency;
     }
 
     // specify id - recall Account from database
-    public Account(Context context, int id, String name, String icon, String color) {
-        super(context, id, name, icon, color);
-        this.currency = new Currency();
+    public Account(Context context, int id, String name, String icon, String color, int pos) {
+        super(context, id, name, icon, color, pos);
+        this.currency = new Currency(context);
     }
-    public Account(Context context, int id, String name, String icon, String color, Currency currency) {
-        super(context, id, name, icon, color);
+    public Account(Context context, int id, String name, String icon, String color, int pos, Currency currency) {
+        super(context, id, name, icon, color, pos);
         this.currency = currency;
     }
 
     // NULL category
     public Account(Context context) {
         super(context);
-        this.currency = new Currency();
+        this.currency = new Currency(context);
     }
 
     /**

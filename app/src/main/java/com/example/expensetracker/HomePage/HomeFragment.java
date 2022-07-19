@@ -94,7 +94,7 @@ public class HomeFragment extends Fragment {
         ((MainActivity) getActivity()).updateHomeData(); // update summary & expense list
 
         // apply filters
-        filterList = view.findViewById(R.id.accFilters);
+        filterList = view.findViewById(R.id.sectionFilters);
         applyFilters();
 
         // floating action button
@@ -188,8 +188,8 @@ public class HomeFragment extends Fragment {
         selDatePos = DateGridAdapter.MONTH;
         selDateState = DateGridAdapter.MONTH;
         if (fromDate == null) {
-            fromDate = DateGridAdapter.getInitSelectedDates(DateGridAdapter.FROM, selDateState);
-            toDate = DateGridAdapter.getInitSelectedDates(DateGridAdapter.TO, selDateState);
+            fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selDateState);
+            toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selDateState);
         }
         summaryDate.setOnClickListener(view -> {
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity(), R.style.WrapContentDialog);
@@ -270,7 +270,7 @@ public class HomeFragment extends Fragment {
         if (!selAccFilters.isEmpty())
             summaryCurr.setText(selAccFilters.get(0).getCurrencySymbol()); // get currency of first filter
         else
-            summaryCurr.setText(((new Currency()).getSymbol())); // default
+            summaryCurr.setText(new Currency(getActivity()).getSymbol()); // default
     }
     public void filterAccDialog(AccountAdapter adapter) {
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);

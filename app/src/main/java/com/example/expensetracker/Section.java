@@ -4,31 +4,34 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 
 public class Section {
+    protected Context context;
     protected int id;
     protected String name;
     protected String icon;
     protected String color;
-    protected Context context;
+    protected int position;
 
     /**
      * CONSTRUCTORS
      */
     // no id given - create basic Section
-    public Section(Context context, String name, String icon, String color) {
+    public Section(Context context, String name, String icon, String color, int pos) {
         this.context = context;
         this.id = -1;
         this.name = name;
         this.icon = icon;
         this.color = color;
+        this.position = pos;
     }
 
     // specify id - recall Section from database
-    public Section(Context context, int id, String name, String icon, String color) {
+    public Section(Context context, int id, String name, String icon, String color, int position) {
         this.context = context;
         this.id = id;
         this.name = name;
         this.icon = icon;
         this.color = color;
+        this.position = position;
     }
 
     // NULL Section
@@ -38,6 +41,7 @@ public class Section {
         this.name = "";
         this.icon = "";
         this.color = "";
+        this.position = -1;
     }
 
     /**
@@ -55,6 +59,7 @@ public class Section {
     public String getColorName() {
         return color;
     }
+    public int getPosition() { return position; }
     public int getIconId() {
         return context.getResources().getIdentifier(icon, "drawable", context.getPackageName());
     }
@@ -68,7 +73,6 @@ public class Section {
         return MainActivity.getColorHexFromName(context, color);
     }
 
-
     /**
      * SETTERS
      */
@@ -78,5 +82,5 @@ public class Section {
     public void setName(String name) {
         this.name = name;
     }
-
+    public void setPosition(int pos) { this.position = pos; }
 }

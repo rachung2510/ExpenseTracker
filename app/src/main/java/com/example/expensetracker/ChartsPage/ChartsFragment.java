@@ -6,10 +6,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -98,12 +101,17 @@ public class ChartsFragment extends Fragment {
                     selDateState = DateGridAdapter.MONTH;
                     prevDate.setVisibility(ImageButton.VISIBLE);
                     nextDate.setVisibility(ImageButton.VISIBLE);
-                    fromDate = DateGridAdapter.getInitSelectedDates(DateGridAdapter.FROM, selDateState);
-                    toDate = DateGridAdapter.getInitSelectedDates(DateGridAdapter.TO, selDateState);
+                    fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selDateState);
+                    toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selDateState);
                     ((MainActivity) getActivity()).updateSummaryData(((MainActivity) getActivity()).getExpenseList()); // update summary
                 }
             }
         });
+
+        // toolbar
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("");
 
         return view;
     }
@@ -112,8 +120,8 @@ public class ChartsFragment extends Fragment {
         selDatePos = DateGridAdapter.MONTH;
         selDateState = DateGridAdapter.MONTH;
         if (fromDate == null) {
-            fromDate = DateGridAdapter.getInitSelectedDates(DateGridAdapter.FROM, selDateState);
-            toDate = DateGridAdapter.getInitSelectedDates(DateGridAdapter.TO, selDateState);
+            fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selDateState);
+            toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selDateState);
         }
         summaryDate.setOnClickListener(view -> {
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity(), R.style.WrapContentDialog);
@@ -202,10 +210,10 @@ public class ChartsFragment extends Fragment {
         summaryDate.setText(summaryDateText);
         ChartsChildFragment pieChartFrag = (ChartsChildFragment) getChildFragmentManager().getFragments().get(0);
         pieChartFrag.setPieChartTotalAmt(summaryAmt);
-        pieChartFrag.updateDateFilters(fromDate, toDate);
+        pieChartFrag.updateDateFilters();
         if (getChildFragmentManager().getFragments().size() > 1) {
             ChartsChildFragment lineChartFrag = (ChartsChildFragment) getChildFragmentManager().getFragments().get(1);
-            lineChartFrag.updateDateFilters(fromDate, toDate);
+            lineChartFrag.updateDateFilters();
         }
     }
 

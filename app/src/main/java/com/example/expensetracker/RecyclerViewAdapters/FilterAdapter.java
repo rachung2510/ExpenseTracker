@@ -2,6 +2,7 @@ package com.example.expensetracker.RecyclerViewAdapters;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
+import com.example.expensetracker.ChartsPage.ChartsChildFragment;
 import com.example.expensetracker.Constants;
+import com.example.expensetracker.HomePage.HomeFragment;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 
@@ -23,6 +26,7 @@ import java.util.ArrayList;
 
 public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder> {
 
+    private static final String TAG = "FilterAdapter";
     private final ArrayList<Account> filteredAccounts;
     private final ArrayList<Category> filteredCategories;
     private final Context context;
@@ -80,17 +84,21 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
             holder.delFilterItem.setForegroundTintList(tagOrange);
         }
 
-        int finalPosition = position;
+        int finalPos = position;
         holder.delFilterItem.setOnClickListener((l) -> {
             if (sectionType == Constants.SECTION_ACCOUNT) {
-                filteredAccounts.remove(finalPosition);
+                filteredAccounts.remove(finalPos);
                 ((MainActivity) context).updateAccFilters(filteredAccounts);
             } else if (sectionType == Constants.SECTION_CATEGORY) {
-                filteredCategories.remove(finalPosition);
+                filteredCategories.remove(finalPos);
                 ((MainActivity) context).updateCatFilters(filteredCategories);
             }
-            ((MainActivity) context).updateHomeData(); // update summary & expense list
-
+            if (((MainActivity) context).getFragment() instanceof HomeFragment) {
+                ((MainActivity) context).updateHomeData(); // update summary & expense list
+                return;
+            }
+            ChartsChildFragment frag = (ChartsChildFragment) ((MainActivity) context).getFragment().getChildFragmentManager().getFragments().get(1);
+            frag.updateExpenseList();
         });
     }
 

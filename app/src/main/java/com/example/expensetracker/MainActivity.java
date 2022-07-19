@@ -1,6 +1,7 @@
 package com.example.expensetracker;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -29,9 +30,11 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.expensetracker.ChartsPage.ChartsChildFragment;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
@@ -49,6 +52,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -86,6 +90,9 @@ public class MainActivity extends AppCompatActivity {
             getIconMap();
         if (colorMap.isEmpty())
             getColorMap();
+        if (!getPreferences(Context.MODE_PRIVATE).contains(getString(R.string.key_default_currency)))
+            initialiseDefaultSettings();
+        initialiseDefaultSettings();
 
         // Initialize the bottom navigation view
         BottomNavigationView navView = findViewById(R.id.nav_view);
@@ -102,13 +109,13 @@ public class MainActivity extends AppCompatActivity {
      */
     public void initialiseDefaultAccs() {
         for (int i = 0;i < Constants.defaultAccNames.length;i++) {
-            Account acc = new Account(this, Constants.defaultAccNames[i], Constants.defaultAccIcons[i], Constants.defaultAccColors[i]);
+            Account acc = new Account(this, Constants.defaultAccNames[i], Constants.defaultAccIcons[i], Constants.defaultAccColors[i], i);
             db.createAccount(acc, false);
         }
     }
     public void initialiseDefaultCats() {
         for (int i = 0;i < Constants.defaultCatNames.length;i++) {
-            Category cat = new Category(this, Constants.defaultCatNames[i], Constants.defaultCatIcons[i], Constants.defaultCatColors[i]);
+            Category cat = new Category(this, Constants.defaultCatNames[i], Constants.defaultCatIcons[i], Constants.defaultCatColors[i], i);
             db.createCategory(cat, false);
         }
     }
@@ -132,6 +139,13 @@ public class MainActivity extends AppCompatActivity {
         for (String name : Constants.allColors) {
             colorMap.put(getColorIdFromName(this, name), name);
         }
+    }
+    public void initialiseDefaultSettings() {
+        SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString(getString(R.string.key_default_currency), getString(R.string.default_currency));
+        editor.putInt(getString(R.string.key_default_firstDayOfWeek), Calendar.SUNDAY);
+        editor.apply();
     }
 
     /**
@@ -313,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
             totalAmt = db.getTotalAmt();
         } else {
             Calendar cal = getCalendarCopy(to, DateGridAdapter.FROM);
-            String dtf = "";
+            String dtf;
             switch (state) {
                 case DateGridAdapter.MONTH:
                     dtf = "MMM yyyy";
@@ -350,7 +364,7 @@ public class MainActivity extends AppCompatActivity {
         if (getFragment() instanceof ManageFragment)
             childFragment = getFragment().getChildFragmentManager().getFragments().get(0);
         if (childFragment instanceof ManageChildFragment)
-            ((ManageChildFragment<AccountAdapter>) childFragment).setAdapter(adapter);
+            ((ManageChildFragment<AccountAdapter>) childFragment).setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
     }
     public void updateCategoryData() {
         CategoryAdapter adapter = getCategoryData(Constants.MANAGE);
@@ -359,11 +373,18 @@ public class MainActivity extends AppCompatActivity {
         if (getFragment() instanceof ManageFragment)
             childFragment = getFragment().getChildFragmentManager().getFragments().get(1);
         if (childFragment instanceof ManageChildFragment)
-            ((ManageChildFragment<CategoryAdapter>) childFragment).setAdapter(adapter);
+            ((ManageChildFragment<CategoryAdapter>) childFragment).setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
     }
     public void updateAccFilters(ArrayList<Account> filters) {
         if (getFragment() instanceof HomeFragment) {
             HomeFragment fragment = (HomeFragment) getFragment();
+            fragment.setSelAccFilters(filters);
+            fragment.applyFilters();
+            fragment.updateClearFiltersItem();
+            return;
+        }
+        if (getFragment() instanceof ChartsFragment) {
+            ChartsChildFragment fragment = (ChartsChildFragment) getFragment().getChildFragmentManager().getFragments().get(1);
             fragment.setSelAccFilters(filters);
             fragment.applyFilters();
             fragment.updateClearFiltersItem();
@@ -372,6 +393,13 @@ public class MainActivity extends AppCompatActivity {
     public void updateCatFilters(ArrayList<Category> filters) {
         if (getFragment() instanceof HomeFragment) {
             HomeFragment fragment = (HomeFragment) getFragment();
+            fragment.setSelCatFilters(filters);
+            fragment.applyFilters();
+            fragment.updateClearFiltersItem();
+            return;
+        }
+        if (getFragment() instanceof ChartsFragment) {
+            ChartsChildFragment fragment = (ChartsChildFragment) getFragment().getChildFragmentManager().getFragments().get(1);
             fragment.setSelCatFilters(filters);
             fragment.applyFilters();
             fragment.updateClearFiltersItem();
@@ -390,7 +418,6 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 expensesByDate = db.getExpensesByDateRange(from, to);
             }
-            db.getExpensesByFilters(fragment.getSelAccFilters(), fragment.getSelCatFilters());
             ArrayList<Expense> expensesByFilter = db.getExpensesByFilters(fragment.getSelAccFilters(), fragment.getSelCatFilters());
             expensesByDate.retainAll(expensesByFilter);
         } else if (getFragment() instanceof ChartsFragment) {
@@ -419,28 +446,34 @@ public class MainActivity extends AppCompatActivity {
     }
     public static ArrayList<Expense> sortExpenses(ArrayList<Expense> expenses, int order) {
         if (order == Constants.ASCENDING)
-            expenses.sort((e1, e2) -> {
-                return e1.getDatetime().compareTo(e2.getDatetime()); // descending order
-            });
+            expenses.sort(Comparator.comparing(Expense::getDatetime));
         else
-            expenses.sort((e1, e2) -> {
-                return e2.getDatetime().compareTo(e1.getDatetime()); // descending order
-            });
+            expenses.sort((e1, e2) -> e2.getDatetime().compareTo(e1.getDatetime()));
         return expenses;
     }
 
     // Sections
+    public <T extends Section> ArrayList<T> sortSections(ArrayList<T> sections) {
+        sections.sort((s1, s2) -> {
+            if (s1.getId() == -1) return 1; // new appears last
+            if (s2.getId() == -1) return -1;
+            if (s1 instanceof Category && s1.getName().equals(getImmutableCat())) return 1;
+            if (s2 instanceof Category && s2.getName().equals(getImmutableCat())) return -1;
+            return Integer.compare(s1.getPosition(), s2.getPosition());
+        });
+        return sections;
+    }
     public CategoryAdapter getCategoryData() {
-        return new CategoryAdapter(this, db.getAllCategories());
+        return new CategoryAdapter(this, sortSections(db.getAllCategories()));
     }
     public AccountAdapter getAccountData() {
-        return new AccountAdapter(this, db.getAllAccounts());
+        return new AccountAdapter(this, sortSections(db.getAllAccounts()));
     }
     public CategoryAdapter getCategoryData(int mode) {
-        return new CategoryAdapter(this, db.getAllCategories(), mode);
+        return new CategoryAdapter(this, sortSections(db.getAllCategories()), mode);
     }
     public AccountAdapter getAccountData(int mode) {
-        return new AccountAdapter(this, db.getAllAccounts(), mode);
+        return new AccountAdapter(this, sortSections(db.getAllAccounts()), mode);
     }
 
     /**
@@ -451,7 +484,17 @@ public class MainActivity extends AppCompatActivity {
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
         Calendar cal = Calendar.getInstance(locale);
         expDate.setText(("Today, " + getDatetimeStr(cal, "dd MMMM yyyy")).toUpperCase());
-        expCurr.setText(db.getAccount(1).getCurrencySymbol());
+        Account acc = db.getAccount(getDefaultAccName());
+        Category cat = db.getCategory(getDefaultCatName());
+        expAccName.setText(acc.getName()); // set name
+        expCatName.setText(cat.getName());
+        expAccIcon.setForeground(acc.getIcon()); // set icon
+        expCatIcon.setForeground(cat.getIcon());
+        expAccIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + acc.getColorHex()))); // set icon color
+        expCatIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + cat.getColorHex())));
+        expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex())); // set bg color
+        expCatBox.setBackgroundColor(Color.parseColor("#" + cat.getColorHex()));
+        expCurr.setText(new Currency(this).getSymbol());
 
         // actions
         expAccBox.setOnClickListener(view -> {
@@ -479,10 +522,10 @@ public class MainActivity extends AppCompatActivity {
             if (!expAmt.getText().toString().isEmpty()) {
                 float amt = Float.parseFloat(expAmt.getText().toString());
                 String desc = expDesc.getText().toString();
-                Account acc = db.getAccount(expAccName.getText().toString());
-                Category cat = db.getCategory(expCatName.getText().toString());
+                Account acc1 = db.getAccount(expAccName.getText().toString());
+                Category cat1 = db.getCategory(expCatName.getText().toString());
                 String datetime = getDatetimeStr(cal, "");
-                Expense expense = new Expense(amt, desc, acc, cat, datetime);
+                Expense expense = new Expense(amt, desc, acc1, cat1, datetime);
                 db.createExpense(expense);
                 updateHomeData(); // update summary & expense list
             } else {
@@ -623,7 +666,7 @@ public class MainActivity extends AppCompatActivity {
                 int icon_id = (Integer) sectionIcon.getTag();
                 int color_id = (Integer) sectionBanner.getTag();
                 Currency currency = getCurrencyFromName(sectionCurr.getText().toString());
-                Account account = new Account(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id), currency);
+                Account account = new Account(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id), getPosAccount(), currency);
                 db.createAccount(account, true);
                 updateAccountData();
                 addAccDialog.dismiss();
@@ -643,6 +686,8 @@ public class MainActivity extends AppCompatActivity {
         sectionType.setText("Account");
         sectionCurr.setText(acc.getCurrencyName());
         setEditAccOptions(acc.getIconName(), acc.getColorName());
+        if(acc.getName().equals(getDefaultAccName()))
+            sectionDelBtn.setVisibility(View.GONE);
 
         // actions
         sectionCurrRow.setOnClickListener(view1 -> {
@@ -668,8 +713,10 @@ public class MainActivity extends AppCompatActivity {
         });
         sectionDelBtn.setOnClickListener(view -> {
             AlertDialog.Builder confirmDel = new AlertDialog.Builder(MainActivity.this, R.style.ConfirmDelDialog);
-            confirmDel.setTitle("Delete entry")
-                    .setMessage("Are you sure you want to delete? Relevant expenses will be moved to " + Constants.defaultAccount + ".")
+            int numExpenses = db.getNumExpensesByAccount(acc);
+            confirmDel.setTitle("Delete account")
+                    .setMessage("Are you sure you want to delete?" + ((numExpenses == 0) ? "" :
+                            " " + numExpenses + " expense(s) will be moved to " + getDefaultAccName() + "."))
                     .setPositiveButton("Delete", (dialogInterface, i) -> {
                 db.deleteAccount(acc, true);
                 updateAccountData();
@@ -685,8 +732,9 @@ public class MainActivity extends AppCompatActivity {
                 String name = sectionName.getText().toString();
                 int icon_id = (Integer) sectionIcon.getTag();
                 int color_id = (Integer) sectionBanner.getTag();
+                int pos = acc.getPosition();
                 Currency currency = getCurrencyFromName(sectionCurr.getText().toString());
-                db.updateAccount(new Account(MainActivity.this, id, name, iconMap.get(icon_id), colorMap.get(color_id), currency));
+                db.updateAccount(new Account(MainActivity.this, id, name, iconMap.get(icon_id), colorMap.get(color_id), pos, currency));
                 updateAccountData();
                 updateHomeData();
             }
@@ -717,7 +765,7 @@ public class MainActivity extends AppCompatActivity {
                 String name = sectionName.getText().toString();
                 int icon_id = (Integer) sectionIcon.getTag();
                 int color_id = (Integer) sectionBanner.getTag();
-                Category cat = new Category(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id));
+                Category cat = new Category(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id), getPosCategory());
                 db.createCategory(cat, true);
                 updateCategoryData();
                 addCatDialog.dismiss();
@@ -737,6 +785,7 @@ public class MainActivity extends AppCompatActivity {
         sectionName.setText(cat.getName());
         sectionType.setText("Category");
         setEditCatOptions(cat.getIconName(), cat.getColorName());
+        if (cat.getName().equals(getImmutableCat())) sectionDelBtn.setVisibility(View.GONE);
 
         // actions
         sectionIcon.setOnClickListener(view -> {
@@ -747,8 +796,10 @@ public class MainActivity extends AppCompatActivity {
         });
         sectionDelBtn.setOnClickListener(view -> {
             AlertDialog.Builder confirmDel = new AlertDialog.Builder(MainActivity.this, R.style.ConfirmDelDialog);
-            confirmDel.setTitle("Delete entry")
-                    .setMessage("Are you sure you want to delete? Relevant expenses will be moved to " + Constants.defaultCategory + ".")
+            int numExpenses = db.getNumExpensesByCategory(cat);
+            confirmDel.setTitle("Delete category")
+                    .setMessage("Are you sure you want to delete?" + ((numExpenses == 0) ? "" :
+                            " " + numExpenses + " expense(s) will be moved to " + getImmutableCat() + "."))
                     .setPositiveButton("Delete", (dialogInterface, i) -> {
                 db.deleteCategory(cat, true);
                 updateCategoryData();
@@ -764,7 +815,8 @@ public class MainActivity extends AppCompatActivity {
                 String name = sectionName.getText().toString();
                 int icon_id = (Integer) sectionIcon.getTag();
                 int color_id = (Integer) sectionBanner.getTag();
-                db.updateCategory(new Category(MainActivity.this, id, name, iconMap.get(icon_id), colorMap.get(color_id)));
+                int pos = cat.getPosition();
+                db.updateCategory(new Category(MainActivity.this, id, name, iconMap.get(icon_id), colorMap.get(color_id), pos));
                 updateCategoryData();
                 updateHomeData();
             }
@@ -832,6 +884,31 @@ public class MainActivity extends AppCompatActivity {
     public static ColorStateList getColorStateListFromId(Context context, int id) {
         return ColorStateList.valueOf(ContextCompat.getColor(context, id));
     }
+
+    public static float convertDpToPx(Context context, float dp) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
+                context.getResources().getDisplayMetrics());
+    }
+    public static Calendar getCalendarCopy(Calendar cal, int range) {
+        Calendar copy = Calendar.getInstance();
+        if (range == DateGridAdapter.FROM)
+            copy.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 0,0,0);
+        else
+            copy.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 23,59,59);
+        return copy;
+    }
+    public static Currency getCurrencyFromName(String name) {
+        return new Currency(name, "", Constants.currency_map.get(name));
+    }
+    public static String getDatetimeStr(Calendar cal, String format) {
+        format = (format.isEmpty()) ? Expense.DATETIME_FORMAT : format;
+        return new SimpleDateFormat(format, locale).format(cal.getTime());
+    }
+    public Calendar getInitSelectedDates(int range, int state) {
+        return DateGridAdapter.getInitSelectedDates(range, state, getDefaultFirstDayOfWeek());
+    }
+    public int getPosAccount() { return db.getNumAccounts(); }
+    public int getPosCategory() { return db.getNumCategories(); }
     public static int getRelativeDate(Calendar cal) {
         Calendar today = Calendar.getInstance(locale);
         if (cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
@@ -856,27 +933,22 @@ public class MainActivity extends AppCompatActivity {
         return (relativeDate == Constants.TODAY) ? "Today" : (
                     (relativeDate == Constants.YESTERDAY) ? "Yesterday" : getDatetimeStr(cal, "EEE"));
     }
-    public static String getDatetimeStr(Calendar cal, String format) {
-        format = (format.isEmpty()) ? Expense.DATETIME_FORMAT : format;
-        return new SimpleDateFormat(format, locale).format(cal.getTime());
-    }
-    public static float convertDpToPx(Context context, float dp) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
-                context.getResources().getDisplayMetrics());
-    }
-    public static Currency getCurrencyFromName(String name) {
-        return new Currency(name, "", Constants.currency_map.get(name));
-    }
-    public static String getString(Context context, int id) {
-        return context.getResources().getString(id);
-    }
 
-    public static Calendar getCalendarCopy(Calendar cal, int range) {
-        Calendar copy = Calendar.getInstance();
-        if (range == DateGridAdapter.FROM)
-            copy.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 0,0,0);
-        else
-            copy.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 23,59,59);
-        return copy;
+    public String getDefaultCurrency() {
+        SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
+        return pref.getString(getString(R.string.key_default_currency), getString(R.string.default_currency));
+    }
+    public String getDefaultAccName() {
+        return db.getDefaultAccName();
+    }
+    public String getDefaultCatName() {
+        return db.getDefaultCatName();
+    }
+    public String getImmutableCat() {
+        return db.getCategory(1).getName();
+    }
+    public int getDefaultFirstDayOfWeek() {
+        SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
+        return pref.getInt(getString(R.string.key_default_firstDayOfWeek), Calendar.SUNDAY);
     }
 }

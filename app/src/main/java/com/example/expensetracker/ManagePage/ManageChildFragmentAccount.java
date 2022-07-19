@@ -1,6 +1,5 @@
 package com.example.expensetracker.ManagePage;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.ActionMode;
@@ -11,7 +10,9 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.MainActivity;
@@ -27,14 +28,13 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_manage_acc, container, false);
-        sectionList = view.findViewById(R.id.accList);
         adapter = ((MainActivity) getParentFragment().getActivity()).getAccountData(Constants.MANAGE);
-        sectionList.setLayoutManager(new LinearLayoutManager(getParentFragment().getActivity()));
         adapter.addNewAcc();
-        sectionList.setAdapter(adapter);
+        sectionList = view.findViewById(R.id.accList);
+        ((SimpleItemAnimator) sectionList.getItemAnimator()).setSupportsChangeAnimations(false);
+        sectionList.setLayoutManager(new LinearLayoutManager(getParentFragment().getActivity()));
+        setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
         setHasOptionsMenu(true);
-//        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
-//        itemTouchHelper.attachToRecyclerView(catGrid);
         return view;
     }
 
@@ -43,14 +43,14 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
         switch (menuItem.getItemId()) {
             case R.id.select:
                 adapter.setSelectionMode(true);
-                ((Activity) getParentFragment().getActivity()).startActionMode(actionModeCallback);
+                getParentFragment().getActivity().startActionMode(actionModeCallback);
                 return true;
 
             case R.id.resetDefault:
                 MainActivity context = (MainActivity) getParentFragment().getActivity();
                 AlertDialog.Builder confirmReset = new AlertDialog.Builder(context, R.style.ConfirmDelDialog);
                 confirmReset.setTitle("Reset defaults");
-                confirmReset.setMessage("Reset default accounts? Relevant expenses will be moved to Cash.");
+                confirmReset.setMessage("Reset default accounts? Relevant expenses will be moved to " + ((MainActivity) context).getDefaultAccName() + ".");
                 confirmReset.setPositiveButton("Reset", (dialogInterface, i) -> {
                     context.db.deleteAllAccounts();
                     context.initialiseDefaultAccs();
@@ -62,6 +62,12 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
                     dialog.cancel(); // close dialog
                 });
                 confirmReset.show();
+                return true;
+
+            case R.id.resetOrder:
+                adapter.resetPositions();
+                adapter.setList(((MainActivity) getActivity()).sortSections(adapter.getList()));
+                adapter.notifyItemRangeChanged(0, adapter.getItemCount()-1);
                 return true;
 
             default:
@@ -77,7 +83,7 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
         }
         AlertDialog.Builder confirmDel = new AlertDialog.Builder(context, R.style.ConfirmDelDialog);
         confirmDel.setTitle((adapter.getSelectedPos().size() == 1) ? "Delete account" : "Delete accounts");
-        confirmDel.setMessage("Are you sure you want to delete? Relevant expenses will be moved to Cash.");
+        confirmDel.setMessage("Are you sure you want to delete? Relevant expenses will be moved to " + ((MainActivity) context).getDefaultAccName() + ".");
         confirmDel.setPositiveButton("Delete", (dialog, which) -> {
             for (int pos : adapter.getSelectedPos()) {
                 ((MainActivity) context).db.deleteAccount(adapter.getList().get(pos), false);

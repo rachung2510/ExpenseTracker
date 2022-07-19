@@ -1,7 +1,10 @@
 package com.example.expensetracker.RecyclerViewAdapters;
 
+import static com.example.expensetracker.ChartsPage.ChartsChildFragment.logExpenses;
+
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -366,6 +369,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         String dateSuffix = ", " +
                 ((exp.getRelativeDate() == Constants.TODAY) ? "Today" :
                         ((exp.getRelativeDate() == Constants.YESTERDAY) ? "Yesterday" : exp.getDatetimeStr("EEE")));
-        holder.date.setText((exp.getDatetimeStr("dd MMM") + dateSuffix).toUpperCase());
+        holder.date.setText((exp.getDatetimeStr("dd MMM") + ", " + MainActivity.getRelativePrefix(exp.getDatetime())).toUpperCase());
     }
 }

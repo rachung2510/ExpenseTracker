@@ -1,6 +1,5 @@
 package com.example.expensetracker.ManagePage;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.ActionMode;
@@ -12,6 +11,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.MainActivity;
@@ -27,14 +28,13 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_manage_cat, container, false);
-        sectionList = view.findViewById(R.id.catGrid);
         adapter = ((MainActivity) getParentFragment().getActivity()).getCategoryData(Constants.MANAGE);
-        sectionList.setLayoutManager(new GridLayoutManager(getParentFragment().getActivity(), 3, GridLayoutManager.VERTICAL, false));
         adapter.addNewCat();
-        sectionList.setAdapter(adapter);
+        sectionList = view.findViewById(R.id.catGrid);
+        ((SimpleItemAnimator) sectionList.getItemAnimator()).setSupportsChangeAnimations(false);
+        sectionList.setLayoutManager(new GridLayoutManager(getParentFragment().getActivity(), 3, GridLayoutManager.VERTICAL, false));
+        setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
         setHasOptionsMenu(true);
-//        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
-//        itemTouchHelper.attachToRecyclerView(catGrid);
         return view;
     }
 
@@ -43,14 +43,14 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
         switch (menuItem.getItemId()) {
             case R.id.select:
                 adapter.setSelectionMode(true);
-                ((Activity) getParentFragment().getActivity()).startActionMode(actionModeCallback);
+                getParentFragment().getActivity().startActionMode(actionModeCallback);
                 return true;
 
             case R.id.resetDefault:
                 MainActivity context = (MainActivity) getParentFragment().getActivity();
                 AlertDialog.Builder confirmReset = new AlertDialog.Builder(context, R.style.ConfirmDelDialog);
                 confirmReset.setTitle("Reset defaults");
-                confirmReset.setMessage("Reset default categories? Relevant expenses will be moved to Others.");
+                confirmReset.setMessage("Reset default categories? Relevant expenses will be moved to " + ((MainActivity) context).getImmutableCat() + ".");
                 confirmReset.setPositiveButton("Reset", (dialogInterface, i) -> {
                     context.db.deleteAllCategories();
                     context.initialiseDefaultCats();
@@ -61,6 +61,12 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
                     dialog.cancel(); // close dialog
                 });
                 confirmReset.show();
+                return true;
+
+            case R.id.resetOrder:
+                adapter.resetPositions();
+                adapter.setList(((MainActivity) getActivity()).sortSections(adapter.getList()));
+                adapter.notifyItemRangeChanged(0, adapter.getItemCount()-2);
                 return true;
 
             default:
@@ -76,7 +82,7 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
         }
         AlertDialog.Builder confirmDel = new AlertDialog.Builder(context, R.style.ConfirmDelDialog);
         confirmDel.setTitle((adapter.getSelectedPos().size() == 1) ? "Delete category" : "Delete categories");
-        confirmDel.setMessage("Are you sure you want to delete? Relevant expenses will be moved to Others.");
+        confirmDel.setMessage("Are you sure you want to delete? Relevant expenses will be moved to " + ((MainActivity) context).getImmutableCat() + ".");
         confirmDel.setPositiveButton("Delete", (dialog, which) -> {
             adapter.printSelectedPos();
             for (int pos : adapter.getSelectedPos()) {

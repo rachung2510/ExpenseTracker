@@ -93,7 +93,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void populateCategories(ViewHolder holder, Category cat) {
         holder.catDataLabel.setText(cat.getName());
         holder.catDataIcon.setForeground(cat.getIcon());
-        holder.catDataCurr.setText((new Currency()).getSymbol());
+        holder.catDataCurr.setText(new Currency(context).getSymbol());
         float totalAmt;
         if (fromDate == null) {
             totalAmt = ((MainActivity) context).db.getTotalAmtByCategory(cat);

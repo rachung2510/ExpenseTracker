@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +33,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private final Context context;
 
     // Database info
-    private static final int DATABASE_VERSION = 1; // Database Version
+    private static final int DATABASE_VERSION = 2; // Database Version
     private static final String DATABASE_NAME = "ExpenseTracker.db"; // Database Name
 
     // Table names
@@ -55,9 +56,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_NAME = "name";
     private static final String KEY_ICON = "icon";
     private static final String KEY_COLOR = "color";
+    private static final String KEY_POSITION = "position";
     private static final String KEY_CURRENCY = "currency";
 
-    // Table Create Statements
     // EXPENSES table create statement
     private static final String CREATE_TABLE_EXPENSE =
             "CREATE TABLE " + TABLE_EXPENSE + "("
@@ -66,7 +67,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + KEY_DESC + " TEXT NOT NULL,"
                     + KEY_ACC_ID + " INTEGER NOT NULL,"
                     + KEY_CAT_ID + " INTEGER NOT NULL,"
-                    + KEY_DATETIME + " TEXT"
+                    + KEY_DATETIME + " TEXT NOT NULL"
                     + ")";
 
     // CATEGORIES table create statement
@@ -74,8 +75,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "CREATE TABLE " + TABLE_CATEGORY + "("
                     + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + KEY_NAME + " TEXT UNIQUE,"
-                    + KEY_ICON + " TEXT,"
-                    + KEY_COLOR + " TEXT"
+                    + KEY_ICON + " TEXT NOT NULL,"
+                    + KEY_COLOR + " TEXT NOT NULL,"
+                    + KEY_POSITION + " INTEGER NOT NULL"
                     + ")";
 
     // ACCOUNTS table create statement
@@ -83,16 +85,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "CREATE TABLE " + TABLE_ACCOUNT + "("
                     + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + KEY_NAME + " TEXT UNIQUE,"
-                    + KEY_ICON + " TEXT,"
-                    + KEY_COLOR + " TEXT, "
-                    + KEY_CURRENCY + " TEXT"
+                    + KEY_ICON + " TEXT NOT NULL,"
+                    + KEY_COLOR + " TEXT NOT NULL,"
+                    + KEY_POSITION + " INTEGER NOT NULL,"
+                    + KEY_CURRENCY + " TEXT NOT NULL"
                     + ")";
 
     // CURRENCY table create statement
     private static final String CREATE_TABLE_CURRENCY =
             "CREATE TABLE " + TABLE_CURRENCY + "("
-                    + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-                    + KEY_NAME + " TEXT UNIQUE NOT NULL,"
+                    + KEY_NAME + " TEXT PRIMARY KEY,"
                     + KEY_DESC + " TEXT NOT NULL,"
                     + KEY_CURRENCY + " TEXT NOT NULL"
                     + ")";
@@ -118,14 +120,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // on upgrade drop older tables
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXPENSE);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORY);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ACCOUNT);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_CURRENCY);
-
-        // create new tables
-        onCreate(db);
+        db.execSQL(CREATE_TABLE_CURRENCY);
+    }
+    @Override
+    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        if (oldVersion > DATABASE_VERSION) {
+            db.setVersion(DATABASE_VERSION);
+        }
     }
     public void closeDB() {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -286,7 +288,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public Account getAccount(String name) {
         Account account = new Account(context);
         Cursor c = getCursorFromQuery(
-                getQuerySelectWhere(TABLE_ACCOUNT, KEY_NAME, name),
+                getQuerySelectName(TABLE_ACCOUNT, KEY_NAME, name),
                 "Account not found. Check name again");
         if (c.moveToFirst()) account = getAccountFromCursor(c);
         c.close();
@@ -304,7 +306,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public Category getCategory(String name) {
         Category category = new Category(context);
         Cursor c = getCursorFromQuery(
-                getQuerySelectWhere(TABLE_CATEGORY, KEY_NAME, name),
+                getQuerySelectName(TABLE_CATEGORY, KEY_NAME, name),
                 "Category not found. Check name again");
         if (c.moveToFirst()) category = getCategoryFromCursor(c);
         c.close();
@@ -358,7 +360,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.update(TABLE_CATEGORY, values, KEY_ID + " = ?",
                 new String[] { String.valueOf(category.getId()) });
     }
-
     public int moveExpenses(Section section, String key_id, String section_name) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor c = getCursorFromQueryOrNull(getQuerySelectId(TABLE_EXPENSE, key_id, section.getId()), "");
@@ -378,11 +379,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return res;
     }
-    public int moveExpensesToCash(Account acc) {
-        return moveExpenses(acc, KEY_ACC_ID, Constants.defaultAccount);
+    public int moveExpensesToDefault(Account acc) {
+        return moveExpenses(acc, KEY_ACC_ID, ((MainActivity) context).getDefaultAccName());
     }
-    public int moveExpensesToOthers(Category cat) {
-        return moveExpenses(cat, KEY_CAT_ID, Constants.defaultCategory);
+    public int moveExpensesToImmutable(Category cat) {
+        return moveExpenses(cat, KEY_CAT_ID, ((MainActivity) context).getImmutableCat());
     }
 
     /**
@@ -401,7 +402,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Toast.makeText(context, "Cannot delete account " + Constants.defaultAccount, Toast.LENGTH_SHORT).show();
             return;
         }
-        int moveRes = moveExpensesToCash(acc);
+        int moveRes = moveExpensesToDefault(acc);
         if (moveRes == 0)
             return;
         int res = deleteSection(TABLE_ACCOUNT, acc);
@@ -415,7 +416,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Toast.makeText(context, "Cannot delete category " + Constants.defaultCategory, Toast.LENGTH_SHORT).show();
             return;
         }
-        int moveRes = moveExpensesToOthers(cat);
+        int moveRes = moveExpensesToImmutable(cat);
         if (moveRes == 0)
             return;
         int res = deleteSection(TABLE_CATEGORY, cat);
@@ -433,7 +434,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ArrayList<Account> accounts = getAllAccounts();
         for (Account acc : accounts) {
             if (!Arrays.asList(Constants.defaultAccNames).contains(acc.getName()))
-                moveExpensesToCash(acc);
+                moveExpensesToDefault(acc);
         }
         deleteAllSections(TABLE_ACCOUNT);
     }
@@ -441,7 +442,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ArrayList<Category> categories = getAllCategories();
         for (Category cat : categories) {
             if (!Arrays.asList(Constants.defaultCatNames).contains(cat.getName()))
-                moveExpensesToOthers(cat);
+                moveExpensesToImmutable(cat);
         }
         deleteAllSections(TABLE_CATEGORY);
     }
@@ -463,6 +464,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_NAME, section.getName());
         values.put(KEY_ICON, section.getIconName());
         values.put(KEY_COLOR, section.getColorName());
+        values.put(KEY_POSITION, section.getPosition());
         return values;
     }
     public boolean empty(String table_name) {
@@ -476,11 +478,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public String getQuerySelectAll(String table) {
         return "SELECT * FROM " + table;
     }
-    public String getQuerySelectWhere(String table, String key, String value) {
-        return "SELECT * FROM " + table + " WHERE " + key + " = " + value;
+    public String getQuerySelectName(String table, String key, String value) {
+        return "SELECT * FROM " + table + " WHERE " + key + " = '" + value + "'";
     }
-    public String getQuerySelectId(String table, String key, int id) {
-        return getQuerySelectWhere(table, key, String.valueOf(id));
+    public String getQuerySelectId(String table, String key, int value) {
+        return "SELECT * FROM " + table + " WHERE " + key + " = " + value;
     }
     public Cursor getCursorFromQueryOrNull(String query, String toast) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -498,6 +500,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Toast.makeText(context, toast, Toast.LENGTH_SHORT).show();
         return c;
     }
+    public String getDefaultSectionName(String table_name, int pos) {
+        String name = "";
+        Cursor c = getCursorFromQuery(
+                "SELECT " + KEY_NAME + " FROM " + table_name + " WHERE " + KEY_POSITION + "=" + pos,
+                "");
+        if (c.moveToFirst()) name = c.getString(0);
+        return name;
+    }
+    public String getDefaultAccName() {
+        return getDefaultSectionName(TABLE_ACCOUNT, 0);
+    }
+    public String getDefaultCatName() {
+        return getDefaultSectionName(TABLE_CATEGORY, 1);
+    }
     public Expense getExpenseFromCursor(Cursor c) {
         if (c.getCount() == 0) return new Expense();
         int id = c.getInt(c.getColumnIndexOrThrow(KEY_ID));
@@ -514,8 +530,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
         String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
         String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
+        int pos = c.getInt(c.getColumnIndexOrThrow(KEY_POSITION));
         Currency currency = MainActivity.getCurrencyFromName(c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY)));
-        return new Account(context, id, name, icon, color, currency);
+        return new Account(context, id, name, icon, color, pos, currency);
     }
     public Category getCategoryFromCursor(Cursor c) {
         if (c.getCount() == 0) return null;
@@ -523,12 +540,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
         String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
         String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
-        return new Category(context, id, name, icon, color);
+        int pos = c.getInt(c.getColumnIndexOrThrow(KEY_POSITION));
+        return new Category(context, id, name, icon, color, pos);
     }
 
     /**
      * COMPUTATION
      */
+    public float getAverage(int period, ArrayList<Expense> expenses) {
+//        ArrayList<Expense> expenses = getExpensesByDateRange(from, to);
+        float totalAmt = 0;
+        int count = 0;
+        HashMap<String,Boolean> dates = new HashMap<>();
+        for (Expense e : expenses) {
+            totalAmt += e.getAmount();
+            String date = (period == DateGridAdapter.MONTH) ? e.getDatetimeStr("MM-yyyy") :
+                    ((period == DateGridAdapter.WEEK) ? e.getDatetime().get(Calendar.WEEK_OF_YEAR) + "-" + e.getDatetimeStr("yyyy") :
+                            e.getDatetimeStr("dd-MM-yyyy"));
+            if (!dates.containsKey(date)) {
+                dates.put(date, true);
+                count++;
+            }
+        }
+        return (count > 0) ? totalAmt / count : totalAmt;
+    }
+    public float getDayAverage(ArrayList<Expense> expenses) {
+        return getAverage(DateGridAdapter.DAY, expenses);
+    }
+    public float getWeekAverage(ArrayList<Expense> expenses) {
+        return getAverage(DateGridAdapter.WEEK, expenses);
+    }
+    public float getMonthAverage(ArrayList<Expense> expenses) {
+        return getAverage(DateGridAdapter.MONTH, expenses);
+    }
     public Calendar[] getFirstLastDates() {
         Calendar firstDate = null;
         Calendar lastDate = Calendar.getInstance();
@@ -555,6 +599,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return new Calendar[] { firstDate, lastDate };
     }
+    public int getNumAccounts() {
+        int count = 0;
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_ACCOUNT, "");
+        if (c.moveToFirst()) count = c.getInt(0);
+        c.close();
+        return count;
+    }
+    public int getNumCategories() {
+        int count = 0;
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_CATEGORY, "");
+        if (c.moveToFirst()) count = c.getInt(0);
+        c.close();
+        return count;
+    }
+    public int getNumExpensesByAccount(Account acc) {
+        int count = 0;
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " = " + acc.getId(), "");
+        if (c.moveToFirst()) count = c.getInt(0);
+        c.close();
+        return count;
+    }
+    public int getNumExpensesByCategory(Category cat) {
+        int count = 0;
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " = " + cat.getId(), "");
+        if (c.moveToFirst()) count = c.getInt(0);
+        c.close();
+        return count;
+    }
+    public int getNumExpensesByCategoryInRange(Category cat, Calendar from, Calendar to) {
+        ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
+        return expenses.size();
+    }
     public float getTotalAmt() {
         float totalAmt = 0;
         Cursor c = getCursorFromQuery("SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE, "");
@@ -578,48 +654,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return totalAmt;
     }
-    public int getNumExpensesByCategory(Category cat) {
-        int count = 0;
-        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " = " + cat.getId(), "");
-        if (c.moveToFirst()) count = c.getInt(0);
-        c.close();
-        return count;
-    }
-    public int getNumExpensesByCategoryInRange(Category cat, Calendar from, Calendar to) {
-        ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
-        return expenses.size();
-    }
     public float getTotalAmtByCategoryInRange(Category cat, Calendar from, Calendar to) {
         float totalAmt = 0;
         ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
         for (Expense e : expenses) totalAmt += e.getAmount();
         return totalAmt;
-    }
-    public float getAverage(int period, Calendar from, Calendar to) {
-        ArrayList<Expense> expenses = getExpensesByDateRange(from, to);
-        float totalAmt = 0;
-        int count = 0;
-        HashMap<String,Boolean> dates = new HashMap<>();
-        for (Expense e : expenses) {
-            totalAmt += e.getAmount();
-            String date = (period == DateGridAdapter.MONTH) ? e.getDatetimeStr("MM-yyyy") :
-                    ((period == DateGridAdapter.WEEK) ? e.getDatetime().get(Calendar.WEEK_OF_YEAR) + "-" + e.getDatetimeStr("yyyy") :
-                            e.getDatetimeStr("dd-MM-yyyy"));
-            if (!dates.containsKey(date)) {
-                dates.put(date, true);
-                count++;
-            }
-        }
-        return (count > 0) ? totalAmt / count : totalAmt;
-    }
-    public float getDayAverage(Calendar from, Calendar to) {
-        return getAverage(DateGridAdapter.DAY, from, to);
-    }
-    public float getWeekAverage(Calendar from, Calendar to) {
-        return getAverage(DateGridAdapter.WEEK, from, to);
-    }
-    public float getMonthAverage(Calendar from, Calendar to) {
-        return getAverage(DateGridAdapter.MONTH, from, to);
     }
 
     /**
