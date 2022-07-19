@@ -14,9 +14,9 @@ A simple expense tracker for android which has three pages.
 - Dialog widget
 
 ## Potential features
-- load on scroll
-- calendar on CHARTS page
-- quick photo w image recognition for amt
+- Load on scroll
+- Calendar on CHARTS page
+- Quick photo with image recognition for amount
 
 ## Bug fixes
 - ~~Disappearing accounts in MANAGE~~
