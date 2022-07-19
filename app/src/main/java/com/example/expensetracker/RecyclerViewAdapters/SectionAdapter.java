@@ -154,7 +154,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         // Multiple selection mode
         if (selectionMode) {
-            if (position == getItemCount()-2) {
+            if (page == Constants.MANAGE && position == getItemCount()-2) {
                 holder.deselect(section);
                 holder.gridItemIcon.setOnClickListener(view -> {});
                 return;

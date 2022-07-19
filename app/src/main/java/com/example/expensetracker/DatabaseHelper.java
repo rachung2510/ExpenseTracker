@@ -743,7 +743,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return totalAmt;
     }
 
-
     /**
      * IMPORT/EXPORT
      */
