@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -51,7 +52,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
     private EditText expAmt, expDesc;
     private TextView expAccName, expCatName, expDate, expCurr;
     private ImageButton expAccIcon, expCatIcon;
-    private LinearLayout expAcc, expCat, expDelBtn, expDateBtn, expSave;
+    private LinearLayout expAccBox, expCatBox, expDelBtn, expDateBtn, expSave;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,15 +77,25 @@ public class WidgetDialogActivity extends AppCompatActivity {
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
         Calendar cal = Calendar.getInstance(MainActivity.locale);
         expDate.setText(("Today, " + new SimpleDateFormat("dd MMMM yyyy", MainActivity.locale).format(cal.getTime())).toUpperCase());
+        Account acc = db.getAccount(getDefaultAccName());
+        Category cat = db.getCategory(getDefaultCatName());
+        expAccName.setText(acc.getName()); // set name
+        expCatName.setText(cat.getName());
+        expAccIcon.setForeground(acc.getIcon()); // set icon
+        expCatIcon.setForeground(cat.getIcon());
+        expAccIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + acc.getColorHex()))); // set icon color
+        expCatIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + cat.getColorHex())));
+        expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex())); // set bg color
+        expCatBox.setBackgroundColor(Color.parseColor("#" + cat.getColorHex()));
         expCurr.setText(new Currency(this).getSymbol());
 
         // actions
-        expAcc.setOnClickListener(view -> {
+        expAccBox.setOnClickListener(view -> {
             AccountAdapter accAdapter = getAccountData();
             accAdapter.setSelected(expAccName.getText().toString());
             expOptAccDialog(accAdapter, new Expense(Calendar.getInstance()));
         });
-        expCat.setOnClickListener(view -> {
+        expCatBox.setOnClickListener(view -> {
             CategoryAdapter catAdapter = getCategoryData();
             catAdapter.setSelected(expCatName.getText().toString());
             expOptCatDialog(catAdapter, new Expense(Calendar.getInstance()));
@@ -107,10 +118,10 @@ public class WidgetDialogActivity extends AppCompatActivity {
             if (!expAmt.getText().toString().isEmpty()) {
                 float amt = Float.parseFloat(expAmt.getText().toString());
                 String desc = expDesc.getText().toString();
-                Account acc = db.getAccount(expAccName.getText().toString());
-                Category cat = db.getCategory(expCatName.getText().toString());
+                Account acc1 = db.getAccount(expAccName.getText().toString());
+                Category cat1 = db.getCategory(expCatName.getText().toString());
                 String datetime = new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).format(cal.getTime());
-                Expense expense = new Expense(amt, desc, acc, cat, datetime);
+                Expense expense = new Expense(amt, desc, acc1, cat1, datetime);
                 db.createExpense(expense);
             } else {
                 Toast.makeText(this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
@@ -153,8 +164,8 @@ public class WidgetDialogActivity extends AppCompatActivity {
         expCatName = expView.findViewById(R.id.newExpCatName);
         expAccIcon = expView.findViewById(R.id.newExpAccIcon); // icon
         expCatIcon = expView.findViewById(R.id.newExpCatIcon);
-        expAcc = expView.findViewById(R.id.newExpAccBox); // color
-        expCat = expView.findViewById(R.id.newExpCatBox);
+        expAccBox = expView.findViewById(R.id.newExpAccBox); // color
+        expCatBox = expView.findViewById(R.id.newExpCatBox);
         expDate = expView.findViewById(R.id.expDate);
         expDelBtn = expView.findViewById(R.id.newExpDel);
         expDateBtn = expView.findViewById(R.id.newExpDate);
@@ -186,7 +197,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         title.setText(R.string.acc_caps);
         TextView expAccName = this.expAccName;
         ImageButton expAccIcon = this.expAccIcon;
-        LinearLayout expAccItem = expAcc;
+        LinearLayout expAccItem = expAccBox;
         if (adapter.getSelectedPos().isEmpty()) {
             if (exp.getId() == -1) {
                 adapter.setSelected(0);
@@ -217,7 +228,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         title.setText(R.string.cat_caps);
         TextView expCatName = this.expCatName;
         ImageButton expCatIcon = this.expCatIcon;
-        LinearLayout expCatItem = expCat;
+        LinearLayout expCatItem = expCatBox;
         if (adapter.getSelectedPos().isEmpty()) {
             if (exp.getId() == -1) {
                 adapter.setSelected(0);
@@ -248,6 +259,12 @@ public class WidgetDialogActivity extends AppCompatActivity {
     public String getDefaultCurrency() {
         SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
         return pref.getString(getString(R.string.key_default_currency), getString(R.string.default_currency));
+    }
+    public String getDefaultAccName() {
+        return db.getDefaultAccName();
+    }
+    public String getDefaultCatName() {
+        return db.getDefaultCatName();
     }
 
 }
