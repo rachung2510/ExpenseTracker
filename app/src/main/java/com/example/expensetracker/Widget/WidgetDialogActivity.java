@@ -6,8 +6,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -18,7 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -28,7 +25,6 @@ import android.widget.Toast;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
-import com.example.expensetracker.Constants;
 import com.example.expensetracker.Currency;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.Expense;
@@ -40,7 +36,7 @@ import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
 import com.example.expensetracker.Section;
 
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class WidgetDialogActivity extends AppCompatActivity {
@@ -76,7 +72,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         AlertDialog expDialog = expenseDialog();
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
         Calendar cal = Calendar.getInstance(MainActivity.locale);
-        expDate.setText(("Today, " + new SimpleDateFormat("dd MMMM yyyy", MainActivity.locale).format(cal.getTime())).toUpperCase());
+        expDate.setText(("Today, " + MainActivity.getDatetimeStr(cal, "dd MMMM yyyy")).toUpperCase());
         Account acc = db.getAccount(getDefaultAccName());
         Category cat = db.getCategory(getDefaultCatName());
         expAccName.setText(acc.getName()); // set name
@@ -93,12 +89,12 @@ public class WidgetDialogActivity extends AppCompatActivity {
         expAccBox.setOnClickListener(view -> {
             AccountAdapter accAdapter = getAccountData();
             accAdapter.setSelected(expAccName.getText().toString());
-            expOptAccDialog(accAdapter, new Expense(Calendar.getInstance()));
+            expenseAccDialog(accAdapter, new Expense(Calendar.getInstance()));
         });
         expCatBox.setOnClickListener(view -> {
             CategoryAdapter catAdapter = getCategoryData();
             catAdapter.setSelected(expCatName.getText().toString());
-            expOptCatDialog(catAdapter, new Expense(Calendar.getInstance()));
+            expenseCatDialog(catAdapter, new Expense(Calendar.getInstance()));
         });
         expDateBtn.setOnClickListener(view -> {
             AlertDialog.Builder changeDate = new AlertDialog.Builder(this);
@@ -106,28 +102,24 @@ public class WidgetDialogActivity extends AppCompatActivity {
             changeDate.setView(datePicker)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                 cal.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-                int relativeDate = MainActivity.getRelativeDate(cal);
-                String datePrefix = (relativeDate == Constants.TODAY) ? "Today" :
-                        ((relativeDate == Constants.YESTERDAY) ? "Yesterday" : new SimpleDateFormat("EEE", MainActivity.locale).format(cal.getTime()));
-                expDate.setText((datePrefix + ", " + new SimpleDateFormat("dd MMMM yyyy", MainActivity.locale).format(cal.getTime())).toUpperCase());
+                expDate.setText((MainActivity.getRelativePrefix(cal) + ", " + MainActivity.getDatetimeStr(cal, "dd MMMM yyyy")).toUpperCase());
             })
                     .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())
                     .show();
         });
         expSave.setOnClickListener(v -> {
-            if (!expAmt.getText().toString().isEmpty()) {
+            if (expAmt.getText().toString().isEmpty())
+                Toast.makeText(this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
+            else {
                 float amt = Float.parseFloat(expAmt.getText().toString());
                 String desc = expDesc.getText().toString();
                 Account acc1 = db.getAccount(expAccName.getText().toString());
                 Category cat1 = db.getCategory(expCatName.getText().toString());
-                String datetime = new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).format(cal.getTime());
+                String datetime = MainActivity.getDatetimeStr(cal, Expense.DATETIME_FORMAT);
                 Expense expense = new Expense(amt, desc, acc1, cat1, datetime);
                 db.createExpense(expense);
-            } else {
-                Toast.makeText(this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
             }
-            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
+            hideKeyboard(expAmt);
             expDialog.dismiss();
         });
     }
@@ -141,8 +133,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         dialogBuilder = new AlertDialog.Builder(this);
         dialogBuilder.setView(expView)
                 .setOnDismissListener(dialogInterface -> {
-            InputMethodManager imm1 = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-            imm1.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
+            hideKeyboard(expAmt);
             finish();
         });
         AlertDialog expDialog = dialogBuilder.create();
@@ -155,10 +146,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         expAmt = expView.findViewById(R.id.newExpAmt);
         expAmt.setFilters(new InputFilter[] { new MoneyValueFilter() });
         expAmt.requestFocus(); // focus on amt and open keyboard
-        expAmt.postDelayed(() -> {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.showSoftInput(expAmt, 0);
-        }, 270);
+        expAmt.postDelayed(() -> showKeyboard(expAmt), 270);
         expDesc = expView.findViewById(R.id.newExpDesc);
         expAccName = expView.findViewById(R.id.newExpAccName); // name
         expCatName = expView.findViewById(R.id.newExpCatName);
@@ -178,7 +166,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
 
         return expDialog;
     }
-    public <T extends SectionAdapter<? extends Section>> AlertDialog.Builder expOptSectionDialog(T adapter, View expOptSectionView) {
+    public <T extends SectionAdapter<? extends Section>> AlertDialog.Builder expenseSectionDialog(T adapter, View expOptSectionView) {
         dialogBuilder = new AlertDialog.Builder(this);
         RecyclerView sectionGrid = expOptSectionView.findViewById(R.id.sectionGrid);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
@@ -187,9 +175,9 @@ public class WidgetDialogActivity extends AppCompatActivity {
         dialogBuilder.setView(expOptSectionView);
         return dialogBuilder;
     }
-    public void expOptAccDialog(AccountAdapter adapter, Expense exp) {
+    public void expenseAccDialog(AccountAdapter adapter, Expense exp) {
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog dialog = expOptSectionDialog(adapter, expOptSectionView).create();
+        AlertDialog dialog = expenseSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
 
         // set values
@@ -218,9 +206,9 @@ public class WidgetDialogActivity extends AppCompatActivity {
 
         dialog.show();
     }
-    public void expOptCatDialog(CategoryAdapter adapter, Expense exp) {
+    public void expenseCatDialog(CategoryAdapter adapter, Expense exp) {
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog dialog = expOptSectionDialog(adapter, expOptSectionView).create();
+        AlertDialog dialog = expenseSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
 
         // set values
@@ -249,22 +237,46 @@ public class WidgetDialogActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    public AccountAdapter getAccountData() {
-        return new AccountAdapter(this, db.getAllAccounts());
+    /**
+     * GETTERS & SETTERS
+     */
+    public <T extends Section> ArrayList<T> sortSections(ArrayList<T> sections) {
+        sections.sort((s1, s2) -> {
+            if (s1.getId() == -1) return 1; // new appears last
+            if (s2.getId() == -1) return -1;
+            if (s1 instanceof Category && s1.getName().equals(getImmutableCat())) return 1;
+            if (s2 instanceof Category && s2.getName().equals(getImmutableCat())) return -1;
+            return Integer.compare(s1.getPosition(), s2.getPosition());
+        });
+        return sections;
     }
     public CategoryAdapter getCategoryData() {
-        return new CategoryAdapter(this, db.getAllCategories());
+        return new CategoryAdapter(this, sortSections(db.getAllCategories()));
     }
-
+    public AccountAdapter getAccountData() {
+        return new AccountAdapter(this, sortSections(db.getAllAccounts()));
+    }
     public String getDefaultCurrency() {
-        SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
-        return pref.getString(getString(R.string.key_default_currency), getString(R.string.default_currency));
+        return MainActivity.getDefaultCurrency(this);
     }
     public String getDefaultAccName() {
         return db.getDefaultAccName();
     }
     public String getDefaultCatName() {
         return db.getDefaultCatName();
+    }
+    public String getImmutableCat() {
+        return db.getCategory(1).getName();
+    }
+
+    /**
+     * HELPER FUNCTIONS
+     */
+    public void showKeyboard(EditText view) {
+        MainActivity.showKeyboard(this, view);
+    }
+    public void hideKeyboard(EditText view) {
+        MainActivity.hideKeyboard(this, view);
     }
 
 }

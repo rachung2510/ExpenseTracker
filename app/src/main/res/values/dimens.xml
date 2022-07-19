@@ -8,4 +8,9 @@
     <dimen name="spacing">5dp</dimen>
     <dimen name="cardCornerRadius">30dp</dimen>
     <dimen name="cardShadowOffset">2dp</dimen>
+    <dimen name="widgetTextSize">12sp</dimen>
+    <dimen name="widgetDisplayTextSize">24sp</dimen>
+    <dimen name="widgetBtnSize">46dp</dimen>
+    <dimen name="widgetMargin">18dp</dimen>
+    <dimen name="widgetMarginTop">30dp</dimen>
 </resources>

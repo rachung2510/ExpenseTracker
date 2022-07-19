@@ -49,6 +49,7 @@ import com.example.expensetracker.ManagePage.ManageFragment;
 import com.example.expensetracker.ManagePage.SectionOptDialogFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -141,11 +142,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     public void initialiseDefaultSettings() {
-        SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences pref = getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(getString(R.string.key_default_currency), getString(R.string.default_currency));
         editor.putInt(getString(R.string.key_default_firstDayOfWeek), Calendar.SUNDAY);
         editor.apply();
+
+        SharedPreferences.Editor editor1 = getPreferences(Context.MODE_PRIVATE).edit();
+        editor1.remove(getString(R.string.key_default_currency));
+        editor1.remove(getString(R.string.key_default_firstDayOfWeek));
+        editor1.apply();
     }
 
     /**
@@ -157,8 +163,7 @@ public class MainActivity extends AppCompatActivity {
         dialogBuilder = new AlertDialog.Builder(this);
         dialogBuilder.setView(expView)
                 .setOnDismissListener(dialogInterface -> {
-            InputMethodManager imm1 = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-            imm1.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
+            hideKeyboard(expAmt);
         });
         AlertDialog expDialog = dialogBuilder.create();
         expDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // set transparent dialog bg
@@ -170,10 +175,7 @@ public class MainActivity extends AppCompatActivity {
         expAmt = expView.findViewById(R.id.newExpAmt);
         expAmt.setFilters(new InputFilter[] { new MoneyValueFilter() });
         expAmt.requestFocus(); // focus on amt and open keyboard
-        expAmt.postDelayed(() -> {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.showSoftInput(expAmt, 0);
-        }, 270);
+        showKeyboard(expAmt);
         expDesc = expView.findViewById(R.id.newExpDesc);
         expAccName = expView.findViewById(R.id.newExpAccName); // name
         expCatName = expView.findViewById(R.id.newExpCatName);
@@ -203,16 +205,13 @@ public class MainActivity extends AppCompatActivity {
         return dialogBuilder;
     }
     public void expenseCatDialog(CategoryAdapter adapter, Expense exp) {
-        final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog dialog = expenseSectionDialog(adapter, expOptSectionView).create();
+        final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        AlertDialog dialog = expenseSectionDialog(adapter, view).create();
         adapter.setDialog(dialog);
 
         // set values
-        TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
+        TextView title = view.findViewById(R.id.expOptSectionTitle);
         title.setText(R.string.cat_caps);
-        TextView expCatName = this.expCatName;
-        ImageButton expCatIcon = this.expCatIcon;
-        LinearLayout expCatItem = expCatBox;
         if (adapter.getSelectedPos().isEmpty()) {
             if (exp.getId() == -1) {
                 adapter.setSelected(0);
@@ -227,41 +226,38 @@ public class MainActivity extends AppCompatActivity {
             expCatName.setText(selectedCat.getName()); // set name
             expCatIcon.setForeground(selectedCat.getIcon()); // set icon
             expCatIcon.setForegroundTintList(getColorStateListFromName(MainActivity.this, selectedCat.getColorName())); // set icon color
-            expCatItem.setBackgroundColor(Color.parseColor("#" + selectedCat.getColorHex())); // set bg color
+            expCatBox.setBackgroundColor(Color.parseColor("#" + selectedCat.getColorHex())); // set bg color
         });
 
         dialog.show();
     }
     public void expenseAccDialog(AccountAdapter adapter, Expense exp) {
-        final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog dialog = expenseSectionDialog(adapter, expOptSectionView).create();
+        final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        AlertDialog dialog = expenseSectionDialog(adapter, view).create();
         adapter.setDialog(dialog);
 
         // set values
-        TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
+        TextView title = view.findViewById(R.id.expOptSectionTitle);
         title.setText(R.string.acc_caps);
-        TextView expAccName = this.expAccName;
-        ImageButton expAccIcon = this.expAccIcon;
-        LinearLayout expAccItem = expAccBox;
-        if (adapter.getSelectedPos().isEmpty()) {
-            if (exp.getId() == -1) {
-                adapter.setSelected(0);
-            } else {
-                Account acc = exp.getAccount();
-                adapter.setSelected(adapter.getList().indexOf(acc));
-            }
-        }
 
         dialog.setOnCancelListener(dialog1 -> {
             Account selectedAcc = adapter.getSelected();
             expAccName.setText(selectedAcc.getName()); // set name
             expAccIcon.setForeground(selectedAcc.getIcon()); // set icon
             expAccIcon.setForegroundTintList(getColorStateListFromName(MainActivity.this, selectedAcc.getColorName())); // set icon color
-            expAccItem.setBackgroundColor(Color.parseColor("#" + selectedAcc.getColorHex())); // set bg color
+            expAccBox.setBackgroundColor(Color.parseColor("#" + selectedAcc.getColorHex())); // set bg color
             expCurr.setText(selectedAcc.getCurrencySymbol());
         });
-
         dialog.show();
+
+        if (!adapter.getSelectedPos().isEmpty())
+            return;
+        if (exp.getId() == -1) {
+            adapter.setSelected(0);
+        } else {
+            Account acc = exp.getAccount();
+            adapter.setSelected(adapter.getList().indexOf(acc));
+        }
     }
     public AlertDialog sectionDialog() {
         // dialog
@@ -490,10 +486,10 @@ public class MainActivity extends AppCompatActivity {
         expCatName.setText(cat.getName());
         expAccIcon.setForeground(acc.getIcon()); // set icon
         expCatIcon.setForeground(cat.getIcon());
-        expAccIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + acc.getColorHex()))); // set icon color
-        expCatIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + cat.getColorHex())));
-        expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex())); // set bg color
-        expCatBox.setBackgroundColor(Color.parseColor("#" + cat.getColorHex()));
+        expAccIcon.setForegroundTintList(getColorStateListFromHex(acc.getColorHex())); // set icon color
+        expCatIcon.setForegroundTintList(getColorStateListFromHex(cat.getColorHex()));
+        expAccBox.setBackgroundColor(getColorFromHex(acc.getColorHex())); // set bg color
+        expCatBox.setBackgroundColor(getColorFromHex(cat.getColorHex()));
         expCurr.setText(new Currency(this).getSymbol());
 
         // actions
@@ -531,8 +527,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(MainActivity.this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
             }
-            InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(expAmt.getWindowToken(), 0);
+            hideKeyboard(expAmt);
             expDialog.dismiss();
         });
     }
@@ -557,9 +552,7 @@ public class MainActivity extends AppCompatActivity {
         expCurr.setText(acc.getCurrencySymbol());
 
         Calendar today = Calendar.getInstance(locale);
-        String datePrefix = (exp.getRelativeDate() == Constants.TODAY) ? "Today" :
-                ((exp.getRelativeDate() == Constants.YESTERDAY) ? "Yesterday" : exp.getDatetimeStr("EEE"));
-        expDate.setText((datePrefix + ", " + exp.getDatetimeStr("dd MMMM yyyy")).toUpperCase());
+        expDate.setText((MainActivity.getRelativePrefix(exp.getDatetime()) + ", " + exp.getDatetimeStr("dd MMMM yyyy")).toUpperCase());
 
         // actions
         expAccBox.setOnClickListener(view -> {
@@ -572,7 +565,6 @@ public class MainActivity extends AppCompatActivity {
             catAdapter.setSelected(expCatName.getText().toString());
             expenseCatDialog(catAdapter, exp);
         });
-
         expSaveBtn.setOnClickListener(v -> {
             // get values of inputs
             if (!expAmt.getText().toString().isEmpty()) {
@@ -590,7 +582,6 @@ public class MainActivity extends AppCompatActivity {
             }
             expDialog.dismiss();
         });
-
         expDelBtn.setOnClickListener(view -> {
             AlertDialog.Builder confirmDel = new AlertDialog.Builder(MainActivity.this, R.style.ConfirmDelDialog);
             confirmDel.setTitle("Delete expense")
@@ -606,7 +597,6 @@ public class MainActivity extends AppCompatActivity {
             })
                     .show();
         });
-
         expDateBtn.setOnClickListener(view -> {
             AlertDialog.Builder changeDate = new AlertDialog.Builder(MainActivity.this);
             DatePicker datePicker = new DatePicker(MainActivity.this);
@@ -884,6 +874,9 @@ public class MainActivity extends AppCompatActivity {
     public static ColorStateList getColorStateListFromId(Context context, int id) {
         return ColorStateList.valueOf(ContextCompat.getColor(context, id));
     }
+    public static int getColorFromHex(String hex) {
+        return Color.parseColor("#" + hex);
+    }
 
     public static float convertDpToPx(Context context, float dp) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
@@ -933,11 +926,21 @@ public class MainActivity extends AppCompatActivity {
         return (relativeDate == Constants.TODAY) ? "Today" : (
                     (relativeDate == Constants.YESTERDAY) ? "Yesterday" : getDatetimeStr(cal, "EEE"));
     }
-
-    public String getDefaultCurrency() {
-        SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
-        return pref.getString(getString(R.string.key_default_currency), getString(R.string.default_currency));
+    public static Calendar getCalFromString(String dtf, String date) {
+        Calendar cal = Calendar.getInstance(locale);
+        try { cal.setTime(new SimpleDateFormat(dtf, locale).parse(date));
+        } catch (ParseException e) { e.printStackTrace();}
+        return cal;
     }
+
+    public static String getDefaultCurrency(Context context) {
+        SharedPreferences pref = context.getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
+        return pref.getString(context.getString(R.string.key_default_currency), context.getString(R.string.default_currency));
+    }
+    public String getDefaultCurrency() {
+        return getDefaultCurrency(this);
+    }
+
     public String getDefaultAccName() {
         return db.getDefaultAccName();
     }
@@ -947,8 +950,28 @@ public class MainActivity extends AppCompatActivity {
     public String getImmutableCat() {
         return db.getCategory(1).getName();
     }
+    public static int getDefaultFirstDayOfWeek(Context context) {
+        SharedPreferences pref = context.getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
+        return pref.getInt(context.getString(R.string.key_default_firstDayOfWeek), Calendar.SUNDAY);
+    }
     public int getDefaultFirstDayOfWeek() {
-        SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
-        return pref.getInt(getString(R.string.key_default_firstDayOfWeek), Calendar.SUNDAY);
+        return getDefaultFirstDayOfWeek(this);
+    }
+
+    public static void showKeyboard(Context context, EditText view) {
+        view.postDelayed(() -> {
+            InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+            imm.showSoftInput(view, 0);
+        }, 270);
+    }
+    public static void hideKeyboard(Context context, EditText view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+    public void showKeyboard(EditText view) {
+        showKeyboard(this, view);
+    }
+    public void hideKeyboard(EditText view) {
+        hideKeyboard(this, view);
     }
 }

@@ -23,7 +23,6 @@ import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -110,7 +109,6 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         } else {
             holder.filterDateName.setText(filterDateNames.get(pos));
         }
-//            holder.itemView.setOnClickListener(view -> Toast.makeText(context, filterDateNames.get(pos), Toast.LENGTH_SHORT).show());
 
         if (pos < 5 && pos == selectedPos) holder.select();
         else if (pos == 5 && selectedPos >= 5) holder.select();
@@ -272,9 +270,8 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
 
         // Set values for Day
         selDayPicker.updateDate(from.get(Calendar.YEAR), from.get(Calendar.MONTH), from.get(Calendar.DAY_OF_MONTH));
-        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", MainActivity.locale);
-        fromDayTextView.setText(sdf.format(from.getTime()).toUpperCase());
-        toDayTextView.setText(sdf.format(to.getTime()).toUpperCase());
+        fromDayTextView.setText(MainActivity.getDatetimeStr(from, "dd MMM yyyy").toUpperCase());
+        toDayTextView.setText(MainActivity.getDatetimeStr(to, "dd MMM yyyy").toUpperCase());
         fromDayPicker.updateDate(from.get(Calendar.YEAR), from.get(Calendar.MONTH), from.get(Calendar.DAY_OF_MONTH));
         toDayPicker.updateDate(to.get(Calendar.YEAR), to.get(Calendar.MONTH), to.get(Calendar.DAY_OF_MONTH));
         fromDay.setOnClickListener(view -> showSelDayRangeDialog(FROM));
@@ -283,8 +280,8 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
 
         // Set values for NumberPickers
         Calendar[] pair = ((MainActivity) context).db.getFirstLastDates();
-        int minYear = (pair[0] == null) ? ((MainActivity) context).getInitSelectedDates(FROM, YEAR).get(Calendar.YEAR) : pair[0].get(Calendar.YEAR);
-        int maxYear = (pair[0] == null) ? minYear : pair[1].get(Calendar.YEAR);
+        int minYear = (pair == null) ? ((MainActivity) context).getInitSelectedDates(FROM, YEAR).get(Calendar.YEAR) : pair[0].get(Calendar.YEAR);
+        int maxYear = (pair == null) ? minYear : pair[1].get(Calendar.YEAR);
         for (NumberPicker picker : new NumberPicker[] { fromYear, toYear }) {
             picker.setMinValue(minYear);
             picker.setMaxValue(maxYear);
@@ -368,7 +365,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         selDayRangeDialog.setView(datePicker);
         selDayRangeDialog.setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
             cal.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-            String newDate = new SimpleDateFormat("dd MMM yyyy", MainActivity.locale).format(cal.getTime()).toUpperCase();
+            String newDate = MainActivity.getDatetimeStr(cal, "dd MMM yyyy").toUpperCase();
             if (range == FROM) {
                 fromDate.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
                 fromDayTextView.setText(newDate);

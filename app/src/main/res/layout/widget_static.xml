@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="360dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:orientation="vertical">
+
+        <!--    choose account & cat-->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false"
+                android:weightSum="2">
+
+                <LinearLayout
+                    android:id="@+id/newExpAccBox"
+                    android:layout_width="fill_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@color/cat_pure_apple"
+                    android:orientation="vertical"
+                    android:paddingTop="@dimen/widgetTextSize"
+                    android:paddingBottom="@dimen/widgetTextSize"
+                    android:paddingLeft="@dimen/widgetTextSize"
+                    android:paddingRight="@dimen/widgetTextSize">
+
+                    <TextView
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/acc"
+                        android:textSize="@dimen/widgetTextSize"
+                        android:textColor="#fff" />
+
+                    <TextView
+                        android:id="@+id/newExpAccName"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/example_acc"
+                        android:textColor="#fff"
+                        android:textSize="@dimen/widgetDisplayTextSize" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/newExpCatBox"
+                    android:layout_width="fill_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@color/cat_pastel_red"
+                    android:orientation="vertical"
+                    android:paddingTop="@dimen/widgetTextSize"
+                    android:paddingBottom="@dimen/widgetTextSize"
+                    android:paddingLeft="@dimen/widgetTextSize"
+                    android:paddingRight="@dimen/widgetTextSize">
+
+                    <TextView
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cat"
+                        android:textSize="@dimen/widgetTextSize"
+                        android:textColor="#fff" />
+
+                    <TextView
+                        android:id="@+id/newExpCatName"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/example_cat"
+                        android:textColor="#fff"
+                        android:textSize="@dimen/widgetDisplayTextSize" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <!--    amount-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_marginStart="-1dp"
+            android:layout_marginEnd="-1dp"
+            android:layout_marginTop="-1dp"
+            android:layout_marginBottom="-.7dp"
+            android:background="@drawable/shape_rectangle_border">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/widgetTextSize"
+                android:text="@string/exp"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/text_mid_gray"
+                android:textSize="@dimen/widgetTextSize" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center|bottom"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/newExpCurrency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:layout_marginEnd="5dp"
+                    android:textColor="@color/text_light_gray"
+                    android:fontFamily="sans-serif"
+                    android:textFontWeight="600"
+                    android:textSize="10sp"
+                    android:text="@string/default_currency" />
+
+                <TextView
+                    android:id="@+id/newExpAmt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:clickable="true"
+                    android:background="@null"
+                    android:textColor="@color/text_dark_gray"
+                    android:hint="@string/hint_amt"
+                    android:paddingBottom="6dp"
+                    android:textSize="36sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!--    description-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_marginStart="-1dp"
+            android:layout_marginEnd="-1dp"
+            android:layout_marginBottom="-.8dp"
+            android:background="@drawable/shape_rectangle_border">
+
+            <TextView
+                android:id="@+id/newExpDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="1dp"
+                android:gravity="center"
+                android:textColor="@color/generic_icon_gray"
+                android:clickable="true"
+                android:hint="@string/hint_description"
+                android:textSize="14sp"
+                android:paddingTop="@dimen/widgetTextSize"
+                android:paddingBottom="@dimen/widgetTextSize" />
+
+        </LinearLayout>
+
+        <!--    date text-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="5dp"
+            android:layout_marginStart="-1dp"
+            android:layout_marginEnd="-1dp"
+            android:foreground="@drawable/shape_rounded_rectangle_border"
+            android:background="@color/light_gray_bg" >
+            <TextView
+                android:id="@+id/expDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_light_gray"
+                android:fontFamily="sans-serif-medium"
+                android:textFontWeight="600"
+                android:textSize="12sp"
+                android:text="YESTERDAY, 09 JAN 2022" />
+        </LinearLayout>
+
+        <!--    action buttons-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/widgetTextSize"
+            android:paddingBottom="@dimen/widgetTextSize"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:gravity="center"
+            android:background="@color/white"
+            android:baselineAligned="false">
+
+            <LinearLayout
+                android:id="@+id/update"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="start"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:layout_width="@dimen/widgetBtnSize"
+                    android:layout_height="@dimen/widgetBtnSize"
+                    android:clickable="false"
+                    android:src="@drawable/selector_circle"
+                    android:scaleType="fitCenter"
+                    android:background="@drawable/shape_circle"
+                    android:backgroundTint="#feeec1"
+                    android:foreground="@drawable/ic_action_update"
+                    android:foregroundTint="#febd15" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_mid_gray"
+                    android:layout_marginTop="3dp"
+                    android:textSize="@dimen/widgetTextSize"
+                    android:text="@string/opt_update" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/newExpDate"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:layout_weight="1">
+
+                <ImageButton
+                    android:layout_width="@dimen/widgetBtnSize"
+                    android:layout_height="@dimen/widgetBtnSize"
+                    android:clickable="false"
+                    android:src="@drawable/selector_circle"
+                    android:scaleType="fitCenter"
+                    android:background="@drawable/shape_circle"
+                    android:backgroundTint="#dadada"
+                    android:foreground="@drawable/action_date"
+                    android:foregroundTint="#757575" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_mid_gray"
+                    android:layout_marginTop="3dp"
+                    android:textSize="@dimen/widgetTextSize"
+                    android:text="@string/sel_single" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/newExpSave"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="end"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:layout_width="@dimen/widgetBtnSize"
+                    android:layout_height="@dimen/widgetBtnSize"
+                    android:clickable="false"
+                    android:src="@drawable/selector_circle"
+                    android:scaleType="fitCenter"
+                    android:background="@drawable/shape_circle"
+                    android:backgroundTint="#cfd3eb"
+                    android:foreground="@drawable/action_check"
+                    android:foregroundTint="#4f54a7" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_mid_gray"
+                    android:layout_marginTop="3dp"
+                    android:textSize="@dimen/widgetTextSize"
+                    android:text="@string/opt_save" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

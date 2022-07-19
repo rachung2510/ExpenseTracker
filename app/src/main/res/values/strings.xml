@@ -30,6 +30,7 @@
     <string name="opt_del">Delete</string>
     <string name="opt_date">Date</string>
     <string name="opt_save">Save</string>
+    <string name="opt_update">Refresh</string>
 
     <string name="example_cat">Food</string>
     <string name="example_acc">Cash</string>
@@ -41,4 +42,5 @@
     <string name="charts_frag_time">Monthly</string>
     <string name="charts_frag_cal">Calendar</string>
     <string name="app_widget_description">Quick add expense</string>
+    <string name="app_widget_description2">Static widget</string>
 </resources>

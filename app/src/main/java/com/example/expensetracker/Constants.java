@@ -81,4 +81,7 @@ public class Constants {
     public static final int NEXT = 1;
     public static final int ASCENDING = 1;
     public static final int DESCENDING = -1;
+
+    public static final String SETTINGS = "settings";
+    public static final String TMP = "tmp";
 }

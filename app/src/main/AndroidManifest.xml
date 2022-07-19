@@ -22,17 +22,32 @@
             android:launchMode="singleInstance"
             android:excludeFromRecents="true"
             android:exported="false" />
-
         <receiver
-            android:name=".Widget.WidgetAddExpense"
+            android:name=".Widget.WidgetDialogProvider"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/widget_add_expense_info" />
+                android:resource="@xml/widget_dialog_info" />
+        </receiver>
+
+        <activity
+            android:name=".Widget.WidgetStaticActivity"
+            android:theme="@style/Theme.Transparent"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:exported="false" />
+        <receiver
+            android:name=".Widget.WidgetStaticProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_static_info" />
         </receiver>
 
         <activity
@@ -40,7 +55,6 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

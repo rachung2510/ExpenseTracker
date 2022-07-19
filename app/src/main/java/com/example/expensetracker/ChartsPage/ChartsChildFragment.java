@@ -66,8 +66,6 @@ import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -515,20 +513,16 @@ public class ChartsChildFragment extends Fragment {
                 lineAmt.setText(String.format(MainActivity.locale,"%.2f",e.getY()));
                 highlightLineAmt(true);
                 int x = (int) e.getX();
-                try {
-                    ChartsChildFragment.this.fromLine.setTime((new SimpleDateFormat(getDtf(), MainActivity.locale)).parse(dates.get(x)));
-                    ChartsChildFragment.this.fromLine = MainActivity.getCalendarCopy(ChartsChildFragment.this.fromLine, DateGridAdapter.FROM);
-                    toLine = MainActivity.getCalendarCopy(ChartsChildFragment.this.fromLine, DateGridAdapter.TO);
-                    if (selDateState == DateGridAdapter.YEAR) {
-                        toLine.set(Calendar.DAY_OF_MONTH, fromLine.getActualMaximum(Calendar.DATE));
-                        lineDate.setText(MainActivity.getDatetimeStr(fromLine, "MMM yyyy").toUpperCase());
-                    } else
-                        lineDate.setText((MainActivity.getRelativePrefix(fromLine) + MainActivity.getDatetimeStr(fromLine, ", dd MMM yyyy")).toUpperCase());
-                    updateExpenseList();
-                    updateAverages();
-                } catch (ParseException ex) {
-                    ex.printStackTrace();
-                }
+                ChartsChildFragment.this.fromLine = MainActivity.getCalFromString(getDtf(), dates.get(x));
+                ChartsChildFragment.this.fromLine = MainActivity.getCalendarCopy(ChartsChildFragment.this.fromLine, DateGridAdapter.FROM);
+                toLine = MainActivity.getCalendarCopy(ChartsChildFragment.this.fromLine, DateGridAdapter.TO);
+                if (selDateState == DateGridAdapter.YEAR) {
+                    toLine.set(Calendar.DAY_OF_MONTH, fromLine.getActualMaximum(Calendar.DATE));
+                    lineDate.setText(MainActivity.getDatetimeStr(fromLine, "MMM yyyy").toUpperCase());
+                } else
+                    lineDate.setText((MainActivity.getRelativePrefix(fromLine) + MainActivity.getDatetimeStr(fromLine, ", dd MMM yyyy")).toUpperCase());
+                updateExpenseList();
+                updateAverages();
             }
 
             @Override
@@ -679,37 +673,30 @@ public class ChartsChildFragment extends Fragment {
             public String getAxisLabel(float value, AxisBase axis) {
                 if (value < 0 || value >= num_units) return "";
                 int x = (int) value;
-                Calendar cal = Calendar.getInstance();
-                try {
-                    cal.setTime((new SimpleDateFormat(getDtf(), MainActivity.locale)).parse(dates.get(x)));
-                    if (selDateState == DateGridAdapter.YEAR) {
-                        return MainActivity.getDatetimeStr(cal, "MMM").toUpperCase();
-                    } else if (selDateState <= DateGridAdapter.WEEK) {
-                        return MainActivity.getDatetimeStr(cal, "EEE").toUpperCase();
-                    } else {
-//                        Log.e(TAG, "num_units=" + num_units + ", gran=" + granularityRef);
-                        float granularity;
-                        if (granularityRef < 1) granularity = 1;
-                        else if (granularityRef < 2.2) granularity = 2;
-                        else if (granularityRef < 5) granularity = 5;
-                        else granularity = 10;
-                        String d = MainActivity.getDatetimeStr(cal, "d");
-                        int dd = Integer.parseInt(d);
-//                        Log.e(TAG, "d=" + d + ", cal=" + MainActivity.getDatetimeStr(cal, getDtf()));
-                        if (d.equals("1") && value != 0f)
-                            return MainActivity.getDatetimeStr(cal, "MMM").toUpperCase();
-                        else if (value == 0f || value == (num_units-1))
-                            return d;
-                        else if ((granularity>2 && value==num_units-2) || (num_units>27 && dd>=30))
-                            return "";
-                        else if (dd%granularity == 0)
-                            return d;
-                        else
-                            return "";
-                    }
-                } catch (ParseException e) {
-                    e.printStackTrace();
+                Calendar cal = MainActivity.getCalFromString(getDtf(), dates.get(x));
+                if (selDateState == DateGridAdapter.YEAR) {
+                    return MainActivity.getDatetimeStr(cal, "MMM").toUpperCase();
                 }
+                if (selDateState <= DateGridAdapter.WEEK) {
+                    return MainActivity.getDatetimeStr(cal, "EEE").toUpperCase();
+                }
+//                        Log.e(TAG, "num_units=" + num_units + ", gran=" + granularityRef);
+                float granularity;
+                if (granularityRef < 1) granularity = 1;
+                else if (granularityRef < 2.2) granularity = 2;
+                else if (granularityRef < 5) granularity = 5;
+                else granularity = 10;
+                String d = MainActivity.getDatetimeStr(cal, "d");
+                int dd = Integer.parseInt(d);
+//                        Log.e(TAG, "d=" + d + ", cal=" + MainActivity.getDatetimeStr(cal, getDtf()));
+                if (d.equals("1") && value != 0f)
+                    return MainActivity.getDatetimeStr(cal, "MMM").toUpperCase();
+                if (value == 0f || value == (num_units-1))
+                    return d;
+                if ((granularity>2 && value==num_units-2) || (num_units>27 && dd>=30))
+                    return "";
+                if (dd%granularity == 0)
+                    return d;
                 return "";
             }
         });

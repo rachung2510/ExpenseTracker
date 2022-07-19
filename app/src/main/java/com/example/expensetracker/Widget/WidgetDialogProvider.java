@@ -9,10 +9,7 @@ import android.widget.RemoteViews;
 
 import com.example.expensetracker.R;
 
-/**
- * Implementation of App Widget functionality.
- */
-public class WidgetAddExpense extends AppWidgetProvider {
+public class WidgetDialogProvider extends AppWidgetProvider {
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         Intent intent = new Intent(context, WidgetDialogActivity.class);
