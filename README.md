@@ -10,7 +10,7 @@ A simple expense tracker for android which has three pages.
 - ~~Charts piechart fragment~~
 - ~~Import/export db~~
 - ~~Charts graph fragment~~
-- Fix dialog widget
+- ~~Fix dialog widget~~
 - Static widget
 - User settings (default currency, first day of week)
 
