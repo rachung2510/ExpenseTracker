@@ -19,13 +19,11 @@ import com.example.expensetracker.Currency;
 public class CurrencyAdapter extends RecyclerView.Adapter<CurrencyAdapter.ViewHolder> {
     private static final String TAG = "CurrencyAdapter";
 
-    private Context context;
-    private LayoutInflater inflater;
-    private ArrayList<Currency> currencies;
+    private final LayoutInflater inflater;
+    private final ArrayList<Currency> currencies;
     private int selectedPos;
 
     public CurrencyAdapter(Context context, ArrayList<Currency> currencies, String selected) {
-        this.context = context;
         this.inflater = LayoutInflater.from(context);
         this.currencies = currencies;
         this.selectedPos = currencies.indexOf(new Currency(selected, "",""));
@@ -48,7 +46,7 @@ public class CurrencyAdapter extends RecyclerView.Adapter<CurrencyAdapter.ViewHo
         return currencies.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView currSymbol;
         RadioButton currDesc;
 

@@ -182,7 +182,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
 
         // set values
         TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.acc_caps);
+        title.setText(R.string.ACC);
         TextView expAccName = this.expAccName;
         ImageButton expAccIcon = this.expAccIcon;
         LinearLayout expAccItem = expAccBox;
@@ -213,7 +213,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
 
         // set values
         TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.cat_caps);
+        title.setText(R.string.CAT);
         TextView expCatName = this.expCatName;
         ImageButton expCatIcon = this.expCatIcon;
         LinearLayout expCatItem = expCatBox;

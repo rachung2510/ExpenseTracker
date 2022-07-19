@@ -256,7 +256,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
 
         // set values
         TextView title = view.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.acc_caps);
+        title.setText(R.string.ACC);
 
         dialog.setOnCancelListener(dialog1 -> {
             Account acc = adapter.getSelected();
@@ -277,7 +277,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
 
         // set values
         TextView title = view.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.cat_caps);
+        title.setText(R.string.CAT);
         if (adapter.getSelectedPos().isEmpty()) {
             if (exp.getId() == -1) {
                 adapter.setSelected(0);

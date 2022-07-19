@@ -135,10 +135,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * CRUD OPERATIONS
-     */
-    /**
-     * CREATE
+     * CRUD OPERATIONS - CREATE
      */
     public void createExpense(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -205,9 +202,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return expenses;
         while (c.moveToNext()) {
             String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-            Calendar cal = Calendar.getInstance();
-            try { cal.setTime(new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(datetime)); }
-            catch (Exception e) { e.printStackTrace(); }
+            Calendar cal = MainActivity.getCalFromString(Expense.DATETIME_FORMAT, datetime);
             if (cal.compareTo(from)>-1 && cal.compareTo(to)<1)
                 expenses.add(getExpenseFromCursor(c));
         }
@@ -221,31 +216,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return expenses;
         while (c.moveToNext()) {
             String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-            Calendar cal = Calendar.getInstance();
-            try { cal.setTime(new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(datetime)); }
-            catch (Exception e) { e.printStackTrace(); }
+            Calendar cal = MainActivity.getCalFromString(Expense.DATETIME_FORMAT, datetime);
             if (cal.compareTo(from)>-1 && cal.compareTo(to)<1)
                 expenses.add(getExpenseFromCursor(c));
         }
         c.close();
         return expenses;
     }
+    @SuppressWarnings("ConstantConditions")
     public ArrayList<Expense> getExpensesByFilters(ArrayList<Account> accs, ArrayList<Category> cats) {
         ArrayList<Expense> expenses = new ArrayList<>();
-        String accListStr = "";
-        String catListStr = "";
+        StringBuilder accListStr = new StringBuilder();
+        StringBuilder catListStr = new StringBuilder();
         for (int i = 0;i < accs.size();i++) {
-            accListStr += accs.get(i).getId();
-            if (i != accs.size()-1) accListStr += ",";
+            if (accListStr.length() != 0)
+                accListStr.append(",");
+            accListStr.append(accs.get(i).getId());
         }
         for (int i = 0;i < cats.size();i++) {
-            catListStr += cats.get(i).getId();
-            if (i != cats.size()-1) catListStr += ",";
+            if (catListStr.length() != 0)
+                catListStr.append(",");
+            catListStr.append(cats.get(i).getId());
         }
         String query;
         if (accs.isEmpty() && cats.isEmpty()) { // no filters
             return getAllExpenses();
-        } else if (accs.isEmpty() && !cats.isEmpty()) { // cat filters
+        }
+        if (accs.isEmpty() && !cats.isEmpty()) { // cat filters
             query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " IN (" + catListStr + ")";
         } else if (cats.isEmpty()) { // acc filters
             query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " IN (" + accListStr + ")";
@@ -340,23 +337,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * UPDATE
      */
-    public int updateExpense(Expense expense) {
+    public void updateExpense(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = createExpenseValues(expense);
-        return db.update(TABLE_EXPENSE, values, KEY_ID + " = ?",
+        db.update(TABLE_EXPENSE, values, KEY_ID + " = ?",
                 new String[] { String.valueOf(expense.getId()) });
     }
-    public int updateAccount(Account account) {
+    public void updateAccount(Account account) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = createSectionValues(account);
         values.put(KEY_CURRENCY, account.getCurrencyName());
-        return db.update(TABLE_ACCOUNT, values, KEY_ID + " = ?",
+        db.update(TABLE_ACCOUNT, values, KEY_ID + " = ?",
                 new String[] { String.valueOf(account.getId()) });
     }
-    public int updateCategory(Category category) {
+    public void updateCategory(Category category) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = createSectionValues(category);
-        return db.update(TABLE_CATEGORY, values, KEY_ID + " = ?",
+        db.update(TABLE_CATEGORY, values, KEY_ID + " = ?",
                 new String[] { String.valueOf(category.getId()) });
     }
     public int moveExpenses(Section section, String key_id, String section_name) {
@@ -581,6 +578,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         while (c.moveToNext()) {
             try {
                 Date date = new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(c.getString(0));
+                if (date == null)
+                    return null;
                 if (firstDate == null) {
                     firstDate = Calendar.getInstance();
                     firstDate.setTime(date);
@@ -597,16 +596,45 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return new Calendar[] { firstDate, lastDate };
     }
-    public int getNumAccounts() {
+    public int getNewPosSection(String table_name) {
+        int maxPos = 0;
+        Cursor c = getCursorFromQuery("SELECT MAX(" + KEY_POSITION + ") FROM " + table_name, "");
+        if (c.moveToFirst()) maxPos = c.getInt(0);
+        c.close();
+        return maxPos + 1;
+    }
+    public int getNewPosAccount() {
+        return getNewPosSection(TABLE_ACCOUNT);
+    }
+    public int getNewPosCategory() {
+        return getNewPosSection(TABLE_CATEGORY);
+    }
+    public int getNumAccountsNonDefault() {
         int count = 0;
-        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_ACCOUNT, "");
+        StringBuilder accListStr = new StringBuilder();
+        ArrayList<Integer> defaultAccIds = new ArrayList<>();
+        for (String name : Constants.defaultAccNames)
+            defaultAccIds.add(getAccount(name).getId());
+        for (int i = 0;i < defaultAccIds.size();i++) {
+            accListStr.append(defaultAccIds.get(i));
+            if (i != defaultAccIds.size()-1) accListStr.append(",");
+        }
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_ACCOUNT + " WHERE " + KEY_ID + " NOT IN (" + accListStr + ")", "");
         if (c.moveToFirst()) count = c.getInt(0);
         c.close();
         return count;
     }
-    public int getNumCategories() {
+    public int getNumCategoriesNonDefault() {
         int count = 0;
-        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_CATEGORY, "");
+        StringBuilder catListStr = new StringBuilder();
+        ArrayList<Integer> defaultCatIds = new ArrayList<>();
+        for (String name : Constants.defaultCatNames)
+            defaultCatIds.add(getCategory(name).getId());
+        for (int i = 0;i < defaultCatIds.size();i++) {
+            catListStr.append(defaultCatIds.get(i));
+            if (i != defaultCatIds.size()-1) catListStr.append(",");
+        }
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_CATEGORY + " WHERE " + KEY_ID + " NOT IN (" + catListStr + ")", "");
         if (c.moveToFirst()) count = c.getInt(0);
         c.close();
         return count;
@@ -628,6 +656,62 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public int getNumExpensesByCategoryInRange(Category cat, Calendar from, Calendar to) {
         ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
         return expenses.size();
+    }
+    public int getNumExpensesNonDefaultAccount() {
+        int count = 0;
+        StringBuilder accListStr = new StringBuilder();
+        ArrayList<Integer> defaultAccIds = new ArrayList<>();
+        for (String name : Constants.defaultAccNames)
+            defaultAccIds.add(getAccount(name).getId());
+        for (int i = 0;i < defaultAccIds.size();i++) {
+            accListStr.append(defaultAccIds.get(i));
+            if (i != defaultAccIds.size()-1) accListStr.append(",");
+        }
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " NOT IN (" + accListStr + ")", "");
+        if (c.moveToFirst()) count = c.getInt(0);
+        c.close();
+        return count;
+    }
+    public int getNumExpensesNonDefaultCategory() {
+        int count = 0;
+        StringBuilder catListStr = new StringBuilder();
+        ArrayList<Integer> defaultCatIds = new ArrayList<>();
+        for (String name : Constants.defaultCatNames)
+            defaultCatIds.add(getCategory(name).getId());
+        for (int i = 0;i < defaultCatIds.size();i++) {
+            catListStr.append(defaultCatIds.get(i));
+            if (i != defaultCatIds.size()-1) catListStr.append(",");
+        }
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " NOT IN (" + catListStr + ")", "");
+        if (c.moveToFirst()) count = c.getInt(0);
+        c.close();
+        return count;
+    }
+    public int getNumExpensesByAccounts(ArrayList<Account> accs) {
+        int count = 0;
+        StringBuilder accListStr = new StringBuilder();
+        for (int i = 0;i < accs.size();i++) {
+            if (accListStr.length() != 0)
+                accListStr.append(",");
+            accListStr.append(accs.get(i).getId());
+        }
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " IN (" + accListStr + ")", "");
+        if (c.moveToFirst()) count = c.getInt(0);
+        c.close();
+        return count;
+    }
+    public int getNumExpensesByCategories(ArrayList<Category> cats) {
+        int count = 0;
+        StringBuilder catListStr = new StringBuilder();
+        for (int i = 0;i < cats.size();i++) {
+            if (catListStr.length() != 0)
+                catListStr.append(",");
+            catListStr.append(cats.get(i).getId());
+        }
+        Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " IN (" + catListStr + ")", "");
+        if (c.moveToFirst()) count = c.getInt(0);
+        c.close();
+        return count;
     }
     public float getTotalAmt() {
         float totalAmt = 0;
@@ -658,6 +742,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         for (Expense e : expenses) totalAmt += e.getAmount();
         return totalAmt;
     }
+
 
     /**
      * IMPORT/EXPORT

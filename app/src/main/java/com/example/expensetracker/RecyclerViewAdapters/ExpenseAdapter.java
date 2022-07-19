@@ -1,10 +1,8 @@
 package com.example.expensetracker.RecyclerViewAdapters;
 
-import static com.example.expensetracker.ChartsPage.ChartsChildFragment.logExpenses;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -24,7 +22,6 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Category;
-import com.example.expensetracker.Constants;
 import com.example.expensetracker.Expense;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
@@ -194,49 +191,47 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem menuItem) {
-            switch (menuItem.getItemId()) {
-                case R.id.delExpense:
-                    bulkDelete(mode);
-                    return true;
-
-                case R.id.selectAll:
-                    if (selectedPos.size() != expenses.size()) {
-                        for (int i = 0; i < expenses.size(); i++) {
-                            if (!selectedPos.contains(i))
-                                selectedPos.add(i);
-                        }
-                    } else {
-                        selectedPos.clear();
-                    }
-                    notifyDataSetChanged();
-                    return true;
-
-                case R.id.changeAcc:
-                    AccountAdapter accAdapter = ((MainActivity) context).getAccountData();
-                    accAdapter.clearSelected();
-                    bulkChangeAcc(mode, accAdapter);
-                    return true;
-
-                case R.id.changeCat:
-                    CategoryAdapter catAdapter = ((MainActivity) context).getCategoryData();
-                    catAdapter.clearSelected();
-                    bulkChangeCat(mode, catAdapter);
-                    return true;
-
-                case R.id.changeDate:
-                    bulkChangeDate(mode);
-                    return true;
-
-                default:
-                    return false;
+            int id = menuItem.getItemId();
+            if (id == R.id.delExpense) {
+                bulkDelete(mode);
+                return true;
             }
+            if (id == R.id.selectAll) {
+                if (selectedPos.size() != expenses.size()) {
+                    for (int i = 0; i < expenses.size(); i++) {
+                        if (!selectedPos.contains(i))
+                            selectedPos.add(i);
+                    }
+                } else {
+                    selectedPos.clear();
+                }
+                notifyItemRangeChanged(0,getItemCount());
+                return true;
+            }
+            if (id == R.id.changeAcc) {
+                AccountAdapter accAdapter = ((MainActivity) context).getAccountData();
+                accAdapter.clearSelected();
+                bulkChangeAcc(mode, accAdapter);
+                return true;
+            }
+            if (id == R.id.changeCat) {
+                CategoryAdapter catAdapter = ((MainActivity) context).getCategoryData();
+                catAdapter.clearSelected();
+                bulkChangeCat(mode, catAdapter);
+                return true;
+            }
+            if (id == R.id.changeDate) {
+                bulkChangeDate(mode);
+                return true;
+            }
+            return false;
         }
 
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             selectedPos.clear();
             selectionMode = false;
-            notifyDataSetChanged();
+            notifyItemRangeChanged(0,getItemCount());
             actionMode = null;
         }
     };
@@ -291,11 +286,11 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
     public void bulkChangeCat(ActionMode mode, CategoryAdapter adapter) {
         bulkNoAction();
-        final View expOptSectionView = inflater.inflate(R.layout.dialog_expense_opt_section, null);
+        @SuppressLint("InflateParams") final View expOptSectionView = inflater.inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog dialog = ((MainActivity) context).expenseSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
         TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.cat_caps);
+        title.setText(R.string.CAT);
 
         dialog.setOnCancelListener(dialogInterface -> {
             if (adapter.getSelected().getId() == -1) {
@@ -321,11 +316,11 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
     public void bulkChangeAcc(ActionMode mode, AccountAdapter adapter) {
         bulkNoAction();
-        final View expOptSectionView = inflater.inflate(R.layout.dialog_expense_opt_section, null);
+        @SuppressLint("InflateParams") final View expOptSectionView = inflater.inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog dialog = ((MainActivity) context).expenseSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
         TextView title = expOptSectionView.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.acc_caps);
+        title.setText(R.string.ACC);
 
         dialog.setOnCancelListener(dialogInterface -> {
             if (adapter.getSelected().getId() == -1) {
@@ -366,9 +361,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
     public void getDateHeaders(DateViewHolder holder, int position) {
         Expense exp = expenses.get(position);
-        String dateSuffix = ", " +
-                ((exp.getRelativeDate() == Constants.TODAY) ? "Today" :
-                        ((exp.getRelativeDate() == Constants.YESTERDAY) ? "Yesterday" : exp.getDatetimeStr("EEE")));
-        holder.date.setText((exp.getDatetimeStr("dd MMM") + ", " + MainActivity.getRelativePrefix(exp.getDatetime())).toUpperCase());
+        holder.date.setText(context.getString(R.string.full_date,exp.getDatetimeStr("dd MMM"),MainActivity.getRelativePrefix(exp.getDatetime())).toUpperCase());
     }
 }

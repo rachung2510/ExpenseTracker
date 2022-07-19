@@ -40,7 +40,7 @@
                     <TextView
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/acc"
+                        android:text="@string/Acc"
                         android:textSize="@dimen/widgetTextSize"
                         android:textColor="#fff" />
 
@@ -69,7 +69,7 @@
                     <TextView
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/cat"
+                        android:text="@string/Cat"
                         android:textSize="@dimen/widgetTextSize"
                         android:textColor="#fff" />
 
@@ -103,7 +103,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="@dimen/widgetTextSize"
-                android:text="@string/exp"
+                android:text="@string/Exp"
                 android:fontFamily="sans-serif"
                 android:textColor="@color/text_mid_gray"
                 android:textSize="@dimen/widgetTextSize" />

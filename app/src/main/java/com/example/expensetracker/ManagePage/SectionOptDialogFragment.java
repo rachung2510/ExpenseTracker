@@ -23,12 +23,12 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class SectionOptDialogFragment extends DialogFragment {
 
     private final int sectionType;
-    private int selectedIconPos, selectedColorPos;
+    private int selectedIconPos;
+    private final int selectedColorPos;
     private IconGridFragment iconFragment, colorFragment;
 
     public SectionOptDialogFragment(int sectionType, String selectedIconName, String selectedColorName) {
@@ -43,8 +43,8 @@ public class SectionOptDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        LayoutInflater inflater = getActivity().getLayoutInflater();
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_section_opt, null);
         TabLayout catOptTab = view.findViewById(R.id.catOptTab);
         ViewPager2 catOptPage = view.findViewById(R.id.catOptPage);
@@ -57,6 +57,8 @@ public class SectionOptDialogFragment extends DialogFragment {
                 if (getChildFragmentManager().getFragments().size() > position) {
                     Fragment fragment = getChildFragmentManager().getFragments().get(position);
                     View child = fragment.getView();
+                    if (child == null)
+                        return;
                     int widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(child.getWidth(), View.MeasureSpec.EXACTLY);
                     int heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
                     child.measure(widthMeasureSpec, heightMeasureSpec);
@@ -86,8 +88,8 @@ public class SectionOptDialogFragment extends DialogFragment {
                 .setPositiveButton("Done", (dialogInterface, i) -> {
                     String iconName = iconFragment.getAdapter().getSelectedIcon();
                     String colorName = colorFragment.getAdapter().getSelectedIcon();
-                    if (sectionType == Constants.SECTION_ACCOUNT) ((MainActivity) getActivity()).setEditAccOptions(iconName, colorName);
-                    else if (sectionType == Constants.SECTION_CATEGORY) ((MainActivity) getActivity()).setEditCatOptions(iconName, colorName);
+                    if (sectionType == Constants.SECTION_ACCOUNT) ((MainActivity) requireActivity()).setEditAccOptions(iconName, colorName);
+                    else if (sectionType == Constants.SECTION_CATEGORY) ((MainActivity) requireActivity()).setEditCatOptions(iconName, colorName);
                 })
                 .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {});
 

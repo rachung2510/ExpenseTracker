@@ -44,13 +44,13 @@ public class AccountAdapter extends SectionAdapter<Account> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof SectionAdapter.GridViewHolder) {
-            Account acc = sections.get(position);
-            populateSectionGrid((GridViewHolder) holder, acc, position);
+            populateSectionGrid((GridViewHolder) holder, position);
         } else if (holder instanceof SectionAdapter.ListViewHolder) {
             ((ListViewHolder) holder).setPosition(position);
-            populateList((ListViewHolder) holder, sections.get(position), position);
+            populateList((ListViewHolder) holder, position);
         }
     }
 

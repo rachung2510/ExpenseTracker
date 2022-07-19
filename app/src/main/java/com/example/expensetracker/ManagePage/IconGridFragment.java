@@ -29,6 +29,8 @@ public class IconGridFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        if (getActivity() == null)
+            return null;
         view = inflater.inflate(R.layout.fragment_manage_icon_grid, container, false);
         iconGrid = view.findViewById(R.id.iconGrid);
         iconGrid.setAdapter(adapter);

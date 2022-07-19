@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Objects;
 
 public class HomeFragment extends Fragment {
 
@@ -73,6 +74,9 @@ public class HomeFragment extends Fragment {
      * MAIN
      */
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (getActivity() == null)
+            return null;
+
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         // summary & expense list
@@ -81,7 +85,7 @@ public class HomeFragment extends Fragment {
         summaryCurr = view.findViewById(R.id.summaryCurrency);
         summaryAmt = view.findViewById(R.id.summaryAmt);
         expenseList = view.findViewById(R.id.expenseList);
-        ((SimpleItemAnimator) expenseList.getItemAnimator()).setSupportsChangeAnimations(false);
+        ((SimpleItemAnimator) Objects.requireNonNull(expenseList.getItemAnimator())).setSupportsChangeAnimations(false);
         placeholder = view.findViewById(R.id.placeholder);
 
         // date navigation buttons
@@ -104,7 +108,7 @@ public class HomeFragment extends Fragment {
         // toolbar
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("");
+        Objects.requireNonNull(((AppCompatActivity) getActivity()).getSupportActionBar()).setTitle("");
         setHasOptionsMenu(true);
 
         return view;
@@ -118,73 +122,75 @@ public class HomeFragment extends Fragment {
      * MENU
      */
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.home_menu, menu);
         clearFilters = menu.findItem(R.id.clearFilters);
         updateClearFiltersItem();
         super.onCreateOptionsMenu(menu, inflater);
     }
     @Override
-    public boolean onOptionsItemSelected(MenuItem menuItem) {
-        switch (menuItem.getItemId()) {
-            case R.id.filterAcc:
-                AccountAdapter accAdapter = ((MainActivity) getActivity()).getAccountData();
-                accAdapter.setSelectionMode(true);
-                for (Account acc : selAccFilters) {
-                    accAdapter.setSelected(acc.getName());
-                }
-                filterAccDialog(accAdapter);
-                return true;
-
-            case R.id.filterCat:
-                CategoryAdapter catAdapter = ((MainActivity) getActivity()).getCategoryData();
-                catAdapter.setSelectionMode(true);
-                for (Category cat : selCatFilters) {
-                    catAdapter.setSelected(cat.getName());
-                }
-                filterCatDialog(catAdapter);
-                return true;
-
-            case R.id.clearFilters:
-                selAccFilters.clear();
-                selCatFilters.clear();
-                applyFilters();
-                updateClearFiltersItem();
-                ((MainActivity) getActivity()).updateHomeData(); // update summary & expense list
-                return true;
-
-            case R.id.dbAction:
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setMessage("Would you like to import or export your database?")
-                        .setPositiveButton("Export", (dialogInterface, i) -> {
-                            if (permissionsGranted()) {
-                                AlertDialog.Builder builderExport = new AlertDialog.Builder(getActivity());
-                                builderExport.setTitle("Export database?")
-                                        .setMessage("Database will be exported to Downloads folder.")
-                                        .setPositiveButton(android.R.string.yes, (dialogInterface1, i1) -> ((MainActivity) getActivity()).db.exportDatabase())
-                                        .setNegativeButton(android.R.string.no, (dialogInterface1, i1) -> dialogInterface1.dismiss())
-                                        .show();
-                            } else {
-                                Toast.makeText(getActivity(), "Permissions not granted", Toast.LENGTH_SHORT).show();
-                                requestPermissions();
-                            }
-                        })
-                        .setNeutralButton("Import", (dialogInterface, i) -> {
-                            if (permissionsGranted()) showFileChooser();
-                            else requestPermissions();
-                        })
-                        .show();
-                return true;
-
-            default:
-                return false;
+    public boolean onOptionsItemSelected(@NonNull MenuItem menuItem) {
+        if (getActivity() == null)
+            return false;
+        int id = menuItem.getItemId();
+        if (id == R.id.filterAcc) {
+            AccountAdapter accAdapter = ((MainActivity) getActivity()).getAccountData();
+            accAdapter.setSelectionMode(true);
+            for (Account acc : selAccFilters) {
+                accAdapter.setSelected(acc.getName());
+            }
+            filterAccDialog(accAdapter);
+            return true;
         }
+        if (id == R.id.filterCat) {
+            CategoryAdapter catAdapter = ((MainActivity) getActivity()).getCategoryData();
+            catAdapter.setSelectionMode(true);
+            for (Category cat : selCatFilters) {
+                catAdapter.setSelected(cat.getName());
+            }
+            filterCatDialog(catAdapter);
+            return true;
+        }
+        if (id == R.id.clearFilters) {
+            selAccFilters.clear();
+            selCatFilters.clear();
+            applyFilters();
+            updateClearFiltersItem();
+            ((MainActivity) getActivity()).updateHomeData(); // update summary & expense list
+            return true;
+        }
+        if (id == R.id.dbAction) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage("Would you like to import or export your database?")
+                    .setPositiveButton("Export", (dialogInterface, i) -> {
+                        if (!permissionsGranted()) {
+                            Toast.makeText(getActivity(), "Permissions not granted", Toast.LENGTH_SHORT).show();
+                            requestPermissions();
+                            return;
+                        }
+                        AlertDialog.Builder builderExport = new AlertDialog.Builder(getActivity());
+                        builderExport.setTitle("Export database?")
+                                .setMessage("Database will be exported to Downloads folder.")
+                                .setPositiveButton(android.R.string.yes, (dialogInterface1, i1) -> ((MainActivity) getActivity()).db.exportDatabase())
+                                .setNegativeButton(android.R.string.no, (dialogInterface1, i1) -> dialogInterface1.dismiss())
+                                .show();
+                    })
+                    .setNeutralButton("Import", (dialogInterface, i) -> {
+                        if (permissionsGranted()) showFileChooser();
+                        else requestPermissions();
+                    })
+                    .show();
+            return true;
+        }
+        return false;
     }
 
     /**
      * FUNCTIONS
      */
     public void summaryDateAction() {
+        if (getActivity() == null)
+            return;
         selDatePos = DateGridAdapter.MONTH;
         selDateState = DateGridAdapter.MONTH;
         if (fromDate == null) {
@@ -197,7 +203,7 @@ public class HomeFragment extends Fragment {
             RecyclerView dateGrid = filterDateView.findViewById(R.id.dateGrid);
 
             // set RecyclerView behaviour and adapter
-            ((SimpleItemAnimator) dateGrid.getItemAnimator()).setSupportsChangeAnimations(false);
+            ((SimpleItemAnimator) Objects.requireNonNull(dateGrid.getItemAnimator())).setSupportsChangeAnimations(false);
             GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
             filterDateAdapter = new DateGridAdapter(getActivity(), new int[] { selDatePos, selDateState }, fromDate, toDate);
 
@@ -237,6 +243,8 @@ public class HomeFragment extends Fragment {
         });
     }
     public void navDateAction(int direction) {
+        if (getActivity() == null)
+            return;
         if (selDatePos != DateGridAdapter.WEEK && selDatePos != DateGridAdapter.SELECT_RANGE)
             selDatePos = DateGridAdapter.SELECT_SINGLE;
         switch (selDateState) {
@@ -273,9 +281,11 @@ public class HomeFragment extends Fragment {
             summaryCurr.setText(new Currency(getActivity()).getSymbol()); // default
     }
     public void filterAccDialog(AccountAdapter adapter) {
+        if (getActivity() == null)
+            return;
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expenseSectionDialog(adapter, expOptSectionView);
-        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText("FILTER BY " + getResources().getString(R.string.acc_caps));
+        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText(getString(R.string.filter_dialog_title,getResources().getString(R.string.ACC)));
         dialogBuilder.setView(expOptSectionView);
 
         dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> {
@@ -290,9 +300,11 @@ public class HomeFragment extends Fragment {
         dialogBuilder.show();
     }
     public void filterCatDialog(CategoryAdapter adapter) {
+        if (getActivity() == null)
+            return;
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expenseSectionDialog(adapter, expOptSectionView);
-        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText("FILTER BY " + getResources().getString(R.string.cat_caps));
+        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText(getString(R.string.filter_dialog_title,getResources().getString(R.string.CAT)));
         dialogBuilder.setView(expOptSectionView);
 
         dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> {
@@ -318,8 +330,12 @@ public class HomeFragment extends Fragment {
     ActivityResultLauncher<Intent> launcher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
+                if (getActivity() == null)
+                    return;
                 if (result.getResultCode() == RESULT_OK) {
                     Intent data = result.getData();
+                    if (data == null)
+                        return;
                     Uri uri = data.getData();
                     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.ConfirmDelDialog);
                     builder.setTitle("Import database")
@@ -342,11 +358,14 @@ public class HomeFragment extends Fragment {
                 }
             });
     public boolean permissionsGranted() {
+        if (getActivity() == null)
+            return false;
         return getActivity().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED &&
                 getActivity().checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
-//                getActivity().checkSelfPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
     }
     public void requestPermissions() {
+        if (getActivity() == null)
+            return;
         ActivityCompat.requestPermissions(getActivity(),
                 new String[] { Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE },
                 0);

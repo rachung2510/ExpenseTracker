@@ -1,5 +1,6 @@
 package com.example.expensetracker;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
@@ -8,7 +9,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputFilter;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -56,6 +56,7 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Objects;
 
 import kotlin.Triple;
 
@@ -162,9 +163,7 @@ public class MainActivity extends AppCompatActivity {
         final View expView = getLayoutInflater().inflate(R.layout.dialog_expense, null);
         dialogBuilder = new AlertDialog.Builder(this);
         dialogBuilder.setView(expView)
-                .setOnDismissListener(dialogInterface -> {
-            hideKeyboard(expAmt);
-        });
+                .setOnDismissListener(dialogInterface -> hideKeyboard(expAmt));
         AlertDialog expDialog = dialogBuilder.create();
         expDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // set transparent dialog bg
         expDialog.show();
@@ -205,13 +204,13 @@ public class MainActivity extends AppCompatActivity {
         return dialogBuilder;
     }
     public void expenseCatDialog(CategoryAdapter adapter, Expense exp) {
-        final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        @SuppressLint("InflateParams") final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog dialog = expenseSectionDialog(adapter, view).create();
         adapter.setDialog(dialog);
 
         // set values
         TextView title = view.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.cat_caps);
+        title.setText(R.string.CAT);
         if (adapter.getSelectedPos().isEmpty()) {
             if (exp.getId() == -1) {
                 adapter.setSelected(0);
@@ -232,13 +231,13 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
     public void expenseAccDialog(AccountAdapter adapter, Expense exp) {
-        final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        @SuppressLint("InflateParams") final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog dialog = expenseSectionDialog(adapter, view).create();
         adapter.setDialog(dialog);
 
         // set values
         TextView title = view.findViewById(R.id.expOptSectionTitle);
-        title.setText(R.string.acc_caps);
+        title.setText(R.string.ACC);
 
         dialog.setOnCancelListener(dialog1 -> {
             Account selectedAcc = adapter.getSelected();
@@ -353,6 +352,7 @@ public class MainActivity extends AppCompatActivity {
             ((ChartsFragment) getFragment()).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         }
     }
+    @SuppressWarnings("unchecked")
     public void updateAccountData() {
         AccountAdapter adapter = getAccountData(Constants.MANAGE);
         adapter.addNewAcc();
@@ -362,6 +362,7 @@ public class MainActivity extends AppCompatActivity {
         if (childFragment instanceof ManageChildFragment)
             ((ManageChildFragment<AccountAdapter>) childFragment).setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
     }
+    @SuppressWarnings("unchecked")
     public void updateCategoryData() {
         CategoryAdapter adapter = getCategoryData(Constants.MANAGE);
         adapter.addNewCat();
@@ -479,7 +480,7 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog expDialog = expenseDialog();
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
         Calendar cal = Calendar.getInstance(locale);
-        expDate.setText(("Today, " + getDatetimeStr(cal, "dd MMMM yyyy")).toUpperCase());
+        expDate.setText(getString(R.string.full_date,"Today",getDatetimeStr(cal,"dd MMMM yyyy")).toUpperCase());
         Account acc = db.getAccount(getDefaultAccName());
         Category cat = db.getCategory(getDefaultCatName());
         expAccName.setText(acc.getName()); // set name
@@ -509,7 +510,7 @@ public class MainActivity extends AppCompatActivity {
             changeDate.setView(datePicker)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                 cal.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-                expDate.setText((getRelativePrefix(cal) + getDatetimeStr(cal, ", dd MMM yyyy")).toUpperCase());
+                expDate.setText(getString(R.string.full_date,getRelativePrefix(cal),getDatetimeStr(cal,"dd MMM yyyy")).toUpperCase());
             })
                     .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())
                     .show();
@@ -552,7 +553,7 @@ public class MainActivity extends AppCompatActivity {
         expCurr.setText(acc.getCurrencySymbol());
 
         Calendar today = Calendar.getInstance(locale);
-        expDate.setText((MainActivity.getRelativePrefix(exp.getDatetime()) + ", " + exp.getDatetimeStr("dd MMMM yyyy")).toUpperCase());
+        expDate.setText(getString(R.string.full_date,getRelativePrefix(exp.getDatetime()),exp.getDatetimeStr("dd MMMM yyyy")).toUpperCase());
 
         // actions
         expAccBox.setOnClickListener(view -> {
@@ -609,9 +610,9 @@ public class MainActivity extends AppCompatActivity {
                 String datePrefix1 = "";
                 if (exp.getDatetime().get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
                     int dateDiff = exp.getDatetime().get(Calendar.DAY_OF_YEAR) - today.get(Calendar.DAY_OF_YEAR);
-                    datePrefix1 = (dateDiff == 0) ? "TODAY, " : ((dateDiff == -1) ? "YESTERDAY, " : "");
+                    datePrefix1 = (dateDiff == 0) ? "TODAY" : ((dateDiff == -1) ? "YESTERDAY" : "");
                 }
-                expDate.setText(datePrefix1 + exp.getDatetimeStr("dd MMMM yyyy").toUpperCase());
+                expDate.setText(getString(R.string.full_date,datePrefix1,exp.getDatetimeStr("dd MMMM yyyy").toUpperCase()));
             })
                     .setNeutralButton(android.R.string.no, (dialog, which) -> {
                 dialog.cancel(); // close dialog
@@ -625,7 +626,7 @@ public class MainActivity extends AppCompatActivity {
 
         // set values of selected category
         sectionName.setText("");
-        sectionType.setText("New account");
+        sectionType.setText(getString(R.string.new_acc_title));
         setEditAccOptions(iconMap.get(R.drawable.acc_cash), colorMap.get(R.color.cat_bleu_de_france));
 
         // actions
@@ -656,7 +657,7 @@ public class MainActivity extends AppCompatActivity {
                 int icon_id = (Integer) sectionIcon.getTag();
                 int color_id = (Integer) sectionBanner.getTag();
                 Currency currency = getCurrencyFromName(sectionCurr.getText().toString());
-                Account account = new Account(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id), getPosAccount(), currency);
+                Account account = new Account(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id), getNewPosAcc(), currency);
                 db.createAccount(account, true);
                 updateAccountData();
                 addAccDialog.dismiss();
@@ -673,7 +674,7 @@ public class MainActivity extends AppCompatActivity {
 
         // set values of selected category
         sectionName.setText(acc.getName());
-        sectionType.setText("Account");
+        sectionType.setText(getString(R.string.Acc));
         sectionCurr.setText(acc.getCurrencyName());
         setEditAccOptions(acc.getIconName(), acc.getColorName());
         if(acc.getName().equals(getDefaultAccName()))
@@ -740,7 +741,7 @@ public class MainActivity extends AppCompatActivity {
 
         // set values of selected category
         sectionName.setText("");
-        sectionType.setText("New category");
+        sectionType.setText(getString(R.string.new_cat_title));
         setEditCatOptions(iconMap.get(R.drawable.cat_others), colorMap.get(R.color.cat_fiery_fuchsia));
 
         // actions
@@ -773,7 +774,7 @@ public class MainActivity extends AppCompatActivity {
 
         // set values of selected category
         sectionName.setText(cat.getName());
-        sectionType.setText("Category");
+        sectionType.setText(R.string.Cat);
         setEditCatOptions(cat.getIconName(), cat.getColorName());
         if (cat.getName().equals(getImmutableCat())) sectionDelBtn.setVisibility(View.GONE);
 
@@ -843,6 +844,28 @@ public class MainActivity extends AppCompatActivity {
         Fragment navHostFragment = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_activity_main);
         return (navHostFragment == null) ? null : navHostFragment.getChildFragmentManager().getFragments().get(0);
     }
+    public void resetDefaultAccs() {
+        ArrayList<Account> accounts = db.getAllAccounts();
+        HashMap<String,Boolean> defaultAccNames = new HashMap<>();
+        for (String name : Constants.defaultAccNames)
+            defaultAccNames.put(name, true);
+        for (Account acc : accounts) {
+            if (defaultAccNames.containsKey(acc.getName()))
+                continue;
+            db.deleteAccount(acc,false);
+        }
+    }
+    public void resetDefaultCats() {
+        ArrayList<Category> categories = db.getAllCategories();
+        HashMap<String,Boolean> defaultCatNames = new HashMap<>();
+        for (String name : Constants.defaultCatNames)
+            defaultCatNames.put(name, true);
+        for (Category cat : categories) {
+            if (defaultCatNames.containsKey(cat.getName()))
+                continue;
+            db.deleteCategory(cat,false);
+        }
+    }
 
     /**
      * STATIC METHODS
@@ -897,11 +920,36 @@ public class MainActivity extends AppCompatActivity {
         format = (format.isEmpty()) ? Expense.DATETIME_FORMAT : format;
         return new SimpleDateFormat(format, locale).format(cal.getTime());
     }
+    public String getDefaultAccName() {
+        return db.getDefaultAccName();
+    }
+    public String getDefaultCatName() {
+        return db.getDefaultCatName();
+    }
+    public String getDefaultCurrency() {
+        return getDefaultCurrency(this);
+    }
+    public static String getDefaultCurrency(Context context) {
+        SharedPreferences pref = context.getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
+        return pref.getString(context.getString(R.string.key_default_currency), context.getString(R.string.default_currency));
+    }
+    public int getDefaultFirstDayOfWeek() {
+        return getDefaultFirstDayOfWeek(this);
+    }
+    public static int getDefaultFirstDayOfWeek(Context context) {
+        SharedPreferences pref = context.getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
+        return pref.getInt(context.getString(R.string.key_default_firstDayOfWeek), Calendar.SUNDAY);
+    }
+    public String getImmutableCat() {
+        return db.getCategory(1).getName();
+    }
     public Calendar getInitSelectedDates(int range, int state) {
         return DateGridAdapter.getInitSelectedDates(range, state, getDefaultFirstDayOfWeek());
     }
-    public int getPosAccount() { return db.getNumAccounts(); }
-    public int getPosCategory() { return db.getNumCategories(); }
+    public int getNewPosAcc() { return db.getNewPosAccount(); }
+    public int getPosCategory() {
+        return db.getNewPosCategory();
+    }
     public static int getRelativeDate(Calendar cal) {
         Calendar today = Calendar.getInstance(locale);
         if (cal.get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
@@ -928,34 +976,10 @@ public class MainActivity extends AppCompatActivity {
     }
     public static Calendar getCalFromString(String dtf, String date) {
         Calendar cal = Calendar.getInstance(locale);
-        try { cal.setTime(new SimpleDateFormat(dtf, locale).parse(date));
+
+        try { cal.setTime(Objects.requireNonNull(new SimpleDateFormat(dtf, locale).parse(date)));
         } catch (ParseException e) { e.printStackTrace();}
         return cal;
-    }
-
-    public static String getDefaultCurrency(Context context) {
-        SharedPreferences pref = context.getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
-        return pref.getString(context.getString(R.string.key_default_currency), context.getString(R.string.default_currency));
-    }
-    public String getDefaultCurrency() {
-        return getDefaultCurrency(this);
-    }
-
-    public String getDefaultAccName() {
-        return db.getDefaultAccName();
-    }
-    public String getDefaultCatName() {
-        return db.getDefaultCatName();
-    }
-    public String getImmutableCat() {
-        return db.getCategory(1).getName();
-    }
-    public static int getDefaultFirstDayOfWeek(Context context) {
-        SharedPreferences pref = context.getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
-        return pref.getInt(context.getString(R.string.key_default_firstDayOfWeek), Calendar.SUNDAY);
-    }
-    public int getDefaultFirstDayOfWeek() {
-        return getDefaultFirstDayOfWeek(this);
     }
 
     public static void showKeyboard(Context context, EditText view) {

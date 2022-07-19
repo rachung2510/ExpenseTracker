@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -29,6 +28,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.Calendar;
+import java.util.Objects;
 
 public class ChartsFragment extends Fragment {
 
@@ -66,7 +66,7 @@ public class ChartsFragment extends Fragment {
         view.findViewById(R.id.summaryAmtBlk).setVisibility(LinearLayout.GONE);
         ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                (int) getActivity().getResources().getDimension(R.dimen.actionBarSize));
+                (int) getResources().getDimension(R.dimen.actionBarSize));
         view.findViewById(R.id.toolbarContainer).setLayoutParams(params);
 
         // load fragments
@@ -97,6 +97,8 @@ public class ChartsFragment extends Fragment {
                 params.leftMargin = (int) translationOffset;
                 tabIndicator.setLayoutParams(params);
                 if (position == 1 && selDateState == DateGridAdapter.ALL) {
+                    if (getActivity() == null)
+                        return;
                     selDatePos = DateGridAdapter.MONTH;
                     selDateState = DateGridAdapter.MONTH;
                     prevDate.setVisibility(ImageButton.VISIBLE);
@@ -110,8 +112,10 @@ public class ChartsFragment extends Fragment {
 
         // toolbar
         Toolbar toolbar = view.findViewById(R.id.toolbar);
+        if (getActivity() == null)
+            return view;
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("");
+        Objects.requireNonNull(((AppCompatActivity) getActivity()).getSupportActionBar()).setTitle("");
 
         return view;
     }
@@ -119,6 +123,8 @@ public class ChartsFragment extends Fragment {
     public void summaryDateAction() {
         selDatePos = DateGridAdapter.MONTH;
         selDateState = DateGridAdapter.MONTH;
+        if (getActivity() == null)
+            return;
         if (fromDate == null) {
             fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selDateState);
             toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selDateState);
@@ -129,7 +135,7 @@ public class ChartsFragment extends Fragment {
             RecyclerView dateGrid = filterDateView.findViewById(R.id.dateGrid);
 
             // set RecyclerView behaviour and adapter
-            ((SimpleItemAnimator) dateGrid.getItemAnimator()).setSupportsChangeAnimations(false);
+            ((SimpleItemAnimator) Objects.requireNonNull(dateGrid.getItemAnimator())).setSupportsChangeAnimations(false);
             GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
             filterDateAdapter = new DateGridAdapter(getActivity(), new int[] { selDatePos, selDateState }, fromDate, toDate);
             if (getChildFragmentManager().getFragments().size() > 1) {
@@ -174,6 +180,8 @@ public class ChartsFragment extends Fragment {
         });
     }
     public void navDateAction(int direction) {
+        if (getActivity() == null)
+            return;
         if (selDatePos != DateGridAdapter.WEEK && selDatePos != DateGridAdapter.SELECT_RANGE)
             selDatePos = DateGridAdapter.SELECT_SINGLE;
         switch (selDateState) {

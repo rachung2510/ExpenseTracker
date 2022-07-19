@@ -2,7 +2,6 @@ package com.example.expensetracker.RecyclerViewAdapters;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -199,29 +198,25 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
 
         // Toggle behaviours
         selToggle.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (isChecked) {
-                switch (checkedId) {
-                    case R.id.toggleDay:
-                        selDayBlock.setVisibility(LinearLayout.VISIBLE);
-                        selMonthYearBlock.setVisibility(LinearLayout.GONE);
-                        break;
-                    case R.id.toggleMonth:
-                        selDayBlock.setVisibility(LinearLayout.GONE);
-                        selMonthYearBlock.setVisibility(LinearLayout.VISIBLE);
-                        fromMonth.setVisibility(NumberPicker.VISIBLE);
-                        fromYear.setVisibility(NumberPicker.VISIBLE);
-                        toMonth.setVisibility(NumberPicker.VISIBLE);
-                        toYear.setVisibility(NumberPicker.VISIBLE);
-                        break;
-                    case R.id.toggleYear:
-                        selDayBlock.setVisibility(LinearLayout.GONE);
-                        selMonthYearBlock.setVisibility(LinearLayout.VISIBLE);
-                        fromMonth.setVisibility(NumberPicker.GONE);
-                        fromYear.setVisibility(NumberPicker.VISIBLE);
-                        toMonth.setVisibility(NumberPicker.GONE);
-                        toYear.setVisibility(NumberPicker.VISIBLE);
-                        break;
-                }
+            if (!isChecked)
+                return;
+            if (checkedId == R.id.toggleDay) {
+                selDayBlock.setVisibility(LinearLayout.VISIBLE);
+                selMonthYearBlock.setVisibility(LinearLayout.GONE);
+            } else if (checkedId == R.id.toggleMonth) {
+                selDayBlock.setVisibility(LinearLayout.GONE);
+                selMonthYearBlock.setVisibility(LinearLayout.VISIBLE);
+                fromMonth.setVisibility(NumberPicker.VISIBLE);
+                fromYear.setVisibility(NumberPicker.VISIBLE);
+                toMonth.setVisibility(NumberPicker.VISIBLE);
+                toYear.setVisibility(NumberPicker.VISIBLE);
+            } else if (checkedId == R.id.toggleYear) {
+                selDayBlock.setVisibility(LinearLayout.GONE);
+                selMonthYearBlock.setVisibility(LinearLayout.VISIBLE);
+                fromMonth.setVisibility(NumberPicker.GONE);
+                fromYear.setVisibility(NumberPicker.VISIBLE);
+                toMonth.setVisibility(NumberPicker.GONE);
+                toYear.setVisibility(NumberPicker.VISIBLE);
             }
         });
         if (state == MONTH) selToggle.check(R.id.toggleMonth);
@@ -311,51 +306,43 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         selDateDialog = selectDate.create();
         selDateDialog.show();
         selDateDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
-            switch (selToggle.getCheckedButtonId()) {
-                case R.id.toggleDay:
-                    fromDate.set(fromDayPicker.getYear(), fromDayPicker.getMonth(), fromDayPicker.getDayOfMonth(), 0,0,0);
-                    toDate.set(toDayPicker.getYear(), toDayPicker.getMonth(), toDayPicker.getDayOfMonth(), 23, 59, 59);
-                    break;
-                case R.id.toggleMonth:
-                    fromDate.set(fromYear.getValue(), fromMonth.getValue(), 1, 0, 0, 0);
-                    toDate.set(toYear.getValue(), toMonth.getValue(), 1, 23, 59, 59);
-                    toDate.set(Calendar.DAY_OF_MONTH, toDate.getActualMaximum(Calendar.DATE));
-                    break;
-                case R.id.toggleYear:
-                    fromDate.set(fromYear.getValue(), 0, 1, 0, 0, 0);
-                    toDate.set(toYear.getValue(), 11, 1, 23, 59, 59);
-                    toDate.set(Calendar.DAY_OF_MONTH, toDate.getActualMaximum(Calendar.DATE));
-                    break;
+            int id = selToggle.getCheckedButtonId();
+            if (id == R.id.toggleDay) {
+                fromDate.set(fromDayPicker.getYear(), fromDayPicker.getMonth(), fromDayPicker.getDayOfMonth(), 0,0,0);
+                toDate.set(toDayPicker.getYear(), toDayPicker.getMonth(), toDayPicker.getDayOfMonth(), 23, 59, 59);
+            } else if (id == R.id.toggleMonth) {
+                fromDate.set(fromYear.getValue(), fromMonth.getValue(), 1, 0, 0, 0);
+                toDate.set(toYear.getValue(), toMonth.getValue(), 1, 23, 59, 59);
+                toDate.set(Calendar.DAY_OF_MONTH, toDate.getActualMaximum(Calendar.DATE));
+            } else if (id == R.id.toggleYear) {
+                fromDate.set(fromYear.getValue(), 0, 1, 0, 0, 0);
+                toDate.set(toYear.getValue(), 11, 1, 23, 59, 59);
+                toDate.set(Calendar.DAY_OF_MONTH, toDate.getActualMaximum(Calendar.DATE));
             }
-            if (toggleRange.isChecked()) { // range
-                if (validateDateRange(fromDate, toDate)) {
-                    errorState = false;
-                    selDateDialog.dismiss();
-                    if (parentDialog != null) parentDialog.dismiss();
-                } else {
-                    errorState = true;
-                    Toast.makeText(context, "Start date must be before end date", Toast.LENGTH_SHORT).show();
-                }
-            } else { // single
+            if (!toggleRange.isChecked()) {
                 errorState = false;
-                switch (selToggle.getCheckedButtonId()) {
-                    case R.id.toggleDay:
-                        fromDate.set(selDayPicker.getYear(), selDayPicker.getMonth(), selDayPicker.getDayOfMonth(), 0, 0, 0);
-                        toDate = MainActivity.getCalendarCopy(fromDate, DateGridAdapter.TO);
-                        break;
-                    case R.id.toggleMonth:
-                        toDate = MainActivity.getCalendarCopy(fromDate, DateGridAdapter.TO);
-                        toDate.set(Calendar.DAY_OF_MONTH, fromDate.getActualMaximum(Calendar.DAY_OF_MONTH));
-                        break;
-                    case R.id.toggleYear:
-                        toDate = MainActivity.getCalendarCopy(fromDate, DateGridAdapter.TO);
-                        toDate.set(toDate.get(Calendar.YEAR), 12, 31);
-                        break;
+                if (id == R.id.toggleDay) {
+                    fromDate.set(selDayPicker.getYear(), selDayPicker.getMonth(), selDayPicker.getDayOfMonth(), 0, 0, 0);
+                    toDate = MainActivity.getCalendarCopy(fromDate, DateGridAdapter.TO);
+                } else if (id == R.id.toggleMonth) {
+                    toDate = MainActivity.getCalendarCopy(fromDate, DateGridAdapter.TO);
+                    toDate.set(Calendar.DAY_OF_MONTH, fromDate.getActualMaximum(Calendar.DAY_OF_MONTH));
+                } else if (id == R.id.toggleYear) {
+                    toDate = MainActivity.getCalendarCopy(fromDate, DateGridAdapter.TO);
+                    toDate.set(toDate.get(Calendar.YEAR), Calendar.DECEMBER, 31);
                 }
-                toDate = MainActivity.getCalendarCopy(toDate, DateGridAdapter.TO);
                 if (parentDialog != null) parentDialog.dismiss();
                 selDateDialog.dismiss();
+                return;
             }
+            if (!validateDateRange(fromDate, toDate)) {
+                errorState = true;
+                Toast.makeText(context, "Start date must be before end date", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            errorState = false;
+            selDateDialog.dismiss();
+            if (parentDialog != null) parentDialog.dismiss();
         });
     }
     public void showSelDayRangeDialog(int range) {
@@ -389,21 +376,17 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     public void updateState() {
         if (selectedPos < 5) {
             state = selectedPos;
-        } else { // select
-            if (selToggle != null) {
-                switch (selToggle.getCheckedButtonId()) {
-                    case R.id.toggleDay:
-                        state = DAY;
-                        break;
-                    case R.id.toggleMonth:
-                        state = MONTH;
-                        break;
-                    case R.id.toggleYear:
-                        state = YEAR;
-                        break;
-                }
-            }
+            return;
         }
+        if (selToggle == null)
+            return;
+        int id = selToggle.getCheckedButtonId();
+        if (id == R.id.toggleDay)
+            state = DAY;
+        else if (id == R.id.toggleMonth)
+            state = MONTH;
+        else if (id == R.id.toggleYear)
+            state = YEAR;
     }
     public static Calendar getInitSelectedDates(int range, int state, int firstDayOfWeek) {
         Calendar cal = Calendar.getInstance(MainActivity.locale);

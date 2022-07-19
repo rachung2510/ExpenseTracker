@@ -134,7 +134,9 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         }
     }
-    public void populateSectionGrid(GridViewHolder holder, Section section, int position) {
+    public void populateSectionGrid(GridViewHolder holder, int position) {
+        T section = sections.get(position);
+
         // set components
         if (section.getId() == -1 || isNew(position)) {
             holder.gridItemName.setText("");
@@ -152,6 +154,11 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         // Multiple selection mode
         if (selectionMode) {
+            if (position == getItemCount()-2) {
+                holder.deselect(section);
+                holder.gridItemIcon.setOnClickListener(view -> {});
+                return;
+            }
             if (isNew(position)) holder.gridItemIcon.setVisibility(View.GONE);
             if (selectedPos.contains(position)) holder.select();
             else holder.deselect(section);
@@ -181,7 +188,6 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             if (isNew(position))
                 ((MainActivity) context).addCategory();
             else {
-                Log.e(TAG, "pos=" + position);
                 ((MainActivity) context).editCategory((Category) sections.get(position));
                 notifyItemChanged(position);
             }
@@ -224,8 +230,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             separator.requestLayout();
         }
 
-        public void deselect(int position) {
-            T section = sections.get(position);
+        public void deselect(T section) {
             if (section.getId() != -1) {
                 listItemRow.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
                 listItemIcon.setForeground(section.getIcon());
@@ -244,10 +249,12 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
         }
 
     }
-    public void populateList(ListViewHolder holder, T section, int position) {
+    public void populateList(ListViewHolder holder, int position) {
+        T section = sections.get(position);
+
         // set components
         if (section.getId() == -1 || isNew(position)) {
-            holder.listItemName.setText("Add account");
+            holder.listItemName.setText(context.getString(R.string.new_acc_placeholder));
             holder.listItemName.setTextColor(ContextCompat.getColor(context, R.color.text_light_gray));
             holder.listItemIcon.setForeground(MainActivity.getIconFromId(context, R.drawable.add));
             holder.listItemIcon.setForegroundTintList(MainActivity.getColorStateListFromId(context, R.color.text_mid_gray));
@@ -276,9 +283,14 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         // Multiple selection mode
         if (selectionMode) {
+            if (position == 0) {
+                holder.deselect(section);
+                holder.listItemRow.setOnClickListener(view -> {});
+                return;
+            }
             if (isNew(position)) holder.itemView.setVisibility(View.GONE);
             if (selectedPos.contains(position)) holder.select();
-            else holder.deselect(position);
+            else holder.deselect(section);
             holder.listItemRow.setOnClickListener(view -> {
                 holder.toggleSelect(position);
                 notifyItemChanged(position);
@@ -304,24 +316,21 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     /**
      * FUNCTIONS
      */
+    public void clearAllSelected() {
+        selectedPos.clear();
+    }
     public void clearSelected() {
         selectedPos.clear();
     }
     public boolean isNew(int position) {
         return (page == Constants.MANAGE) && (position == getItemCount()-1);
     }
-    public void setDialog(AlertDialog alertDialog) {
-        dialog = alertDialog;
+    public boolean isSelected(int pos) {
+        return selectedPos.contains(pos);
     }
     public void resetPositions() {}
     public void updatePositions() {
 
-    }
-    public void clearAllSelected() {
-        selectedPos.clear();
-    }
-    public boolean isSelected(int pos) {
-        return selectedPos.contains(pos);
     }
 
     /**
@@ -358,6 +367,9 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
         return selectedPos;
     }
 
+    public void setDialog(AlertDialog alertDialog) {
+        dialog = alertDialog;
+    }
     public void setList(ArrayList<T> list) { this.sections = list; }
     public void setSelected(int position) {
         int oldPos = 0;
@@ -381,9 +393,9 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
     // debug
     public void printSelectedPos() {
-        String msg = "";
+        StringBuilder msg = new StringBuilder();
         for (int pos : selectedPos) {
-            msg += pos + ", ";
+            msg.append(pos).append(", ");
         }
         Log.e("selectedPos", "{ " + msg + " }");
     }

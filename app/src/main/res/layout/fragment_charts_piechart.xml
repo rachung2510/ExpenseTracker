@@ -52,7 +52,7 @@
                     android:ellipsize="end"
                     android:gravity="center"
                     android:singleLine="true"
-                    android:text="@string/exps_caps"
+                    android:text="@string/EXPS"
                     android:fontFamily="@font/roboto_medium"
                     android:textColor="@color/generic_icon_gray"
                     android:textSize="14sp" />

@@ -17,11 +17,8 @@ public class CustomXAxisRenderer extends XAxisRenderer {
     @Override
     protected void computeAxisValues(float min, float max) {
 
-        float yMin = min;
-        float yMax = max;
-
         int labelCount = this.labelCount;
-        double range = Math.abs(yMax - yMin);
+        double range = Math.abs(max - min);
 
         if (labelCount == 0 || range <= 0 || Double.isInfinite(range)) {
             mAxis.mEntries = new float[]{};
@@ -73,12 +70,12 @@ public class CustomXAxisRenderer extends XAxisRenderer {
             // no forced count
         } else {
 
-            double first = interval == 0.0 ? 0.0 : Math.ceil(yMin / interval) * interval;
+            double first = interval == 0.0 ? 0.0 : Math.ceil(min / interval) * interval;
             if(mAxis.isCenterAxisLabelsEnabled()) {
                 first -= interval;
             }
 
-            double last = interval == 0.0 ? 0.0 : Utils.nextUp(Math.floor(yMax / interval) * interval);
+            double last = interval == 0.0 ? 0.0 : Utils.nextUp(Math.floor(max / interval) * interval);
 
             double f;
             int i;

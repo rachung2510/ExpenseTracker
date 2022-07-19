@@ -2,7 +2,6 @@ package com.example.expensetracker.RecyclerViewAdapters;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,6 +56,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
     }
 
     @Override
+    @SuppressWarnings("ConstantConditions")
     public void onBindViewHolder(@NonNull FilterAdapter.ViewHolder holder, int position) {
         int sectionType;
         if (position < filteredAccounts.size()) {

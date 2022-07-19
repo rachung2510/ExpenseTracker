@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -19,6 +20,8 @@ import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 
+import java.util.Objects;
+
 public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAdapter> {
 
     public ManageChildFragmentCategory(Context context) {
@@ -26,52 +29,54 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (getActivity() == null)
+            return null;
         View view = inflater.inflate(R.layout.fragment_manage_cat, container, false);
-        adapter = ((MainActivity) getParentFragment().getActivity()).getCategoryData(Constants.MANAGE);
+        adapter = ((MainActivity) getActivity()).getCategoryData(Constants.MANAGE);
         adapter.addNewCat();
         sectionList = view.findViewById(R.id.catGrid);
-        ((SimpleItemAnimator) sectionList.getItemAnimator()).setSupportsChangeAnimations(false);
-        sectionList.setLayoutManager(new GridLayoutManager(getParentFragment().getActivity(), 3, GridLayoutManager.VERTICAL, false));
+        ((SimpleItemAnimator) Objects.requireNonNull(sectionList.getItemAnimator())).setSupportsChangeAnimations(false);
+        sectionList.setLayoutManager(new GridLayoutManager(getActivity(), 3, GridLayoutManager.VERTICAL, false));
         setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
         setHasOptionsMenu(true);
         return view;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem menuItem) {
-        switch (menuItem.getItemId()) {
-            case R.id.select:
-                adapter.setSelectionMode(true);
-                getParentFragment().getActivity().startActionMode(actionModeCallback);
-                return true;
-
-            case R.id.resetDefault:
-                MainActivity context = (MainActivity) getParentFragment().getActivity();
-                AlertDialog.Builder confirmReset = new AlertDialog.Builder(context, R.style.ConfirmDelDialog);
-                confirmReset.setTitle("Reset defaults");
-                confirmReset.setMessage("Reset default categories? Relevant expenses will be moved to " + ((MainActivity) context).getImmutableCat() + ".");
-                confirmReset.setPositiveButton("Reset", (dialogInterface, i) -> {
-                    context.db.deleteAllCategories();
-                    context.initialiseDefaultCats();
-                    context.updateCategoryData();
-                    Toast.makeText(context, "Categories reset to defaults", Toast.LENGTH_SHORT).show();
-                });
-                confirmReset.setNeutralButton(android.R.string.no, (dialog, which) -> {
-                    dialog.cancel(); // close dialog
-                });
-                confirmReset.show();
-                return true;
-
-            case R.id.resetOrder:
-                adapter.resetPositions();
-                adapter.setList(((MainActivity) getActivity()).sortSections(adapter.getList()));
-                adapter.notifyItemRangeChanged(0, adapter.getItemCount()-2);
-                return true;
-
-            default:
-                return false;
+    public boolean onOptionsItemSelected(@NonNull MenuItem menuItem) {
+        if (getActivity() == null)
+            return false;
+        int id = menuItem.getItemId();
+        if (id == R.id.select) {
+            adapter.setSelectionMode(true);
+            getActivity().startActionMode(actionModeCallback);
+            return true;
         }
+        if (id == R.id.resetDefault) {
+            MainActivity context = (MainActivity) getActivity();
+            int numExpenses = context.db.getNumExpensesNonDefaultCategory();
+            AlertDialog.Builder confirmReset = new AlertDialog.Builder(context, R.style.ConfirmDelDialog);
+            confirmReset.setTitle("Reset defaults")
+                    .setMessage("Reset default categories?" + ((numExpenses == 0) ? "" :
+                            " " + numExpenses + " expense(s) from " + context.db.getNumCategoriesNonDefault() +
+                            " categorie(s) will be moved to " + context.getImmutableCat() + "."))
+                    .setPositiveButton("Reset", (dialogInterface, i) -> {
+                        context.resetDefaultCats();
+                        context.updateCategoryData();
+                        Toast.makeText(context, "Categories reset to defaults", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())
+                            .show();
+            return true;
+        }
+        if (id == R.id.resetOrder) {
+            adapter.resetPositions();
+            adapter.setList(((MainActivity) getActivity()).sortSections(adapter.getList()));
+            adapter.notifyItemRangeChanged(0, adapter.getItemCount()-2);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -80,21 +85,24 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
             Toast.makeText(context, "No category selected", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (getActivity() == null)
+            return;
+        MainActivity context = (MainActivity) getActivity();
+        int numExpenses = context.db.getNumExpensesByCategories(adapter.getAllSelected());
         AlertDialog.Builder confirmDel = new AlertDialog.Builder(context, R.style.ConfirmDelDialog);
-        confirmDel.setTitle((adapter.getSelectedPos().size() == 1) ? "Delete category" : "Delete categories");
-        confirmDel.setMessage("Are you sure you want to delete? Relevant expenses will be moved to " + ((MainActivity) context).getImmutableCat() + ".");
-        confirmDel.setPositiveButton("Delete", (dialog, which) -> {
-            adapter.printSelectedPos();
-            for (int pos : adapter.getSelectedPos()) {
-                ((MainActivity) context).db.deleteCategory(adapter.getList().get(pos), false);
-            }
-            ((MainActivity) context).updateCategoryData(); // update categories
-            Toast.makeText(context, (adapter.getSelectedPos().size() == 1) ? "Category deleted" : "Categories deleted", Toast.LENGTH_SHORT).show();
-            mode.finish();
-            ((MainActivity) context).updateHomeData(); // update summary & expense list
-        });
-        confirmDel.setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel());
-        confirmDel.show();
+        confirmDel.setTitle((adapter.getSelectedPos().size() == 1) ? "Delete category" : "Delete categories")
+                .setMessage("Are you sure you want to delete?" + ((numExpenses == 0) ? "" :
+                        " " + numExpenses + " expense(s) will be moved to " + context.getImmutableCat() + "."))
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    for (int pos : adapter.getSelectedPos())
+                        context.db.deleteCategory(adapter.getList().get(pos), false);
+                    context.updateCategoryData(); // update categories
+                    Toast.makeText(context, (adapter.getSelectedPos().size() == 1) ? "Category deleted" : "Categories deleted", Toast.LENGTH_SHORT).show();
+                    mode.finish();
+                    context.updateHomeData(); // update summary & expense list
+                })
+                .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())
+                .show();
     }
 
     @Override

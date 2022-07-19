@@ -4,18 +4,15 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.method.DigitsKeyListener;
 
+import com.example.expensetracker.MainActivity;
+
 /*
  * Adapted from Konstantin Weitz - https://stackoverflow.com/users/607405/konstantin-weitz
  */
 public class MoneyValueFilter extends DigitsKeyListener {
+
     public MoneyValueFilter() {
-        super(false, true);
-    }
-
-    private int digits = 2;
-
-    public void setDigits(int d) {
-        digits = d;
+        super(MainActivity.locale,false,true);
     }
 
     @Override
@@ -41,6 +38,7 @@ public class MoneyValueFilter extends DigitsKeyListener {
         int dlen = dest.length();
 
         // Find the position of the decimal .
+        int digits = 2;
         for (int i = 0; i < dstart; i++) {
             if (dest.charAt(i) == '.') {
                 // being here means, that a number has

@@ -1,15 +1,8 @@
 package com.example.expensetracker.HelperClasses;
 
-import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-import android.provider.MediaStore;
-import android.util.Log;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 
 public class FileUtils {

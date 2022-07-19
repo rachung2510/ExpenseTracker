@@ -13,17 +13,20 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.ViewPagerAdapter;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+
+import java.util.Objects;
 
 public class ManageFragment extends Fragment {
 
     public ViewPager2 sectionPage;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (getActivity() == null)
+            return null;
         View view = inflater.inflate(R.layout.fragment_manage, container, false);
         TabLayout sectionTypeTab = view.findViewById(R.id.sectionTypeTab);
         sectionPage = view.findViewById(R.id.sectionPage);
@@ -39,7 +42,7 @@ public class ManageFragment extends Fragment {
         // toolbar
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Manage");
+        Objects.requireNonNull(((AppCompatActivity) getActivity()).getSupportActionBar()).setTitle("Manage");
         ((ImageView) view.findViewById(R.id.toolbarBg)).setImageResource(R.drawable.red_background_material2);
         view.findViewById(R.id.summary).setVisibility(ConstraintLayout.GONE);
         ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(

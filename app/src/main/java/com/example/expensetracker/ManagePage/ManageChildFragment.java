@@ -33,7 +33,7 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
     public ManageChildFragment(Context context) { this.context = context; }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.manage_options, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -61,30 +61,30 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem menuItem) {
-            switch (menuItem.getItemId()) {
-                case R.id.delSection:
-                    bulkDelete(mode);
-                    return true;
-
-                case R.id.selectAll:
-                    if (adapter.getAllSelected().size() != adapter.getItemCount()-2) {
-                        for (int i = 0; i < adapter.getItemCount()-1; i++) {
-                            if (adapter instanceof AccountAdapter && adapter.getSelected(i).getName().equals(((MainActivity) getActivity()).getDefaultAccName()))
-                                continue;
-                            if (adapter instanceof CategoryAdapter && adapter.getSelected(i).getName().equals(((MainActivity) getActivity()).getImmutableCat()))
-                                continue;
-                            if (!adapter.isSelected(i))
-                                adapter.setSelected(i);
-                        }
-                    } else {
-                        adapter.clearAllSelected();
-                    }
-                    adapter.notifyItemRangeChanged(0, adapter.getItemCount()-1);
-                    return true;
-
-                default:
-                    return false;
+            if (getActivity() == null)
+                return false;
+            int id = menuItem.getItemId();
+            if (id == R.id.delSection) {
+                bulkDelete(mode);
+                return true;
             }
+            if (id == R.id.selectAll) {
+                if (adapter.getAllSelected().size() == adapter.getItemCount()-2)
+                    adapter.clearAllSelected();
+                else {
+                    for (int i = 0; i < adapter.getItemCount()-1; i++) {
+                        if (adapter instanceof AccountAdapter && adapter.getSelected(i).getName().equals(((MainActivity) getActivity()).getDefaultAccName()))
+                            continue;
+                        if (adapter instanceof CategoryAdapter && adapter.getSelected(i).getName().equals(((MainActivity) getActivity()).getImmutableCat()))
+                            continue;
+                        if (!adapter.isSelected(i))
+                            adapter.setSelected(i);
+                    }
+                }
+                adapter.notifyItemRangeChanged(0, adapter.getItemCount()-1);
+                return true;
+            }
+            return false;
         }
 
         @Override
@@ -99,6 +99,7 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
     public void updateData() {}
 
     // Define drag/drop moveable grid
+    @SuppressWarnings("unchecked")
     public <E extends Section> ItemTouchHelper.SimpleCallback getSimpleCallback(int args) {
         return new ItemTouchHelper.SimpleCallback(args, 0) {
             int fromFinal = -1;
@@ -106,6 +107,8 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
             @Override
             public boolean canDropOver(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder current, @NonNull RecyclerView.ViewHolder target) {
                 SectionAdapter<E> adapter = (SectionAdapter<E>) recyclerView.getAdapter();
+                if (adapter == null)
+                    return false;
                 if (adapter.isNew(target.getAdapterPosition()))
                     return false;
                 if (adapter instanceof AccountAdapter)
@@ -117,6 +120,8 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
 
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                if (recyclerView.getAdapter() == null)
+                    return false;
                 int fromPos = viewHolder.getAdapterPosition();
                 int toPos = target.getAdapterPosition();
                 fromFinal = (fromFinal < 0) ? fromPos : fromFinal;
@@ -136,6 +141,8 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
 
             @Override
             public void onSelectedChanged(@Nullable RecyclerView.ViewHolder viewHolder, int actionState) {
+                if (viewHolder == null)
+                    return;
                 if (actionState == ACTION_STATE_DRAG)
                     viewHolder.itemView.setAlpha(0.7f);
                 else if (fromFinal == -1)
@@ -148,6 +155,8 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
                 if (fromFinal == -1) return;
                 viewHolder.itemView.setAlpha(1f);
                 SectionAdapter<E> adapter = (SectionAdapter <E>) recyclerView.getAdapter();
+                if (adapter == null)
+                    return;
                 ArrayList<E> sections = adapter.getList();
                 E section = sections.remove(fromFinal);
                 sections.add(toFinal, section);

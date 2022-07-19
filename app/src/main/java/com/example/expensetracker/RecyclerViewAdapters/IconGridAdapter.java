@@ -58,6 +58,14 @@ public class IconGridAdapter extends RecyclerView.Adapter<IconGridAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         int pos = holder.getAdapterPosition();
         String name = names[pos];
+
+        holder.iconBtn.setOnClickListener(view -> {
+            int oldPos = selectedPos;
+            selectedPos = pos;
+            notifyItemChanged(oldPos);
+            notifyItemChanged(pos);
+        });
+
         if (iconType == ICON_ICON) {
             holder.iconBtn.setForeground(MainActivity.getIconFromName(context, name));
             if (selectedPos == pos) { // selected
@@ -67,7 +75,9 @@ public class IconGridAdapter extends RecyclerView.Adapter<IconGridAdapter.ViewHo
                 holder.iconBtn.setBackgroundTintList(null);
                 holder.iconBtn.setForegroundTintList(iconGray);
             }
-        } else if (iconType == ICON_COLOR) {
+            return;
+        }
+        if (iconType == ICON_COLOR) {
             holder.iconBtn.setBackgroundTintList(MainActivity.getColorStateListFromName(context, name));
             holder.iconBtn.setForegroundTintList(iconGray);
             if (selectedPos == pos) {
@@ -78,11 +88,6 @@ public class IconGridAdapter extends RecyclerView.Adapter<IconGridAdapter.ViewHo
                 holder.iconBtn.setForeground(null);
             }
         }
-
-        holder.iconBtn.setOnClickListener(view -> {
-            selectedPos = pos;
-            notifyDataSetChanged();
-        });
     }
 
     @Override

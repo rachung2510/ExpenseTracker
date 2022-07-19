@@ -2,7 +2,6 @@ package com.example.expensetracker;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -23,12 +22,7 @@ public class Expense {
         this.description = description.isEmpty() ? category.getName() : description;
         this.account = account;
         this.category = category;
-        try {
-            this.datetime = Calendar.getInstance();
-            this.datetime.setTime(new SimpleDateFormat(DATETIME_FORMAT, MainActivity.locale).parse(datetime));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.datetime = MainActivity.getCalFromString(DATETIME_FORMAT, datetime);
     }
 
     // specify id (create expense with id from database)
@@ -39,14 +33,7 @@ public class Expense {
         this.description = description;
         this.account = account;
         this.category = category;
-        this.datetime = Calendar.getInstance(MainActivity.locale);
-        SimpleDateFormat sdf = new SimpleDateFormat(DATETIME_FORMAT, MainActivity.locale);
-        try {
-            Date date = sdf.parse(datetime);
-            this.datetime.setTime(date);
-        } catch (java.text.ParseException e) {
-            e.printStackTrace();
-        }
+        this.datetime = MainActivity.getCalFromString(DATETIME_FORMAT, datetime);
     }
 
     // datetime as Calendar
@@ -109,9 +96,6 @@ public class Expense {
     }
     public int getId() {
         return id;
-    }
-    public int getRelativeDate() {
-        return MainActivity.getRelativeDate(this.getDatetime());
     }
 
     /**

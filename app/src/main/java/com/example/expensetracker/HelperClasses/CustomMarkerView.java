@@ -1,5 +1,6 @@
 package com.example.expensetracker.HelperClasses;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.widget.TextView;
 
@@ -13,14 +14,15 @@ import com.github.mikephil.charting.utils.MPPointF;
 /**
  * Adapter from rafaelasguerra and Andrea Scalabrini - https://stackoverflow.com/questions/33241952/
  */
+@SuppressLint("ViewConstructor")
 public class CustomMarkerView extends MarkerView {
 
-    private TextView tvContent;
+    private final TextView tvContent;
     private MPPointF mOffset;
 
     public CustomMarkerView(Context context, int layoutResource) {
         super(context, layoutResource);
-        tvContent = (TextView) findViewById(R.id.tvContent);
+        tvContent = findViewById(R.id.tvContent);
     }
 
     @Override
@@ -33,6 +35,6 @@ public class CustomMarkerView extends MarkerView {
     @Override
     public MPPointF getOffset() {
         if(mOffset == null)
-            mOffset = new MPPointF(-(getWidth() / 2), 24-getHeight());
+            mOffset = new MPPointF(-((float) getWidth() / 2), 24-getHeight());
         return mOffset;
     }}

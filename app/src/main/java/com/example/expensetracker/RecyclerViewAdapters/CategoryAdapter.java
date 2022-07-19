@@ -57,8 +57,7 @@ public class CategoryAdapter extends SectionAdapter<Category> {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        Category cat = sections.get(position);
-        populateSectionGrid((GridViewHolder) holder, cat, position);
+        populateSectionGrid((GridViewHolder) holder, position);
     }
 
     /**
