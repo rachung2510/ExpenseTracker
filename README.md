@@ -8,10 +8,16 @@ A simple expense tracker for android which has three pages.
 
 ## Todo
 - ~~Charts piechart fragment~~
-- ~~Quick add widget~~
 - ~~Import/export db~~
 - ~~Charts graph fragment~~
-- Raise warning when date range is invalid (TO comes before FROM)
+- Fix quick add widget
+- Dialog widget
+- User settings (default currency, first day of week)
+
+## Potential features
+- Load on scroll
+- Calendar on CHARTS page
+- Quick photo with image recognition for amount
 
 ## Bug fixes
 - ~~Disappearing accounts in MANAGE~~
