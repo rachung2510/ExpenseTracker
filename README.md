@@ -8,10 +8,11 @@ A simple expense tracker for android which has three pages.
 
 ## Todo
 - ~~Charts piechart fragment~~
-- Fix quick add widget
 - ~~Import/export db~~
 - ~~Charts graph fragment~~
+- Fix quick add widget
 - Dialog widget
+- User settings (default currency, first day of week)
 
 ## Potential features
 - Load on scroll
