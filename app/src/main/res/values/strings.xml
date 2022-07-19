@@ -3,7 +3,6 @@
     <string name="title_home">Home</string>
     <string name="title_manage">Manage</string>
     <string name="title_charts">Charts</string>
-    <string name="default_currency">SGD</string>
 
     <string name="exp">Expense</string>
     <string name="exps_caps">EXPENSES</string>
@@ -11,8 +10,10 @@
     <string name="acc_caps">ACCOUNT</string>
     <string name="cat">Category</string>
     <string name="acc">Account</string>
-    <string name="default_acc">Cash</string>
-    <string name="default_cat">Others</string>
+
+    <string name="default_currency">SGD</string>
+    <string name="key_default_currency">default_currency</string>
+    <string name="key_default_firstDayOfWeek">default_firstDayOfWeek</string>
 
     <string name="day">Day</string>
     <string name="month">Month</string>

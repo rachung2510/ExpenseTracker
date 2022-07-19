@@ -8,5 +8,7 @@
     <item
         android:id="@+id/resetDefault"
         android:title="Reset defaults" />
-
+    <item
+        android:id="@+id/resetOrder"
+        android:title="Reset order" />
 </menu>
