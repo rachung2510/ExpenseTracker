@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +32,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private final Context context;
 
     // Database info
-    private static final int DATABASE_VERSION = 2; // Database Version
+    private static final int DATABASE_VERSION = 1; // Database Version
     private static final String DATABASE_NAME = "ExpenseTracker.db"; // Database Name
 
     // Table names
@@ -548,7 +547,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * COMPUTATION
      */
     public float getAverage(int period, ArrayList<Expense> expenses) {
-//        ArrayList<Expense> expenses = getExpensesByDateRange(from, to);
         float totalAmt = 0;
         int count = 0;
         HashMap<String,Boolean> dates = new HashMap<>();

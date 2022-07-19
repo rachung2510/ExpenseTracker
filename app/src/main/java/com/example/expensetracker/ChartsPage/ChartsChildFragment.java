@@ -95,7 +95,6 @@ public class ChartsChildFragment extends Fragment {
     TextView lineAmt, lineDate, avgDay, avgWeek, avgMonth, placeholder;
     LinearLayout summaryAmtBlk, statistics;
     RecyclerView expenseList;
-    ExpenseAdapter expenseAdapter;
     ArrayList<Expense> expenses = new ArrayList<>();
     ArrayList<String> dates = new ArrayList<>();
     private int selDateState;
@@ -146,13 +145,9 @@ public class ChartsChildFragment extends Fragment {
                 lineAmt = view.findViewById(R.id.summaryAmt);
                 updateCurrency(new Currency(getActivity()).getSymbol());
                 summaryAmtBlk = view.findViewById(R.id.summaryAmtBlk);
-                summaryAmtBlk.setOnClickListener(view1 -> {
-                    resetOnClick();
-                });
+                summaryAmtBlk.setOnClickListener(view1 -> resetOnClick());
                 statistics = view.findViewById(R.id.statistics);
-                statistics.setOnClickListener(view1 -> {
-                    resetOnClick();
-                });
+                statistics.setOnClickListener(view1 -> resetOnClick());
                 expenseList = view.findViewById(R.id.expenseList);
                 avgDay = view.findViewById(R.id.dayAvg);
                 avgWeek = view.findViewById(R.id.weekAvg);
@@ -564,8 +559,6 @@ public class ChartsChildFragment extends Fragment {
                 if (lastPerformedGesture == ChartTouchListener.ChartGesture.X_ZOOM) {
                     scale *= scaleX;
                     if (scale <= 1) scale = 1;
-//                    Log.e(TAG, "scaleX=" + String.format("%.2f", scaleX) + ", scale=" + String.format("%.2f", scale));
-//                    Log.e(TAG, "gran=" + (num_units / scale /granDivisor));
                     updateXLabels(num_units / scale / granDivisor);
                 }
             }
@@ -597,13 +590,9 @@ public class ChartsChildFragment extends Fragment {
         });
     }
     public void configLineChartRecyclerView() {
-//        expenses = MainActivity.sortExpenses(expenses, Constants.DESCENDING);
-//        expenses = MainActivity.insertExpDateHeaders(expenses);
-//        expenseAdapter = new ExpenseAdapter(getContext(), expenses, true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         expenseList.setLayoutManager(linearLayoutManager);
-//        expenseList.setAdapter(expenseAdapter);
     }
     public void updateAverages() {
         float avg = ((MainActivity) getActivity()).db.getDayAverage(expenses);

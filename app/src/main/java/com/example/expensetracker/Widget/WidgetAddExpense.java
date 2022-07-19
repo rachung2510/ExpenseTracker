@@ -15,12 +15,11 @@ import com.example.expensetracker.R;
 public class WidgetAddExpense extends AppWidgetProvider {
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
-
-        Intent intent = new Intent(context, WidgetExpenseActivity.class);
+        Intent intent = new Intent(context, WidgetDialogActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_add_expense);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_squircle);
         views.setOnClickPendingIntent(R.id.widgetBtn, pendingIntent);
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }

@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ import android.widget.Toast;
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
+import com.example.expensetracker.Currency;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.Expense;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
@@ -40,7 +42,7 @@ import com.example.expensetracker.Section;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-public class WidgetExpenseActivity extends AppCompatActivity {
+public class WidgetDialogActivity extends AppCompatActivity {
 
     public DatabaseHelper db = new DatabaseHelper(this);
 
@@ -74,7 +76,7 @@ public class WidgetExpenseActivity extends AppCompatActivity {
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
         Calendar cal = Calendar.getInstance(MainActivity.locale);
         expDate.setText(("Today, " + new SimpleDateFormat("dd MMMM yyyy", MainActivity.locale).format(cal.getTime())).toUpperCase());
-        expCurr.setText(db.getAccount(1).getCurrencySymbol());
+        expCurr.setText(new Currency(this).getSymbol());
 
         // actions
         expAcc.setOnClickListener(view -> {
@@ -243,6 +245,9 @@ public class WidgetExpenseActivity extends AppCompatActivity {
         return new CategoryAdapter(this, db.getAllCategories());
     }
 
-
+    public String getDefaultCurrency() {
+        SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
+        return pref.getString(getString(R.string.key_default_currency), getString(R.string.default_currency));
+    }
 
 }

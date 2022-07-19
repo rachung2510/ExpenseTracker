@@ -17,7 +17,7 @@
         android:theme="@style/Theme.ExpenseTracker"
         tools:targetApi="31">
         <activity
-            android:name=".Widget.WidgetExpenseActivity"
+            android:name=".Widget.WidgetDialogActivity"
             android:theme="@style/Theme.Transparent"
             android:launchMode="singleInstance"
             android:excludeFromRecents="true"

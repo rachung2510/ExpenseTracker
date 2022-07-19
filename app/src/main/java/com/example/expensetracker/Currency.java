@@ -2,6 +2,8 @@ package com.example.expensetracker;
 
 import android.content.Context;
 
+import com.example.expensetracker.Widget.WidgetDialogActivity;
+
 public class Currency {
     private static final String TAG = "Currency";
     private final String name;
@@ -14,7 +16,12 @@ public class Currency {
         this.symbol = symbol;
     }
     public Currency(Context context) {
-        String defaultCurrency = ((MainActivity) context).getDefaultCurrency();
+        String defaultCurrency = "";
+        if (context instanceof MainActivity)
+            defaultCurrency = ((MainActivity) context).getDefaultCurrency();
+        else if (context instanceof WidgetDialogActivity) {
+            defaultCurrency = ((WidgetDialogActivity) context).getDefaultCurrency();
+        }
         this.name = defaultCurrency;
         this.description = "";
         this.symbol = Constants.currency_map.get(defaultCurrency);
