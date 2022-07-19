@@ -11,7 +11,7 @@ A simple expense tracker for android which has three pages.
 - ~~Import/export db~~
 - ~~Charts graph fragment~~
 - ~~Fix dialog widget~~
-- Static widget
+- ~~Static widget~~
 - User settings (default currency, first day of week)
 
 ## Potential features
