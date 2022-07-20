@@ -56,22 +56,25 @@ public class Section {
     public String getIconName() {
         return icon;
     }
-    public String getColorName() {
-        return color;
-    }
-    public int getPosition() { return position; }
     public int getIconId() {
         return context.getResources().getIdentifier(icon, "drawable", context.getPackageName());
-    }
-    public int getColorId() {
-        return context.getResources().getIdentifier(color, "color", context.getPackageName());
     }
     public Drawable getIcon() {
         return MainActivity.getIconFromName(context, icon);
     }
+    public int getColor() {
+        return MainActivity.getColorFromHex(getColorHex());
+    }
     public String getColorHex() {
         return MainActivity.getColorHexFromName(context, color);
     }
+    public int getColorId() {
+        return context.getResources().getIdentifier(color, "color", context.getPackageName());
+    }
+    public String getColorName() {
+        return color;
+    }
+    public int getPosition() { return position; }
 
     /**
      * SETTERS

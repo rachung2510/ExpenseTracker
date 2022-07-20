@@ -13,4 +13,7 @@
     <dimen name="widgetBtnSize">46dp</dimen>
     <dimen name="widgetMargin">18dp</dimen>
     <dimen name="widgetMarginTop">30dp</dimen>
+    <dimen name="widgetCornerRadius">20dp</dimen>
+    <dimen name="widgetBannerHeight">77dp</dimen>
+    <dimen name="widgetBannerHeightNeg">-77dp</dimen>
 </resources>

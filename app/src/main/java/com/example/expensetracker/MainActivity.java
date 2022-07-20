@@ -4,7 +4,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -489,8 +492,8 @@ public class MainActivity extends AppCompatActivity {
         expCatIcon.setForeground(cat.getIcon());
         expAccIcon.setForegroundTintList(getColorStateListFromHex(acc.getColorHex())); // set icon color
         expCatIcon.setForegroundTintList(getColorStateListFromHex(cat.getColorHex()));
-        expAccBox.setBackgroundColor(getColorFromHex(acc.getColorHex())); // set bg color
-        expCatBox.setBackgroundColor(getColorFromHex(cat.getColorHex()));
+        expAccBox.setBackgroundColor(acc.getColor()); // set bg color
+        expCatBox.setBackgroundColor(cat.getColor());
         expCurr.setText(new Currency(this).getSymbol());
 
         // actions
@@ -546,10 +549,10 @@ public class MainActivity extends AppCompatActivity {
         expCatName.setText(cat.getName());
         expAccIcon.setForeground(acc.getIcon()); // set icon
         expCatIcon.setForeground(cat.getIcon());
-        expAccIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + acc.getColorHex()))); // set icon color
-        expCatIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + cat.getColorHex())));
-        expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex())); // set bg color
-        expCatBox.setBackgroundColor(Color.parseColor("#" + cat.getColorHex()));
+        expAccIcon.setForegroundTintList(getColorStateListFromHex(acc.getColorHex())); // set icon color
+        expCatIcon.setForegroundTintList(getColorStateListFromHex(cat.getColorHex()));
+        expAccBox.setBackgroundColor(acc.getColor()); // set bg color
+        expCatBox.setBackgroundColor(cat.getColor());
         expCurr.setText(acc.getCurrencySymbol());
 
         Calendar today = Calendar.getInstance(locale);
@@ -870,6 +873,27 @@ public class MainActivity extends AppCompatActivity {
     /**
      * STATIC METHODS
      */
+    public static Bitmap drawableToBitmap (Drawable drawable) {
+        Bitmap bitmap = null;
+
+        if (drawable instanceof BitmapDrawable) {
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+            if(bitmapDrawable.getBitmap() != null) {
+                return bitmapDrawable.getBitmap();
+            }
+        }
+
+        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+        } else {
+            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
+    }
     public static int getIconIdFromName(Context context, String name) {
         return context.getResources().getIdentifier(name, "drawable", context.getPackageName());
     }

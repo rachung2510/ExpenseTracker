@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -20,66 +19,159 @@
 
             <LinearLayout
                 android:layout_width="fill_parent"
+                android:layout_height="@dimen/widgetBannerHeight"
+                android:orientation="horizontal"
+                android:baselineAligned="false"
+                android:layout_marginTop="@dimen/widgetMargin"
+                android:weightSum="2">
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:layout_weight="1">
+
+                        <ImageView
+                            android:id="@+id/newExpAccBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/shape_rounded_top_left_rectangle"
+                            android:scaleType="fitCenter"
+                            tools:ignore="ContentDescription" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/widgetBannerHeightNeg"
+                            android:orientation="vertical"
+                            android:paddingTop="@dimen/widgetTextSize"
+                            android:paddingBottom="@dimen/widgetTextSize"
+                            android:paddingLeft="@dimen/widgetTextSize"
+                            android:paddingRight="@dimen/widgetTextSize">
+
+                            <TextView
+                                android:layout_width="fill_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/Acc"
+                                android:textSize="@dimen/widgetTextSize"
+                                android:textColor="#fff" />
+
+                            <TextView
+                                android:id="@+id/newExpAccName"
+                                android:layout_width="fill_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:text="@string/example_acc"
+                                android:singleLine="true"
+                                android:textColor="#fff"
+                                android:textSize="@dimen/widgetDisplayTextSize" />
+
+                        </LinearLayout>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/newExpCatBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/shape_rounded_top_right_rectangle"
+                        android:scaleType="fitCenter"
+                        tools:ignore="ContentDescription" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/widgetBannerHeightNeg"
+                        android:orientation="vertical"
+                        android:paddingTop="@dimen/widgetTextSize"
+                        android:paddingBottom="@dimen/widgetTextSize"
+                        android:paddingLeft="@dimen/widgetTextSize"
+                        android:paddingRight="@dimen/widgetTextSize">
+
+                        <TextView
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/Cat"
+                            android:textSize="@dimen/widgetTextSize"
+                            android:textColor="#fff" />
+
+                        <TextView
+                            android:id="@+id/newExpCatName"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:text="@string/example_cat"
+                            android:singleLine="true"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/widgetDisplayTextSize" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:baselineAligned="false"
                 android:weightSum="2">
 
                 <LinearLayout
-                    android:id="@+id/newExpAccBox"
-                    android:layout_width="fill_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@color/cat_pure_apple"
-                    android:orientation="vertical"
-                    android:paddingTop="@dimen/widgetTextSize"
-                    android:paddingBottom="@dimen/widgetTextSize"
-                    android:paddingLeft="@dimen/widgetTextSize"
-                    android:paddingRight="@dimen/widgetTextSize">
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:layout_weight="1">
 
-                    <TextView
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/Acc"
-                        android:textSize="@dimen/widgetTextSize"
-                        android:textColor="#fff" />
-
-                    <TextView
-                        android:id="@+id/newExpAccName"
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/example_acc"
-                        android:textColor="#fff"
-                        android:textSize="@dimen/widgetDisplayTextSize" />
+                    <ImageButton
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_marginEnd="-50dp"
+                        android:background="@drawable/shape_rounded_square"
+                        android:backgroundTint="@color/white"
+                        android:clickable="false"
+                        tools:ignore="ContentDescription" />
+                    <ImageView
+                        android:id="@+id/newExpAccIcon"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_marginEnd="24dp"
+                        android:src="@drawable/acc_cash"
+                        android:scaleType="fitCenter"
+                        tools:ignore="ContentDescription" />
 
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/newExpCatBox"
-                    android:layout_width="fill_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@color/cat_pastel_red"
-                    android:orientation="vertical"
-                    android:paddingTop="@dimen/widgetTextSize"
-                    android:paddingBottom="@dimen/widgetTextSize"
-                    android:paddingLeft="@dimen/widgetTextSize"
-                    android:paddingRight="@dimen/widgetTextSize">
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:layout_weight="1">
 
-                    <TextView
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/Cat"
-                        android:textSize="@dimen/widgetTextSize"
-                        android:textColor="#fff" />
-
-                    <TextView
-                        android:id="@+id/newExpCatName"
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/example_cat"
-                        android:textColor="#fff"
-                        android:textSize="@dimen/widgetDisplayTextSize" />
+                    <ImageButton
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_marginEnd="-50dp"
+                        android:background="@drawable/shape_circle"
+                        android:backgroundTint="@color/white"
+                        android:clickable="false"
+                        tools:ignore="ContentDescription" />
+                    <ImageView
+                        android:id="@+id/newExpCatIcon"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_marginEnd="24dp"
+                        android:src="@drawable/cat_food"
+                        android:scaleType="fitCenter"
+                        tools:ignore="ContentDescription" />
 
                 </LinearLayout>
 
@@ -188,7 +280,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:textFontWeight="600"
                 android:textSize="12sp"
-                android:text="YESTERDAY, 09 JAN 2022" />
+                android:text="@string/example_date" />
         </LinearLayout>
 
         <!--    action buttons-->
@@ -215,13 +307,14 @@
                 <ImageButton
                     android:layout_width="@dimen/widgetBtnSize"
                     android:layout_height="@dimen/widgetBtnSize"
-                    android:clickable="false"
-                    android:src="@drawable/selector_circle"
-                    android:scaleType="fitCenter"
                     android:background="@drawable/shape_circle"
                     android:backgroundTint="#feeec1"
+                    android:clickable="false"
                     android:foreground="@drawable/ic_action_update"
-                    android:foregroundTint="#febd15" />
+                    android:foregroundTint="#febd15"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/selector_circle_widget"
+                    tools:ignore="ContentDescription" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -246,12 +339,13 @@
                     android:layout_width="@dimen/widgetBtnSize"
                     android:layout_height="@dimen/widgetBtnSize"
                     android:clickable="false"
-                    android:src="@drawable/selector_circle"
+                    android:src="@drawable/selector_circle_widget"
                     android:scaleType="fitCenter"
                     android:background="@drawable/shape_circle"
                     android:backgroundTint="#dadada"
                     android:foreground="@drawable/action_date"
-                    android:foregroundTint="#757575" />
+                    android:foregroundTint="#757575"
+                    tools:ignore="ContentDescription" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -275,12 +369,13 @@
                     android:layout_width="@dimen/widgetBtnSize"
                     android:layout_height="@dimen/widgetBtnSize"
                     android:clickable="false"
-                    android:src="@drawable/selector_circle"
+                    android:src="@drawable/selector_circle_widget"
                     android:scaleType="fitCenter"
                     android:background="@drawable/shape_circle"
                     android:backgroundTint="#cfd3eb"
                     android:foreground="@drawable/action_check"
-                    android:foregroundTint="#4f54a7" />
+                    android:foregroundTint="#4f54a7"
+                    tools:ignore="ContentDescription" />
 
                 <TextView
                     android:layout_width="wrap_content"

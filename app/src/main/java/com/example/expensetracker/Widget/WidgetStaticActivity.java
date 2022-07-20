@@ -1,5 +1,6 @@
 package com.example.expensetracker.Widget;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
@@ -250,7 +251,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
         return builder;
     }
     public void expenseAccDialog(AccountAdapter adapter) {
-        final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        @SuppressLint("InflateParams") final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog dialog = expenseSectionDialog(adapter, view).create();
         adapter.setDialog(dialog);
 
@@ -262,8 +263,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
             Account acc = adapter.getSelected();
             RemoteViews views = getRemoteViews();
             views.setTextViewText(R.id.newExpAccName, acc.getName());
-            views.setInt(R.id.newExpAccBox, "setBackgroundColor", MainActivity.getColorFromHex(acc.getColorHex()));
+            views.setInt(R.id.newExpAccBox,"setColorFilter", acc.getColor());
             views.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
+            views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(acc.getIcon()));
+            views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
             updateView(views);
             storeValue(KEY_ACC, acc.getName());
             finish();
@@ -271,7 +274,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
         dialog.show();
     }
     public void expenseCatDialog(CategoryAdapter adapter, Expense exp) {
-        final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        @SuppressLint("InflateParams") final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog dialog = expenseSectionDialog(adapter, view).create();
         adapter.setDialog(dialog);
 
@@ -291,7 +294,9 @@ public class WidgetStaticActivity extends AppCompatActivity {
             Category cat = adapter.getSelected();
             RemoteViews views = getRemoteViews();
             views.setTextViewText(R.id.newExpCatName, cat.getName());
-            views.setInt(R.id.newExpCatBox, "setBackgroundColor", MainActivity.getColorFromHex(cat.getColorHex()));
+            views.setInt(R.id.newExpCatBox,"setColorFilter", cat.getColor());
+            views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(cat.getIcon()));
+            views.setInt(R.id.newExpCatIcon,"setColorFilter", cat.getColor());
             updateView(views);
             storeValue(KEY_CAT, cat.getName());
             finish();

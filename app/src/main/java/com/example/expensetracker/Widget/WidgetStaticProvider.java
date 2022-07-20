@@ -1,5 +1,7 @@
 package com.example.expensetracker.Widget;
 
+import static android.os.Build.VERSION_CODES.JELLY_BEAN;
+
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -7,7 +9,17 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.util.Log;
 import android.widget.RemoteViews;
+
+import androidx.core.content.ContextCompat;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
@@ -16,6 +28,8 @@ import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Calendar;
 
 public class WidgetStaticProvider extends AppWidgetProvider {
@@ -58,13 +72,19 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         Category cat = db.getCategory(db.getDefaultCatName());
         views.setTextViewText(R.id.newExpAccName, acc.getName());
         views.setTextViewText(R.id.newExpCatName, cat.getName());
-        views.setInt(R.id.newExpAccBox, "setBackgroundColor", MainActivity.getColorFromHex(acc.getColorHex()));
-        views.setInt(R.id.newExpCatBox, "setBackgroundColor", MainActivity.getColorFromHex(cat.getColorHex()));
+        views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.shape_rounded_top_left_rectangle)));
+        views.setInt(R.id.newExpAccBox, "setColorFilter", acc.getColor());
+        views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.shape_rounded_top_right_rectangle)));
+        views.setInt(R.id.newExpCatBox, "setColorFilter", cat.getColor());
         views.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
         views.setTextViewText(R.id.newExpAmt, "");
         views.setTextViewText(R.id.newExpDesc, "");
         Calendar cal = Calendar.getInstance(MainActivity.locale);
         views.setTextViewText(R.id.expDate, (MainActivity.getRelativePrefix(cal) + ", " + MainActivity.getDatetimeStr(cal, "dd MMMM yyyy")).toUpperCase());
+        views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(acc.getIcon()));
+        views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
+        views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(cat.getIcon()));
+        views.setInt(R.id.newExpCatIcon,"setColorFilter", cat.getColor());
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
@@ -105,6 +125,7 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
         onUpdate(context, appWidgetManager, appWidgetIds);
     }
+
 
 
 }
