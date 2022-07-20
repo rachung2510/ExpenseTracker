@@ -119,6 +119,19 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
+        <ImageButton
+            android:id="@+id/menu_btn"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="6dp"
+            android:src="@drawable/selector_circle"
+            android:scaleType="fitCenter"
+            android:foreground="@drawable/ic_menu"
+            android:foregroundTint="@color/white"
+            android:background="@drawable/shape_circle"
+            android:backgroundTint="@android:color/transparent"/>
+
     </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

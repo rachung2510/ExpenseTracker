@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_drawer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:animateLayoutChanges="true"
+    android:orientation="vertical"
+    android:paddingTop="20dp"
+    android:paddingBottom="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/sideMenuMarginStart"
+        android:textSize="16sp"
+        android:textColor="@color/text_dark_gray"
+        android:textFontWeight="600"
+        android:text="Settings"/>
+
+    <LinearLayout
+        android:id="@+id/sideMenuItemCurrency"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/sideMenuItemMargin"
+        android:paddingBottom="@dimen/sideMenuItemMargin"
+        android:paddingStart="@dimen/sideMenuMarginStart"
+        android:gravity="center|start"
+        android:foreground="?selectableItemBackgroundBorderless">
+
+        <ImageButton
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:clickable="false"
+            android:background="@drawable/ic_currency"
+            android:backgroundTint="@color/generic_icon_gray"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/default_curr_title"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+            <TextView
+                android:id="@+id/sideMenuValueCurrency"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="10dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:layout_weight="1"
+                android:textColor="@color/text_dark_gray"
+                android:textSize="14sp"
+                android:text="@string/default_currency" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="45dp"
+        android:foreground="@color/tag_bg_gray"/>
+
+    <LinearLayout
+        android:id="@+id/sideMenuItemFirst"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/sideMenuItemMargin"
+        android:paddingBottom="@dimen/sideMenuItemMargin"
+        android:paddingStart="@dimen/sideMenuMarginStart"
+        android:foreground="?selectableItemBackgroundBorderless"
+        android:gravity="center|start">
+
+        <ImageButton
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/date_calendar_event"
+            android:backgroundTint="@color/generic_icon_gray"
+            android:clickable="false" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/default_fdow_title"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+            <TextView
+                android:id="@+id/sideMenuValueFirst"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:layout_marginEnd="10dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:layout_weight="1"
+                android:textColor="@color/text_dark_gray"
+                android:textSize="14sp"
+                android:text="Sunday" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:foreground="@color/tag_bg_gray"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="@dimen/sideMenuMarginStart"
+        android:textSize="16sp"
+        android:textColor="@color/text_dark_gray"
+        android:textFontWeight="600"
+        android:text="Data"/>
+
+    <LinearLayout
+        android:id="@+id/sideMenuItemImport"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/sideMenuItemMarginLarger"
+        android:paddingBottom="@dimen/sideMenuItemMarginLarger"
+        android:paddingStart="@dimen/sideMenuMarginStart"
+        android:gravity="center|start"
+        android:foreground="?selectableItemBackgroundBorderless">
+
+        <ImageButton
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:clickable="false"
+            android:background="@drawable/ic_import"
+            android:backgroundTint="@color/generic_icon_gray"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/action_import"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="45dp"
+        android:foreground="@color/tag_bg_gray"/>
+
+    <LinearLayout
+        android:id="@+id/sideMenuItemExport"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/sideMenuItemMarginLarger"
+        android:paddingBottom="@dimen/sideMenuItemMarginLarger"
+        android:paddingStart="@dimen/sideMenuMarginStart"
+        android:foreground="?selectableItemBackgroundBorderless"
+        android:gravity="center|start">
+
+        <ImageButton
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/ic_export"
+            android:backgroundTint="@color/generic_icon_gray"
+            android:clickable="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/action_export"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

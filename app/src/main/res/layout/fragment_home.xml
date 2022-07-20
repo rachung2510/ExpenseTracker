@@ -30,7 +30,8 @@
             android:layout_marginRight="15dp"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="-5dp"
-            android:layout_gravity="start"/>
+            android:layout_gravity="start"
+            tools:listitem="@layout/item_section_filter"/>
 
 <!--    expense list-->
         <androidx.recyclerview.widget.RecyclerView
@@ -40,7 +41,8 @@
             android:overScrollMode="never"
             android:layout_marginTop="12dp"
             android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp" />
+            android:layout_marginRight="20dp"
+            tools:listitem="@layout/item_expense"/>
 
         <TextView
             android:id="@+id/placeholder"

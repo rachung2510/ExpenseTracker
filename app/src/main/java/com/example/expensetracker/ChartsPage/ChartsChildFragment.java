@@ -227,7 +227,7 @@ public class ChartsChildFragment extends Fragment {
      */
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.graph_menu, menu);
+        inflater.inflate(R.menu.home_menu, menu);
         clearFilters = menu.findItem(R.id.clearFilters);
         updateClearFiltersItem();
         super.onCreateOptionsMenu(menu, inflater);

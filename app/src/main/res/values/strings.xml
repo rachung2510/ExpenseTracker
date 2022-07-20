@@ -45,6 +45,11 @@
     <string name="charts_frag_cal">Calendar</string>
     <string name="app_widget_description">Quick add expense</string>
 
+    <string name="default_fdow_title">First day of week</string>
+    <string name="default_curr_title">Default currency</string>
+    <string name="action_import">Import</string>
+    <string name="action_export">Export</string>
+
 <!--    ChartsChildFragment-->
     <string name="filter_dialog_title">FILTER BY %1$s</string>
     <string name="full_date">%1$s, %2$s</string>

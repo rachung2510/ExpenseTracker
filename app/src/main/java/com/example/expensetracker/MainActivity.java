@@ -1,7 +1,11 @@
 package com.example.expensetracker;
 
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -10,6 +14,7 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.util.TypedValue;
@@ -24,9 +29,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -52,6 +62,8 @@ import com.example.expensetracker.ManagePage.ManageFragment;
 import com.example.expensetracker.ManagePage.SectionOptDialogFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -71,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
     public static Locale locale = Locale.getDefault();
     private HashMap<Integer, String> iconMap = new HashMap<>();
     private HashMap<Integer, String> colorMap = new HashMap<>();
+
+    private TextView sideMenuValueCurr, sideMenuValueFirst;
 
     // Dialog components
     private AlertDialog.Builder dialogBuilder;
@@ -97,16 +111,90 @@ public class MainActivity extends AppCompatActivity {
             getColorMap();
         if (!getPreferences(Context.MODE_PRIVATE).contains(getString(R.string.key_default_currency)))
             initialiseDefaultSettings();
-        initialiseDefaultSettings();
 
         // Initialize the bottom navigation view
-        BottomNavigationView navView = findViewById(R.id.nav_view);
+        BottomNavigationView bottomNavView = findViewById(R.id.bottom_nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_home, R.id.navigation_manage, R.id.navigation_charts)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-        NavigationUI.setupWithNavController(navView, navController);
+        NavigationUI.setupWithNavController(bottomNavView, navController);
+
+        // Initialise menu
+        LinearLayout sideMenuItemCurr = findViewById(R.id.sideMenuItemCurrency);
+        LinearLayout sideMenuItemFirst = findViewById(R.id.sideMenuItemFirst);
+        LinearLayout sideMenuItemImport = findViewById(R.id.sideMenuItemImport);
+        LinearLayout sideMenuItemExport = findViewById(R.id.sideMenuItemExport);
+        sideMenuValueCurr = findViewById(R.id.sideMenuValueCurrency);
+        sideMenuValueFirst = findViewById(R.id.sideMenuValueFirst);
+
+        sideMenuValueCurr.setText(getDefaultCurrency());
+        sideMenuValueFirst.setText((getDefaultFirstDayOfWeek() == Calendar.SUNDAY) ? "Sunday" : "Monday");
+
+        sideMenuItemCurr.setOnClickListener(view2 -> {
+            CurrencyAdapter adapter = new CurrencyAdapter(this, db.getAllCurrencies(), getDefaultCurrency());
+            final View view1 = getLayoutInflater().inflate(R.layout.dialog_recyclerview, null);
+            RecyclerView currencyList = view1.findViewById(R.id.recyclerView);
+            currencyList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+            currencyList.setAdapter(adapter);
+
+            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder.setTitle(getString(R.string.default_curr_title))
+                    .setView(view1)
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+                        SharedPreferences pref = getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = pref.edit();
+                        editor.putString(getString(R.string.key_default_currency), adapter.getSelected());
+                        editor.apply();
+                        sideMenuValueCurr.setText(getDefaultCurrency());
+                        if (getFragment() instanceof HomeFragment)
+                            ((HomeFragment) getFragment()).setSummaryCurr(new Currency(this).getSymbol());
+                    })
+                    .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {})
+                    .show();
+        });
+        sideMenuItemFirst.setOnClickListener(view -> {
+            // Calendar.SUNDAY is 1, Calendar.MONDAY is 2
+            int[] selectedPos = { getDefaultFirstDayOfWeek() };
+            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder.setTitle(getString(R.string.default_fdow_title))
+                    .setSingleChoiceItems(new String[]{ "Sunday", "Monday" },
+                            selectedPos[0] - 1,
+                            (dialogInterface, i) -> {
+                                selectedPos[0] = i + 1;
+                                dialogInterface.dismiss();
+                            })
+                    .setOnDismissListener(dialogInterface -> {
+                        SharedPreferences pref = getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = pref.edit();
+                        editor.putInt(getString(R.string.key_default_firstDayOfWeek), selectedPos[0]);
+                        editor.apply();
+                        sideMenuValueFirst.setText((getDefaultFirstDayOfWeek() == Calendar.SUNDAY) ? "Sunday" : "Monday");
+                        if (!(getFragment() instanceof HomeFragment))
+                            return;
+                        ((HomeFragment) getFragment()).updateDate();
+                        updateHomeData();
+                    })
+                    .show();
+        });
+        sideMenuItemImport.setOnClickListener(view -> {
+            if (permissionsGranted()) showFileChooser();
+            else requestPermissions();
+        });
+        sideMenuItemExport.setOnClickListener(view -> {
+            if (!permissionsGranted()) {
+                Toast.makeText(this, "Permissions not granted", Toast.LENGTH_SHORT).show();
+                requestPermissions();
+                return;
+            }
+            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder.setTitle("Export database?")
+                    .setMessage("Database will be exported to Downloads folder.")
+                    .setPositiveButton(android.R.string.yes, (dialogInterface1, i1) -> db.exportDatabase())
+                    .setNegativeButton(android.R.string.no, (dialogInterface1, i1) -> dialogInterface1.dismiss())
+                    .show();
+        });
     }
 
     /**
@@ -151,11 +239,6 @@ public class MainActivity extends AppCompatActivity {
         editor.putString(getString(R.string.key_default_currency), getString(R.string.default_currency));
         editor.putInt(getString(R.string.key_default_firstDayOfWeek), Calendar.SUNDAY);
         editor.apply();
-
-        SharedPreferences.Editor editor1 = getPreferences(Context.MODE_PRIVATE).edit();
-        editor1.remove(getString(R.string.key_default_currency));
-        editor1.remove(getString(R.string.key_default_firstDayOfWeek));
-        editor1.apply();
     }
 
     /**
@@ -510,6 +593,7 @@ public class MainActivity extends AppCompatActivity {
         expDateBtn.setOnClickListener(view -> {
             AlertDialog.Builder changeDate = new AlertDialog.Builder(MainActivity.this);
             DatePicker datePicker = new DatePicker(MainActivity.this);
+            datePicker.setFirstDayOfWeek(getDefaultFirstDayOfWeek());
             changeDate.setView(datePicker)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                 cal.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
@@ -605,6 +689,7 @@ public class MainActivity extends AppCompatActivity {
             AlertDialog.Builder changeDate = new AlertDialog.Builder(MainActivity.this);
             DatePicker datePicker = new DatePicker(MainActivity.this);
             Calendar expDatetime = exp.getDatetime();
+            datePicker.setFirstDayOfWeek(getDefaultFirstDayOfWeek());
             datePicker.updateDate(expDatetime.get(Calendar.YEAR), expDatetime.get(Calendar.MONTH), expDatetime.get(Calendar.DAY_OF_MONTH));
             changeDate.setView(datePicker)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
@@ -759,7 +844,7 @@ public class MainActivity extends AppCompatActivity {
                 String name = sectionName.getText().toString();
                 int icon_id = (Integer) sectionIcon.getTag();
                 int color_id = (Integer) sectionBanner.getTag();
-                Category cat = new Category(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id), getPosCategory());
+                Category cat = new Category(MainActivity.this, name, iconMap.get(icon_id), colorMap.get(color_id), getNewPosCat());
                 db.createCategory(cat, true);
                 updateCategoryData();
                 addCatDialog.dismiss();
@@ -874,21 +959,18 @@ public class MainActivity extends AppCompatActivity {
      * STATIC METHODS
      */
     public static Bitmap drawableToBitmap (Drawable drawable) {
-        Bitmap bitmap = null;
-
         if (drawable instanceof BitmapDrawable) {
             BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
             if(bitmapDrawable.getBitmap() != null) {
                 return bitmapDrawable.getBitmap();
             }
         }
-
+        Bitmap bitmap;
         if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
             bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
         } else {
             bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         }
-
         Canvas canvas = new Canvas(bitmap);
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         drawable.draw(canvas);
@@ -971,7 +1053,7 @@ public class MainActivity extends AppCompatActivity {
         return DateGridAdapter.getInitSelectedDates(range, state, getDefaultFirstDayOfWeek());
     }
     public int getNewPosAcc() { return db.getNewPosAccount(); }
-    public int getPosCategory() {
+    public int getNewPosCat() {
         return db.getNewPosCategory();
     }
     public static int getRelativeDate(Calendar cal) {
@@ -1005,6 +1087,12 @@ public class MainActivity extends AppCompatActivity {
         } catch (ParseException e) { e.printStackTrace();}
         return cal;
     }
+    public void setupMenuBtn(ImageButton menuBtn) {
+        menuBtn.setOnClickListener(view1 -> {
+            DrawerLayout navDrawer = findViewById(R.id.drawer_layout);
+            navDrawer.openDrawer(GravityCompat.START);
+        });
+    }
 
     public static void showKeyboard(Context context, EditText view) {
         view.postDelayed(() -> {
@@ -1021,5 +1109,49 @@ public class MainActivity extends AppCompatActivity {
     }
     public void hideKeyboard(EditText view) {
         hideKeyboard(this, view);
+    }
+
+    private void showFileChooser() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        launcher.launch(intent);
+    }
+    ActivityResultLauncher<Intent> launcher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data == null)
+                        return;
+                    Uri uri = data.getData();
+                    dialogBuilder = new AlertDialog.Builder(this, R.style.ConfirmDelDialog);
+                    dialogBuilder.setTitle("Import database")
+                            .setMessage("Are you sure you want to import? This will overwrite all current data.")
+                            .setPositiveButton("Overwrite", (dialogInterface, i) -> {
+                                try {
+                                    InputStream input = getContentResolver().openInputStream(uri);
+                                    db.importDatabase(input);
+                                    Toast.makeText(this, "Import successful", Toast.LENGTH_SHORT).show();
+                                    updateHomeData();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(this, "Import failed", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .setNeutralButton(android.R.string.no, (dialog, which) -> {
+                                dialog.cancel(); // close dialog
+                            })
+                            .show();
+                }
+            });
+    public boolean permissionsGranted() {
+        return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED &&
+                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
+    }
+    public void requestPermissions() {
+        ActivityCompat.requestPermissions(this,
+                new String[] { Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                0);
     }
 }

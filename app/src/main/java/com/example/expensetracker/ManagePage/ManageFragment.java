@@ -1,9 +1,11 @@
 package com.example.expensetracker.ManagePage;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -13,6 +15,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.ViewPagerAdapter;
 import com.google.android.material.tabs.TabLayout;
@@ -22,6 +25,7 @@ import java.util.Objects;
 
 public class ManageFragment extends Fragment {
 
+    private static final String TAG = "ManageFragment";
     public ViewPager2 sectionPage;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -49,6 +53,9 @@ public class ManageFragment extends Fragment {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 (int) getActivity().getResources().getDimension(R.dimen.actionBarSize));
         view.findViewById(R.id.toolbarContainer).setLayoutParams(params);
+
+        ImageButton menuBtn = view.findViewById(R.id.menu_btn);
+        menuBtn.setVisibility(View.GONE);
 
         return view;
     }

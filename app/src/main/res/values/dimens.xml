@@ -3,6 +3,9 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="bottom_nav_height">56dp</dimen>
+    <dimen name="nav_header_vertical_spacing">8dp</dimen>
+    <dimen name="nav_header_height">190dp</dimen>
+
     <dimen name="chooseCatMaxHeight">485dp</dimen>
     <dimen name="actionBarSize">56dp</dimen>
     <dimen name="spacing">5dp</dimen>
@@ -16,4 +19,8 @@
     <dimen name="widgetCornerRadius">20dp</dimen>
     <dimen name="widgetBannerHeight">77dp</dimen>
     <dimen name="widgetBannerHeightNeg">-77dp</dimen>
+    <dimen name="sideMenuMarginStart">15dp</dimen>
+    <dimen name="sideMenuItemMargin">12dp</dimen>
+    <dimen name="sideMenuItemMarginLarger">16dp</dimen>
+
 </resources>

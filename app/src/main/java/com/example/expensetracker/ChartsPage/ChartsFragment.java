@@ -117,6 +117,9 @@ public class ChartsFragment extends Fragment {
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
         Objects.requireNonNull(((AppCompatActivity) getActivity()).getSupportActionBar()).setTitle("");
 
+        ImageButton menuBtn = view.findViewById(R.id.menu_btn);
+        menuBtn.setVisibility(View.GONE);
+
         return view;
     }
 
