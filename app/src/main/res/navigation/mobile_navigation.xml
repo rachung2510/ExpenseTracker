@@ -22,4 +22,5 @@
         android:name="com.example.expensetracker.ChartsPage.ChartsFragment"
         android:label=""
         tools:layout="@layout/fragment_charts" />
+
 </navigation>

@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
             getIconMap();
         if (colorMap.isEmpty())
             getColorMap();
-        if (!getPreferences(Context.MODE_PRIVATE).contains(getString(R.string.key_default_currency)))
+        if (!getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE).contains(getString(R.string.key_default_currency)))
             initialiseDefaultSettings();
 
         // Initialize the bottom navigation view
