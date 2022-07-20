@@ -12,7 +12,7 @@ A simple expense tracker for android which has three pages.
 - ~~Charts graph fragment~~
 - ~~Fix dialog widget~~
 - ~~Static widget~~
-- User settings (default currency, first day of week)
+- ~~User settings (default currency, first day of week)~~
 
 ## Potential features
 - Load on scroll
@@ -21,5 +21,4 @@ A simple expense tracker for android which has three pages.
 
 ## Bug fixes
 - ~~Disappearing accounts in MANAGE~~
-- Hide date nav buttons when beyond range
 
