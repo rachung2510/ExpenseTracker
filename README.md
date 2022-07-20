@@ -21,5 +21,4 @@ A simple expense tracker for android which has three pages.
 
 ## Bug fixes
 - ~~Disappearing accounts in MANAGE~~
-- Hide date nav buttons when beyond range
 
