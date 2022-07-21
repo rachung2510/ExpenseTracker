@@ -468,9 +468,8 @@ public class MainActivity extends AppCompatActivity {
         }
         if (getFragment() instanceof ChartsFragment) {
             ChartsChildFragment fragment = (ChartsChildFragment) getFragment().getChildFragmentManager().getFragments().get(1);
-            fragment.setSelAccFilters(filters);
-            fragment.applyFilters();
-            fragment.updateClearFiltersItem();
+            fragment.setAccFilters(filters);
+            fragment.applyFilters(true);
         }
     }
     public void updateCatFilters(ArrayList<Category> filters) {
@@ -483,9 +482,8 @@ public class MainActivity extends AppCompatActivity {
         }
         if (getFragment() instanceof ChartsFragment) {
             ChartsChildFragment fragment = (ChartsChildFragment) getFragment().getChildFragmentManager().getFragments().get(1);
-            fragment.setSelCatFilters(filters);
-            fragment.applyFilters();
-            fragment.updateClearFiltersItem();
+            fragment.setCatFilters(filters);
+            fragment.applyFilters(true);
         }
     }
 

@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.ChartsPage.ChartsChildFragment;
+import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.HomePage.HomeFragment;
 import com.example.expensetracker.MainActivity;
@@ -97,8 +98,11 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
                 ((MainActivity) context).updateHomeData(); // update summary & expense list
                 return;
             }
-            ChartsChildFragment frag = (ChartsChildFragment) ((MainActivity) context).getFragment().getChildFragmentManager().getFragments().get(1);
-            frag.updateExpenseList();
+//            if (((MainActivity) context).getFragment() instanceof ChartsFragment) {
+//                ChartsChildFragment frag = (ChartsChildFragment) ((MainActivity) context).getFragment().getChildFragmentManager().getFragments().get(1);
+//                frag.applyFilters();
+//                frag.updateExpenseList();
+//            }
         });
     }
 
