@@ -99,7 +99,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + ")";
 
     /**
-     * CONSTRUCTOR
+     * Constructor
      */
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -107,7 +107,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * DEFAULT METHODS
+     * Default methods
      */
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -135,7 +135,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * CRUD OPERATIONS - CREATE
+     * CRUD Operations - Create
      */
     public void createExpense(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -173,7 +173,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * READ - GETTERS & SETTERS
+     * Read - Getters & Setters
      */
     // Expenses
     public ArrayList<Expense> getAllExpenses() {
@@ -341,7 +341,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * UPDATE
+     * Update
      */
     public void updateExpense(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -389,7 +389,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * DELETE
+     * Delete
      */
     public void deleteExpense(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -450,7 +450,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * HELPER FUNCTIONS
+     * Helper functions
      */
     public ContentValues createExpenseValues(Expense expense) {
         ContentValues values = new ContentValues();
@@ -548,35 +548,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return new Category(context, id, name, icon, color, pos);
     }
 
-
     /**
-     * COMPUTATION
+     * Computation
      */
-    public float getAverage(int period, ArrayList<Expense> expenses) {
-        float totalAmt = 0;
-        int count = 0;
-        HashMap<String,Boolean> dates = new HashMap<>();
-        for (Expense e : expenses) {
-            totalAmt += e.getAmount();
-            String date = (period == DateGridAdapter.MONTH) ? e.getDatetimeStr("MM-yyyy") :
-                    ((period == DateGridAdapter.WEEK) ? e.getDatetime().get(Calendar.WEEK_OF_YEAR) + "-" + e.getDatetimeStr("yyyy") :
-                            e.getDatetimeStr("dd-MM-yyyy"));
-            if (!dates.containsKey(date)) {
-                dates.put(date, true);
-                count++;
-            }
-        }
-        return (count > 0) ? totalAmt / count : totalAmt;
-    }
-    public float getDayAverage(ArrayList<Expense> expenses) {
-        return getAverage(DateGridAdapter.DAY, expenses);
-    }
-    public float getWeekAverage(ArrayList<Expense> expenses) {
-        return getAverage(DateGridAdapter.WEEK, expenses);
-    }
-    public float getMonthAverage(ArrayList<Expense> expenses) {
-        return getAverage(DateGridAdapter.MONTH, expenses);
-    }
     public Calendar[] getFirstLastDates() {
         Calendar firstDate = null;
         Calendar lastDate = Calendar.getInstance();
@@ -605,6 +579,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return new Calendar[] { firstDate, lastDate };
     }
+
+    // average
+    public float getAverage(int period, ArrayList<Expense> expenses) {
+        float totalAmt = 0;
+        int count = 0;
+        HashMap<String,Boolean> dates = new HashMap<>();
+        for (Expense e : expenses) {
+            totalAmt += e.getAmount();
+            String date = (period == DateGridAdapter.MONTH) ? e.getDatetimeStr("MM-yyyy") :
+                    ((period == DateGridAdapter.WEEK) ? e.getDatetime().get(Calendar.WEEK_OF_YEAR) + "-" + e.getDatetimeStr("yyyy") :
+                            e.getDatetimeStr("dd-MM-yyyy"));
+            if (!dates.containsKey(date)) {
+                dates.put(date, true);
+                count++;
+            }
+        }
+        return (count > 0) ? totalAmt / count : totalAmt;
+    }
+    public float getDayAverage(ArrayList<Expense> expenses) {
+        return getAverage(DateGridAdapter.DAY, expenses);
+    }
+    public float getWeekAverage(ArrayList<Expense> expenses) {
+        return getAverage(DateGridAdapter.WEEK, expenses);
+    }
+    public float getMonthAverage(ArrayList<Expense> expenses) {
+        return getAverage(DateGridAdapter.MONTH, expenses);
+    }
+
+    // position of new section
     public int getNewPosSection(String table_name) {
         int maxPos = 0;
         Cursor c = getCursorFromQuery("SELECT MAX(" + KEY_POSITION + ") FROM " + table_name, "");
@@ -618,6 +621,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public int getNewPosCategory() {
         return getNewPosSection(TABLE_CATEGORY);
     }
+
+    // number of sections
     public int getNumAccountsNonDefault() {
         int count = 0;
         StringBuilder accListStr = new StringBuilder();
@@ -652,6 +657,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return count;
     }
+
+    // number of expenses
     public int getNumExpensesByAccount(Account acc) {
         int count = 0;
         Cursor c = getCursorFromQuery("SELECT COUNT(*) FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " = " + acc.getId(), "");
@@ -730,6 +737,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return count;
     }
+
+    // totals
     public float getTotalAmt() {
         float totalAmt = 0;
         Cursor c = getCursorFromQuery("SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE, "");
@@ -761,7 +770,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * IMPORT/EXPORT
+     * Import/Export
      */
     public File getDatabaseFile() {
         return context.getDatabasePath(DATABASE_NAME);

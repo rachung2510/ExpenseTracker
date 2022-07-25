@@ -71,6 +71,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 public class ChartsChildFragment extends Fragment {
 
@@ -86,6 +87,7 @@ public class ChartsChildFragment extends Fragment {
     RecyclerView catDataGrid;
     CatDataAdapter catDataAdapter;
     ArrayList<Category> pieCategories = new ArrayList<>();
+    HashMap<String,Integer> pieCategoriesMap = new HashMap<>();
     private Calendar fromCalPie, toCalPie;
 
     // Graph components
@@ -171,7 +173,7 @@ public class ChartsChildFragment extends Fragment {
     }
 
     /**
-     * COMMON FUNCTIONS
+     * Common functions
      */
     public void updateDateFilters() {
         Calendar from = Calendar.getInstance();
@@ -239,7 +241,7 @@ public class ChartsChildFragment extends Fragment {
     }
 
     /**
-     * MENU
+     * Menu
      */
     public void createOptionsMenu(Toolbar toolbar) {
         toolbar.inflateMenu(R.menu.home_menu);
@@ -343,6 +345,7 @@ public class ChartsChildFragment extends Fragment {
         ArrayList<PieEntry> pieEntries = new ArrayList<>();
         ArrayList<Category> categories = ((MainActivity) getActivity()).db.getAllCategories();
         ArrayList<Integer> colors = new ArrayList<>();
+        int count = 0;
         for (Category cat : categories) {
             float amt;
             if (fromCalPie == null) amt = ((MainActivity) getActivity()).db.getTotalAmtByCategory(cat);
@@ -351,6 +354,8 @@ public class ChartsChildFragment extends Fragment {
                 pieEntries.add(new PieEntry(amt, cat.getIcon()));
                 colors.add(ContextCompat.getColor(getActivity(), cat.getColorId()));
                 pieCategories.add(cat);
+                pieCategoriesMap.put(cat.getName(),count);
+                count++;
             }
         }
 
@@ -381,8 +386,6 @@ public class ChartsChildFragment extends Fragment {
 
         pieChart.setData(pieData);
         pieChart.invalidate();
-
-//        pieChart.animateY(300, Easing.EaseInOutQuad);
     }
     public void setupPieChart() {
         pieChart.setRenderer(new CustomPieChartRenderer(pieChart, 10f, pieChart.getAnimator(), pieChart.getViewPortHandler()));
@@ -437,6 +440,21 @@ public class ChartsChildFragment extends Fragment {
     public void setPieChartTotalAmt(float totalAmt) {
         this.totalAmt = totalAmt;
         pieAmt.setText(String.format(MainActivity.locale, "%.2f", this.totalAmt));
+    }
+    public boolean isPieHighlighted(String name) {
+        Highlight[] highlights = pieChart.getHighlighted();
+        if (highlights != null) {
+            int x = (int) highlights[0].getX();
+            return pieCategoriesMap.get(name) == x;
+        }
+        return false;
+    }
+    public void highlightPieValue(String name) {
+        float x = (float) pieCategoriesMap.get(name);
+        pieChart.highlightValue(x,0);
+    }
+    public void clearPieHighlights() {
+        pieChart.highlightValues(null);
     }
 
     /**
@@ -639,7 +657,7 @@ public class ChartsChildFragment extends Fragment {
         float avgMonthValue = ((MainActivity) getActivity()).db.getMonthAverage(expenses);
         avgDay.setText(String.format(MainActivity.locale,"%.2f", avgDayValue));
         avgWeek.setText(String.format(MainActivity.locale,"%.2f", avgWeekValue));
-        avgMonth.setText(String.format(MainActivity.locale,"%.2f", avgMonthValue));
+        avgMonth.setText((selDateState <= DateGridAdapter.WEEK) ? "–" : String.format(MainActivity.locale,"%.2f", avgMonthValue));
     }
     public void updateCurrency(String curr) {
         ((TextView) view.findViewById(R.id.summaryCurrency)).setText(curr);
@@ -751,6 +769,9 @@ public class ChartsChildFragment extends Fragment {
         });
     }
 
+    /**
+     * Helper functions
+     */
     public ArrayList<Expense> getExpensesBySectionFilter() {
         if (getActivity() == null)
             return null;

@@ -1,6 +1,7 @@
 package com.example.expensetracker.RecyclerViewAdapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,21 +10,23 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Category;
+import com.example.expensetracker.ChartsPage.ChartsChildFragment;
+import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.Currency;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
+import com.github.mikephil.charting.highlight.Highlight;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 
 public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    private static final String TAG = "CatDataAdapter";
     private final ArrayList<Category> categories;
     private final Context context;
     private final LayoutInflater inflater;
@@ -108,7 +111,17 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.border.setBackgroundColor(cat.getColor());
         holder.catDataIconBg.setBackgroundTintList(MainActivity.getColorStateListFromHex(cat.getColorHex()));
 
-        if (totalAmt == 0f)
+        if (totalAmt == 0f) {
             holder.itemView.setAlpha(0.3f);
+            return;
+        }
+
+        holder.itemView.setOnClickListener(view -> {
+            ChartsChildFragment fragment = ((ChartsFragment) ((MainActivity) context).getCurrentFragment()).getChildFragment(ChartsChildFragment.TYPE_PIECHART);
+            if (fragment.isPieHighlighted(cat.getName()))
+                fragment.clearPieHighlights();
+            else
+                fragment.highlightPieValue(cat.getName());
+        });
     }
 }

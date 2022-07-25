@@ -60,7 +60,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     public final static String[] months = new String[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
     /**
-     * CONSTRUCTOR
+     * Constructor
      */
     public DateGridAdapter(Context context, int[] args, Calendar fromDate, Calendar toDate) {
         String[] icon_names = new String[] { "date_day", "date_week", "date_month", "date_year", "date_infinity", "date_calendar_event" };
@@ -87,7 +87,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     }
 
     /**
-     * INITIALISE ADAPTER
+     * Initialise adapter
      */
     @NonNull
     @Override
@@ -139,7 +139,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     }
 
     /**
-     * VIEWHOLDER CLASS
+     * Viewholder class
      */
     public class ViewHolder extends RecyclerView.ViewHolder {
         ImageView filterDateIcon;
@@ -165,7 +165,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     }
 
     /**
-     * FUNCTIONS
+     * Functions
      */
     public void showSelDateDialog() {
         AlertDialog.Builder selectDate = new AlertDialog.Builder(context);
@@ -426,7 +426,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     }
 
     /**
-     * GETTERS & SETTERS
+     * Getters & Setters
      */
     public int getSelectedState() {
         return state;

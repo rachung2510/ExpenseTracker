@@ -3,8 +3,6 @@ package com.example.expensetracker.HomePage;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,7 +42,6 @@ public class HomeFragment extends Fragment {
 
     private static final String TAG = "HomeFragment";
 
-    private View view;
     // Layout components
     private RecyclerView expenseList;
     private TextView placeholder, summaryDate, summaryAmt, summaryCurr;
@@ -67,7 +64,7 @@ public class HomeFragment extends Fragment {
             return null;
         MainActivity context = (MainActivity) getActivity();
 
-        view = inflater.inflate(R.layout.fragment_home, container, false);
+        View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         // summary & expense list
         summaryDate = view.findViewById(R.id.summaryDate);

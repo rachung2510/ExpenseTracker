@@ -2,10 +2,14 @@ package com.example.expensetracker.RecyclerViewAdapters;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Lifecycle;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
+
+import com.example.expensetracker.ChartsPage.ChartsFragment;
+import com.example.expensetracker.Constants;
+import com.example.expensetracker.HomePage.HomeFragment;
+import com.example.expensetracker.ManagePage.ManageFragment;
 
 import java.util.ArrayList;
 
@@ -18,22 +22,32 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
     public ViewPagerAdapter(@NonNull Fragment fragment) {
         super(fragment);
     }
-
     public ViewPagerAdapter(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle) {
         super(fragmentManager, lifecycle);
     }
 
     /**
-     * INITIALISE ADAPTER
+     * FUNCTIONS
      */
-    public void addFragment(Fragment fragment) {
-        fragments.add(fragment);
-    }
-
     @NonNull
     @Override
     public Fragment createFragment(int position) {
         return fragments.get(position);
+//        switch (position) {
+//            case Constants.HOME:
+//                return new HomeFragment();
+//            case Constants.CHARTS:
+//                return new ChartsFragment();
+//            case Constants.MANAGE:
+//                return new ManageFragment();
+//            default:
+//                break;
+//        }
+//        return null;
+    }
+
+    public void addFragment(Fragment fragment) {
+        fragments.add(fragment);
     }
 
     @Override

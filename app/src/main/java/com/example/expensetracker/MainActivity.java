@@ -64,7 +64,6 @@ import com.example.expensetracker.ManagePage.SectionOptDialogFragment;
 import com.example.expensetracker.RecyclerViewAdapters.ViewPagerAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
-import com.google.android.material.navigation.NavigationView;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
     public static String TAG = "MainActivity";
 
+    // Main components
     public DatabaseHelper db = new DatabaseHelper(this);
     public static Locale locale = Locale.getDefault();
     private HashMap<Integer, String> iconMap = new HashMap<>();
@@ -156,8 +156,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         editor.putString(getString(R.string.key_default_currency), adapter.getSelected());
                         editor.apply();
                         sideMenuValueCurr.setText(getDefaultCurrency());
-                        if (getFragment() instanceof HomeFragment)
-                            ((HomeFragment) getFragment()).setSummaryCurr(new Currency(this).getSymbol());
+                        if (getCurrentFragment() instanceof HomeFragment)
+                            ((HomeFragment) getCurrentFragment()).setSummaryCurr(new Currency(this).getSymbol());
                     })
                     .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {})
                     .show();
@@ -179,9 +179,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         editor.putInt(getString(R.string.key_default_firstDayOfWeek), selectedPos[0]);
                         editor.apply();
                         sideMenuValueFirst.setText((getDefaultFirstDayOfWeek() == Calendar.SUNDAY) ? "Sunday" : "Monday");
-                        if (!(getFragment() instanceof HomeFragment))
+                        if (!(getCurrentFragment() instanceof HomeFragment))
                             return;
-                        ((HomeFragment) getFragment()).updateDate();
+                        ((HomeFragment) getCurrentFragment()).updateDate();
                         updateHomeData();
                     })
                     .show();
@@ -206,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * FRAGMENTS
+     * Fragments
      */
     public void getTabs() {
         adapter = new ViewPagerAdapter(getSupportFragmentManager(), getLifecycle());
@@ -256,17 +256,15 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             return false;
         return true;
     }
-    public Fragment getFragment() {
+    public Fragment getCurrentFragment() {
         return adapter.createFragment(viewPager.getCurrentItem());
-//        Fragment navHostFragment = getSupportFragmentManager().findFragmentById(R.id.fragment);
-//        return (navHostFragment == null) ? null : navHostFragment.getChildFragmentManager().getFragments().get(0);
     }
     public void setUpdateFragments(boolean enable) {
         updateFragments = enable;
     }
 
     /**
-     * INITIALISE DEFAULTS
+     * Initialisation
      */
     public void initialiseDefaultAccs() {
         for (int i = 0;i < Constants.defaultAccNames.length;i++) {
@@ -310,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * DIALOG TEMPLATES
+     * Dialog templates
      */
     public AlertDialog expenseDialog() {
         // dialog
@@ -436,9 +434,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * UPDATE
+     * Update functions
      */
-    // Update
     public void updateHomeData() {
         ArrayList<Expense> expenses = getExpenseList();
         updateExpenseData(expenses);
@@ -478,8 +475,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        if (getFragment() instanceof HomeFragment)
-            ((HomeFragment) getFragment()).setExpenseData(linearLayoutManager, expAdapter);
+        if (getCurrentFragment() instanceof HomeFragment)
+            ((HomeFragment) getCurrentFragment()).setExpenseData(linearLayoutManager, expAdapter);
     }
     public void updateSummaryData(ArrayList<Expense> expenses, int page) {
         Calendar from, to;
@@ -581,8 +578,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         AccountAdapter adapter = getAccountData(Constants.MANAGE);
         adapter.addNewAcc();
         Fragment childFragment = null;
-        if (getFragment() instanceof ManageFragment)
-            childFragment = getFragment().getChildFragmentManager().getFragments().get(0);
+        if (getCurrentFragment() instanceof ManageFragment)
+            childFragment = getCurrentFragment().getChildFragmentManager().getFragments().get(0);
         if (childFragment instanceof ManageChildFragment)
             ((ManageChildFragment<AccountAdapter>) childFragment).setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
     }
@@ -591,49 +588,48 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         CategoryAdapter adapter = getCategoryData(Constants.MANAGE);
         adapter.addNewCat();
         Fragment childFragment = null;
-        if (getFragment() instanceof ManageFragment)
-            childFragment = getFragment().getChildFragmentManager().getFragments().get(1);
+        if (getCurrentFragment() instanceof ManageFragment)
+            childFragment = getCurrentFragment().getChildFragmentManager().getFragments().get(1);
         if (childFragment instanceof ManageChildFragment)
             ((ManageChildFragment<CategoryAdapter>) childFragment).setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
     }
     public void updateAccFilters(ArrayList<Account> filters) {
-        if (getFragment() instanceof HomeFragment) {
-            HomeFragment fragment = (HomeFragment) getFragment();
+        if (getCurrentFragment() instanceof HomeFragment) {
+            HomeFragment fragment = (HomeFragment) getCurrentFragment();
             fragment.setSelAccFilters(filters);
             fragment.applyFilters();
             fragment.updateClearFiltersItem();
             return;
         }
-        if (getFragment() instanceof ChartsFragment) {
-            ChartsChildFragment fragment = (ChartsChildFragment) getFragment().getChildFragmentManager().getFragments().get(1);
+        if (getCurrentFragment() instanceof ChartsFragment) {
+            ChartsChildFragment fragment = (ChartsChildFragment) getCurrentFragment().getChildFragmentManager().getFragments().get(1);
             fragment.setAccFilters(filters);
             fragment.applyFilters(true);
         }
     }
     public void updateCatFilters(ArrayList<Category> filters) {
-        if (getFragment() instanceof HomeFragment) {
-            HomeFragment fragment = (HomeFragment) getFragment();
+        if (getCurrentFragment() instanceof HomeFragment) {
+            HomeFragment fragment = (HomeFragment) getCurrentFragment();
             fragment.setSelCatFilters(filters);
             fragment.applyFilters();
             fragment.updateClearFiltersItem();
             return;
         }
-        if (getFragment() instanceof ChartsFragment) {
-            ChartsChildFragment fragment = (ChartsChildFragment) getFragment().getChildFragmentManager().getFragments().get(1);
+        if (getCurrentFragment() instanceof ChartsFragment) {
+            ChartsChildFragment fragment = (ChartsChildFragment) getCurrentFragment().getChildFragmentManager().getFragments().get(1);
             fragment.setCatFilters(filters);
             fragment.applyFilters(true);
         }
     }
 
     /**
-     * GETTERS
+     * Getters
      */
     // Expenses
     public ArrayList<Expense> getExpenseList() {
-        if (getFragment() instanceof ChartsFragment) Log.e(TAG,"yes");
         ArrayList<Expense> expensesByDate = new ArrayList<>();
-        if (getFragment() instanceof HomeFragment) {
-            HomeFragment fragment = (HomeFragment) getFragment();
+        if (getCurrentFragment() instanceof HomeFragment) {
+            HomeFragment fragment = (HomeFragment) getCurrentFragment();
             Calendar from = fragment.getDateRange()[0];
             Calendar to = fragment.getDateRange()[1];
             if (fragment.getSelDateState() == DateGridAdapter.ALL) {
@@ -643,8 +639,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             }
             ArrayList<Expense> expensesByFilter = db.getExpensesByFilters(fragment.getSelAccFilters(), fragment.getSelCatFilters());
             expensesByDate.retainAll(expensesByFilter);
-        } else if (getFragment() instanceof ChartsFragment) {
-            ChartsFragment fragment = (ChartsFragment) getFragment();
+        } else if (getCurrentFragment() instanceof ChartsFragment) {
+            ChartsFragment fragment = (ChartsFragment) getCurrentFragment();
             Calendar from = fragment.getDateRange()[0];
             Calendar to = fragment.getDateRange()[1];
             if (fragment.getSelDateState() == DateGridAdapter.ALL) {
@@ -700,7 +696,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * ADD/EDIT DIALOGS
+     * Add/edit functions
      */
     public void addExpense() {
         AlertDialog expDialog = expenseDialog();
@@ -1050,7 +1046,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * HELPER FUNCTIONS
+     * Helper functions
      */
     public static float convertDpToPx(Context context, float dp) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
@@ -1084,19 +1080,17 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * MENU HELPER FUNCTIONS
+     * Side menu helper functions
      */
     public void setupMenuBtn(ImageButton menuBtn) {
-        menuBtn.setOnClickListener(view1 -> {
-            navDrawer.openDrawer(GravityCompat.START);
-        });
+        menuBtn.setOnClickListener(view1 -> navDrawer.openDrawer(GravityCompat.START));
     }
     public void setMenuEnabled(boolean enable) {
         navDrawer.setDrawerLockMode(enable ? DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
     /**
-     * ICON/COLOR HELPER FUNCTIONS
+     * Icon/color helper functions
      */
     public static Bitmap drawableToBitmap (Drawable drawable) {
         if (drawable instanceof BitmapDrawable) {
@@ -1148,7 +1142,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * DEFAULT HELPER FUNCTIONS
+     * User defaults helper functions
      */
     public String getDefaultAccName() {
         return db.getDefaultAccName();
@@ -1217,7 +1211,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * CALENDAR HELPER FUNCTIONS
+     * Calendar helper functions
      */
     public static Calendar getCalendarCopy(Calendar cal, int range) {
         Calendar copy = Calendar.getInstance();
@@ -1267,7 +1261,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * KEYBOARD HELPER FUNCTIONS
+     * Keyboard helper functions
      */
     public static void showKeyboard(Context context, EditText view) {
         view.postDelayed(() -> {
@@ -1287,7 +1281,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * IMPORT/EXPORT
+     * Import/export helper functions
      */
     private void showFileChooser() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);

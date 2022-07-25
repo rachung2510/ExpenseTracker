@@ -94,12 +94,12 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
                 filteredCategories.remove(finalPos);
                 ((MainActivity) context).updateCatFilters(filteredCategories);
             }
-            if (((MainActivity) context).getFragment() instanceof HomeFragment) {
+            if (((MainActivity) context).getCurrentFragment() instanceof HomeFragment) {
                 ((MainActivity) context).updateHomeData(); // update summary & expense list
                 return;
             }
-            if (((MainActivity) context).getFragment() instanceof ChartsFragment) {
-                ChartsChildFragment frag = (ChartsChildFragment) ((MainActivity) context).getFragment().getChildFragmentManager().getFragments().get(1);
+            if (((MainActivity) context).getCurrentFragment() instanceof ChartsFragment) {
+                ChartsChildFragment frag = (ChartsChildFragment) ((MainActivity) context).getCurrentFragment().getChildFragmentManager().getFragments().get(1);
                 frag.applyFilters(true);
                 frag.updateExpenseRecyclerView();
             }
