@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.SimpleItemAnimator;
@@ -26,6 +27,7 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
 
     public ManageChildFragmentCategory(Context context) {
         super(context);
+        this.sectionType = Constants.SECTION_CATEGORY;
     }
 
     @Override
@@ -33,16 +35,61 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
         if (getActivity() == null)
             return null;
         View view = inflater.inflate(R.layout.fragment_manage_cat, container, false);
-        adapter = ((MainActivity) getActivity()).getCategoryData(Constants.MANAGE);
-        adapter.addNewCat();
         sectionList = view.findViewById(R.id.catGrid);
         ((SimpleItemAnimator) Objects.requireNonNull(sectionList.getItemAnimator())).setSupportsChangeAnimations(false);
         sectionList.setLayoutManager(new GridLayoutManager(getActivity(), 3, GridLayoutManager.VERTICAL, false));
-        setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+        updateView();
+        invalidateMenu();
         setHasOptionsMenu(true);
         return view;
     }
-
+    @Override
+    public void updateView() {
+        if (getActivity() == null)
+            return;
+        adapter = ((MainActivity) getActivity()).getCategoryData(Constants.MANAGE);
+        adapter.addNewCat();
+        setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+    }
+    @Override
+    public void invalidateMenu() {
+        if (getParentFragment() == null) return;
+        ((ManageFragment) getParentFragment()).getToolbar().setOnMenuItemClickListener(menuItemClickListener);
+    }
+    public Toolbar.OnMenuItemClickListener menuItemClickListener = item -> {
+        if (getActivity() == null)
+            return false;
+        int id = item.getItemId();
+        if (id == R.id.select) {
+            adapter.setSelectionMode(true);
+            getActivity().startActionMode(actionModeCallback);
+            return true;
+        }
+        if (id == R.id.resetDefault) {
+            MainActivity context = (MainActivity) getActivity();
+            int numExpenses = context.db.getNumExpensesNonDefaultCategory();
+            AlertDialog.Builder confirmReset = new AlertDialog.Builder(context, R.style.ConfirmDelDialog);
+            confirmReset.setTitle("Reset defaults")
+                    .setMessage("Reset default categories?" + ((numExpenses == 0) ? "" :
+                            " " + numExpenses + " expense(s) from " + context.db.getNumCategoriesNonDefault() +
+                                    " categorie(s) will be moved to " + context.getImmutableCat() + "."))
+                    .setPositiveButton("Reset", (dialogInterface, i) -> {
+                        context.resetDefaultCats();
+                        context.updateCategoryData();
+                        resetOrder();
+                        context.updateAllExpenseData();
+                        Toast.makeText(context, "Categories reset to defaults", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())
+                    .show();
+            return true;
+        }
+        if (id == R.id.resetOrder) {
+            resetOrder();
+            return true;
+        }
+        return false;
+    };
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem menuItem) {
         if (getActivity() == null)
@@ -108,5 +155,11 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
     @Override
     public void updateData() {
         ((MainActivity) context).updateCategoryData();
+    }
+
+    public void resetOrder() {
+        adapter.resetPositions();
+        adapter.setList(((MainActivity) getActivity()).sortSections(adapter.getList()));
+        adapter.notifyItemRangeChanged(0, adapter.getItemCount()-2);
     }
 }

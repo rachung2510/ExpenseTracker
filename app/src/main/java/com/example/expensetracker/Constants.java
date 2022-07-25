@@ -61,7 +61,8 @@ public class Constants {
 
     // Page modes
     public static final int HOME = 0;
-    public static final int MANAGE = 1;
+    public static final int CHARTS = 1;
+    public static final int MANAGE = 2;
 
     // Relative dates
     public static final int TODAY = 0;

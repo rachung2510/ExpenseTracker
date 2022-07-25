@@ -12,7 +12,16 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+<!--        <ProgressBar-->
+<!--            android:id="@+id/progressBar"-->
+<!--            android:layout_width="40dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:layout_centerHorizontal="true"-->
+<!--            android:layout_marginTop="150dp"-->
+<!--            android:indeterminate="true"/>-->
+
         <RelativeLayout
+            android:id="@+id/lineChartBlk"
             android:layout_width="match_parent"
             android:layout_height="300dp">
 

@@ -1,6 +1,7 @@
 package com.example.expensetracker.HomePage;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -43,6 +44,7 @@ public class HomeFragment extends Fragment {
 
     private static final String TAG = "HomeFragment";
 
+    private View view;
     // Layout components
     private RecyclerView expenseList;
     private TextView placeholder, summaryDate, summaryAmt, summaryCurr;
@@ -65,7 +67,7 @@ public class HomeFragment extends Fragment {
             return null;
         MainActivity context = (MainActivity) getActivity();
 
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
+        view = inflater.inflate(R.layout.fragment_home, container, false);
 
         // summary & expense list
         summaryDate = view.findViewById(R.id.summaryDate);
@@ -94,10 +96,7 @@ public class HomeFragment extends Fragment {
         fab.setOnClickListener(view1 -> ((MainActivity) getActivity()).addExpense());
 
         // toolbar
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
-        context.setSupportActionBar(toolbar);
-        Objects.requireNonNull(context.getSupportActionBar()).setTitle("");
-        setHasOptionsMenu(true);
+        createOptionsMenu(view.findViewById(R.id.toolbar));
 
         // side menu
         context.setupMenuBtn(view.findViewById(R.id.menu_btn));
@@ -112,18 +111,17 @@ public class HomeFragment extends Fragment {
     /**
      * MENU
      */
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.home_menu, menu);
-        clearFilters = menu.findItem(R.id.clearFilters);
+    public void createOptionsMenu(Toolbar toolbar) {
+        toolbar.inflateMenu(R.menu.home_menu);
+        clearFilters = toolbar.getMenu().findItem(R.id.clearFilters);
         updateClearFiltersItem();
-        super.onCreateOptionsMenu(menu, inflater);
+        toolbar.setOnMenuItemClickListener(menuItemClickListener);
+        setHasOptionsMenu(true);
     }
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem menuItem) {
+    public Toolbar.OnMenuItemClickListener menuItemClickListener = item -> {
         if (getActivity() == null)
             return false;
-        int id = menuItem.getItemId();
+        int id = item.getItemId();
         if (id == R.id.filterAcc) {
             AccountAdapter accAdapter = ((MainActivity) getActivity()).getAccountData();
             accAdapter.setSelectionMode(true);
@@ -151,7 +149,7 @@ public class HomeFragment extends Fragment {
             return true;
         }
         return false;
-    }
+    };
 
     /**
      * FUNCTIONS

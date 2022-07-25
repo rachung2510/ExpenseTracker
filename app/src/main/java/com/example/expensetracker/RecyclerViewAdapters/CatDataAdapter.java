@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -104,11 +105,10 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
         holder.catDataAmt.setText(String.format(MainActivity.locale, "%.2f", totalAmt));
 
-        holder.border.setBackgroundColor(ContextCompat.getColor(context, cat.getColorId()));
-        holder.catDataIconBg.setBackgroundTintList(MainActivity.getColorStateListFromId(context, cat.getColorId()));
+        holder.border.setBackgroundColor(cat.getColor());
+        holder.catDataIconBg.setBackgroundTintList(MainActivity.getColorStateListFromHex(cat.getColorHex()));
 
-        if (totalAmt == 0f) {
+        if (totalAmt == 0f)
             holder.itemView.setAlpha(0.3f);
-        }
     }
 }

@@ -73,7 +73,7 @@
                     android:layout_height="24dp"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
-                    android:text="@string/example_date"
+                    android:text=""
                     android:textColor="@color/white"
                     android:textSize="14sp"
                     android:fontFamily="sans-serif"

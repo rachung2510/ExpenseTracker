@@ -281,14 +281,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return categories;
     }
-    public Account getAccount(String name) {
+    public Account getAccount(String name, boolean notify) {
         Account account = new Account(context);
         Cursor c = getCursorFromQuery(
                 getQuerySelectName(TABLE_ACCOUNT, KEY_NAME, name),
-                "Account not found. Check name again");
+                (notify) ? "Account " + name + " not found. Check name again" : "");
         if (c.moveToFirst()) account = getAccountFromCursor(c);
         c.close();
         return account;
+    }
+    public Account getAccount(String name) {
+        return getAccount(name,true);
     }
     public Account getAccount(int id) {
         Account account = new Account(context);
@@ -299,14 +302,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return account;
     }
-    public Category getCategory(String name) {
+    public Category getCategory(String name, boolean notify) {
         Category category = new Category(context);
         Cursor c = getCursorFromQuery(
                 getQuerySelectName(TABLE_CATEGORY, KEY_NAME, name),
-                "Category not found. Check name again");
+                (notify) ? "Category " + name + " not found. Check name again" : "");
         if (c.moveToFirst()) category = getCategoryFromCursor(c);
         c.close();
         return category;
+    }
+    public Category getCategory(String name) {
+        return getCategory(name,true);
     }
     public Category getCategory(int id) {
         Category category = new Category(context);
@@ -394,8 +400,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.delete(table_name, KEY_ID + " = ?",new String[] { String.valueOf(section.getId()) });
     }
     public void deleteAccount(Account acc, boolean notify) {
-        if (acc.getName().equals(Constants.defaultAccount)) {
-            Toast.makeText(context, "Cannot delete account " + Constants.defaultAccount, Toast.LENGTH_SHORT).show();
+        if (acc.getName().equals(((MainActivity) context).getDefaultAccName())) {
+            Toast.makeText(context, "Cannot delete account " + acc.getName(), Toast.LENGTH_SHORT).show();
             return;
         }
         int moveRes = moveExpensesToDefault(acc);
@@ -403,13 +409,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return;
         int res = deleteSection(TABLE_ACCOUNT, acc);
         if (res == 0)
-            Toast.makeText(context, "Error: Failed to delete account", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Error: Failed to delete account " + acc.getName(), Toast.LENGTH_SHORT).show();
         else if (notify)
-            Toast.makeText(context, "Account deleted", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Account deleted: " + acc.getName(), Toast.LENGTH_SHORT).show();
     }
     public void deleteCategory(Category cat, boolean notify) {
-        if (cat.getName().equals(Constants.defaultCategory)) {
-            Toast.makeText(context, "Cannot delete category " + Constants.defaultCategory, Toast.LENGTH_SHORT).show();
+        if (cat.getName().equals(((MainActivity) context).getImmutableCat())) {
+            Toast.makeText(context, "Cannot delete category " + cat.getName(), Toast.LENGTH_SHORT).show();
             return;
         }
         int moveRes = moveExpensesToImmutable(cat);
@@ -417,9 +423,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return;
         int res = deleteSection(TABLE_CATEGORY, cat);
         if (res == 0)
-            Toast.makeText(context, "Error: Failed to delete category", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Error: Failed to delete category " + cat.getName(), Toast.LENGTH_SHORT).show();
         else if (notify)
-            Toast.makeText(context, "Category deleted", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Category deleted: " + cat.getName(), Toast.LENGTH_SHORT).show();
     }
     public void deleteAllSections(String table_name) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -457,6 +463,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     public ContentValues createSectionValues(Section section) {
         ContentValues values = new ContentValues();
+        if (section.getId() != -1)
+            values.put(KEY_ID, section.getId());
         values.put(KEY_NAME, section.getName());
         values.put(KEY_ICON, section.getIconName());
         values.put(KEY_COLOR, section.getColorName());
@@ -540,6 +548,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return new Category(context, id, name, icon, color, pos);
     }
 
+
     /**
      * COMPUTATION
      */
@@ -613,8 +622,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int count = 0;
         StringBuilder accListStr = new StringBuilder();
         ArrayList<Integer> defaultAccIds = new ArrayList<>();
-        for (String name : Constants.defaultAccNames)
-            defaultAccIds.add(getAccount(name).getId());
+        for (String name : Constants.defaultAccNames) {
+            int id = getAccount(name,false).getId(); // account may have been deleted
+            if (id != -1) defaultAccIds.add(id);
+        }
         for (int i = 0;i < defaultAccIds.size();i++) {
             accListStr.append(defaultAccIds.get(i));
             if (i != defaultAccIds.size()-1) accListStr.append(",");
@@ -628,8 +639,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int count = 0;
         StringBuilder catListStr = new StringBuilder();
         ArrayList<Integer> defaultCatIds = new ArrayList<>();
-        for (String name : Constants.defaultCatNames)
-            defaultCatIds.add(getCategory(name).getId());
+        for (String name : Constants.defaultCatNames) {
+            int id = getCategory(name,false).getId(); // category may have been deleted
+            if (id != -1) defaultCatIds.add(id);
+        }
         for (int i = 0;i < defaultCatIds.size();i++) {
             catListStr.append(defaultCatIds.get(i));
             if (i != defaultCatIds.size()-1) catListStr.append(",");
@@ -661,8 +674,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int count = 0;
         StringBuilder accListStr = new StringBuilder();
         ArrayList<Integer> defaultAccIds = new ArrayList<>();
-        for (String name : Constants.defaultAccNames)
-            defaultAccIds.add(getAccount(name).getId());
+        for (String name : Constants.defaultAccNames) {
+            int id = getAccount(name,false).getId(); // account may have been deleted
+            if (id != -1) defaultAccIds.add(id);
+        }
         for (int i = 0;i < defaultAccIds.size();i++) {
             accListStr.append(defaultAccIds.get(i));
             if (i != defaultAccIds.size()-1) accListStr.append(",");
@@ -676,8 +691,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int count = 0;
         StringBuilder catListStr = new StringBuilder();
         ArrayList<Integer> defaultCatIds = new ArrayList<>();
-        for (String name : Constants.defaultCatNames)
-            defaultCatIds.add(getCategory(name).getId());
+        for (String name : Constants.defaultCatNames) {
+            int id = getCategory(name, false).getId(); // category may have been deleted
+            if (id != -1) defaultCatIds.add(id);
+        }
         for (int i = 0;i < defaultCatIds.size();i++) {
             catListStr.append(defaultCatIds.get(i));
             if (i != defaultCatIds.size()-1) catListStr.append(",");

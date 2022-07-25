@@ -11,14 +11,18 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 
+import com.example.expensetracker.Account;
+import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
+import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 
 import java.util.Objects;
 
@@ -26,6 +30,7 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
 
     public ManageChildFragmentAccount(Context context) {
         super(context);
+        this.sectionType = Constants.SECTION_ACCOUNT;
     }
 
     @Override
@@ -33,21 +38,33 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
         if (getActivity() == null)
             return null;
         View view = inflater.inflate(R.layout.fragment_manage_acc, container, false);
-        adapter = ((MainActivity) getActivity()).getAccountData(Constants.MANAGE);
-        adapter.addNewAcc();
         sectionList = view.findViewById(R.id.accList);
         ((SimpleItemAnimator) Objects.requireNonNull(sectionList.getItemAnimator())).setSupportsChangeAnimations(false);
         sectionList.setLayoutManager(new LinearLayoutManager(getActivity()));
-        setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
+        updateView();
+        // menu
+        invalidateMenu();
         setHasOptionsMenu(true);
         return view;
     }
-
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem menuItem) {
+    public void updateView() {
+        if (getActivity() == null)
+            return;
+        adapter = ((MainActivity) getActivity()).getAccountData(Constants.MANAGE);
+        adapter.addNewAcc();
+        setAdapter(adapter, ItemTouchHelper.UP | ItemTouchHelper.DOWN);
+    }
+    @Override
+    public void invalidateMenu() {
+        if (getParentFragment() == null) return;
+        ((ManageFragment) getParentFragment()).getToolbar().setOnMenuItemClickListener(menuItemClickListener);
+    }
+
+    public Toolbar.OnMenuItemClickListener menuItemClickListener = item -> {
         if (getActivity() == null)
             return false;
-        int id = menuItem.getItemId();
+        int id = item.getItemId();
         if (id == R.id.select) {
             adapter.setSelectionMode(true);
             getActivity().startActionMode(actionModeCallback);
@@ -60,10 +77,12 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
             confirmReset.setTitle("Reset defaults")
                     .setMessage("Reset default accounts?" + ((numExpenses == 0) ? "" :
                             " " + numExpenses + " expense(s) from " + context.db.getNumAccountsNonDefault() +
-                            " account(s) will be moved to " + context.getDefaultAccName() + "."))
+                                    " account(s) will be moved to " + context.getDefaultAccName() + "."))
                     .setPositiveButton("Reset", (dialogInterface, i) -> {
                         context.resetDefaultAccs();
                         context.updateAccountData();
+                        resetOrder();
+                        context.updateAllExpenseData();
                         Toast.makeText(context, "Accounts reset to defaults", Toast.LENGTH_SHORT).show();
                     })
                     .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())
@@ -77,7 +96,7 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
             return true;
         }
         return false;
-    }
+    };
 
     @Override
     public void bulkDelete(ActionMode mode) {
@@ -108,5 +127,11 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
     @Override
     public void updateData() {
         ((MainActivity) context).updateAccountData();
+    }
+
+    public void resetOrder() {
+        adapter.resetPositions();
+        adapter.setList(((MainActivity) getActivity()).sortSections(adapter.getList()));
+        adapter.notifyItemRangeChanged(0, adapter.getItemCount()-1);
     }
 }

@@ -249,6 +249,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             Toast.makeText(context, toast, Toast.LENGTH_SHORT).show();
             mode.finish();
             ((MainActivity) context).updateHomeData(); // update summary & expense list
+            ((MainActivity) context).setUpdateFragments(true);
         });
         confirmDel.setNeutralButton(android.R.string.no, (dialog, which) -> {
             dialog.cancel(); // close dialog

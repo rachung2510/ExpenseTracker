@@ -4,6 +4,7 @@ import static androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_DRAG;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.os.Bundle;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,15 +30,14 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
     protected Context context;
     protected T adapter;
     protected RecyclerView sectionList;
+    protected int sectionType;
 
     public ManageChildFragment(Context context) { this.context = context; }
+    public void invalidateMenu() {}
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.manage_options, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+    public void updateView() {
+
     }
-
     public void setAdapter(T adapter, int args) {
         this.adapter = adapter;
         sectionList.setAdapter(adapter);

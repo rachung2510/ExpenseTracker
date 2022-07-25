@@ -6,8 +6,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,6 +17,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
@@ -43,7 +42,6 @@ import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.ExpenseAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.FilterAdapter;
 import com.example.expensetracker.Section;
-import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.AxisBase;
@@ -116,9 +114,10 @@ public class ChartsChildFragment extends Fragment {
     public ChartsChildFragment(int chartType) {
         this.chartType = chartType;
     }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (getActivity() == null || getParentFragment() == null)
+            return null;
         switch (chartType) {
             case TYPE_PIECHART:
                 view = inflater.inflate(R.layout.fragment_charts_piechart, container, false);
@@ -136,7 +135,7 @@ public class ChartsChildFragment extends Fragment {
                 configPieChartRecyclerView();
 
                 if (getActivity() != null)
-                    ((MainActivity) getActivity()).updateSummaryData(((MainActivity) getActivity()).getExpenseList());
+                    ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS);
                 break;
 
             case TYPE_GRAPH:
@@ -163,7 +162,6 @@ public class ChartsChildFragment extends Fragment {
 
                 setHasOptionsMenu(true);
                 filterList = view.findViewById(R.id.sectionFilters);
-//                applyFilters();
                 break;
 
             case TYPE_CALENDAR:
@@ -173,7 +171,7 @@ public class ChartsChildFragment extends Fragment {
     }
 
     /**
-     * MAIN FUNCTIONS
+     * COMMON FUNCTIONS
      */
     public void updateDateFilters() {
         Calendar from = Calendar.getInstance();
@@ -209,7 +207,7 @@ public class ChartsChildFragment extends Fragment {
                 fromCalLine = updateDateRange(fromCalLine, DateGridAdapter.FROM);
                 toCalLine = updateDateRange(toCalLine, DateGridAdapter.TO);
                 loadLineChartData();
-                updateExpenseList();
+                updateExpenseRecyclerView();
                 updateLineChartSummary();
                 updateAverages();
                 lineChart.fitScreen();
@@ -225,20 +223,32 @@ public class ChartsChildFragment extends Fragment {
                 break;
         }
     }
+    public void invalidateMenu() {
+        if (getParentFragment() == null) return;
+        Toolbar toolbar = ((ChartsFragment) getParentFragment()).getToolbar();
+        switch (chartType) {
+            case TYPE_PIECHART:
+                toolbar.getMenu().clear();
+                break;
+            case TYPE_GRAPH:
+                createOptionsMenu(toolbar);
+                break;
+            default:
+                break;
+        }
+    }
 
     /**
      * MENU
      */
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.home_menu, menu);
-        clearFiltersMenuOption = menu.findItem(R.id.clearFilters);
+    public void createOptionsMenu(Toolbar toolbar) {
+        toolbar.inflateMenu(R.menu.home_menu);
+        clearFiltersMenuOption = toolbar.getMenu().findItem(R.id.clearFilters);
         updateClearFiltersItem();
-        super.onCreateOptionsMenu(menu, inflater);
+        toolbar.setOnMenuItemClickListener(menuItemClickListener);
     }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem menuItem) {
-        int id = menuItem.getItemId();
+    public Toolbar.OnMenuItemClickListener menuItemClickListener = item -> {
+        int id = item.getItemId();
         if (getActivity() == null)
             return false;
         if (id == R.id.filterAcc) {
@@ -264,7 +274,7 @@ public class ChartsChildFragment extends Fragment {
             return true;
         }
         return false;
-    }
+    };
     public void applyFilters(boolean isDelete) {
         if (accFilters.isEmpty() && catFilters.isEmpty() && !isDelete)
             return;
@@ -282,7 +292,7 @@ public class ChartsChildFragment extends Fragment {
         if (clearFiltersMenuOption != null) // on view created
             updateClearFiltersItem();
         loadLineChartData();
-        updateExpenseList();
+        updateExpenseRecyclerView();
         updateLineChartSummary();
         updateAverages();
     }
@@ -353,7 +363,6 @@ public class ChartsChildFragment extends Fragment {
         // Value lines
         dataSet.setValueLinePart1Length(0.6f);
         dataSet.setValueLinePart2Length(0.3f);
-//        dataSet.setValueLineWidth(2f);
         dataSet.setValueLinePart1OffsetPercentage(115f); // Line starts outside of chart
         dataSet.setUsingSliceColorAsValueLineColor(true);
 
@@ -373,7 +382,7 @@ public class ChartsChildFragment extends Fragment {
         pieChart.setData(pieData);
         pieChart.invalidate();
 
-        pieChart.animateY(500, Easing.EaseInOutQuad);
+//        pieChart.animateY(300, Easing.EaseInOutQuad);
     }
     public void setupPieChart() {
         pieChart.setRenderer(new CustomPieChartRenderer(pieChart, 10f, pieChart.getAnimator(), pieChart.getViewPortHandler()));
@@ -423,6 +432,7 @@ public class ChartsChildFragment extends Fragment {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
         catDataGrid.setLayoutManager(gridLayoutManager);
         catDataGrid.setAdapter(catDataAdapter);
+//        return new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
     }
     public void setPieChartTotalAmt(float totalAmt) {
         this.totalAmt = totalAmt;
@@ -433,7 +443,7 @@ public class ChartsChildFragment extends Fragment {
      * Linechart functions
      */
     @SuppressWarnings("ConstantConditions")
-    private void loadLineChartData() {
+    public void loadLineChartData() {
         if (getActivity() == null)
             return;
         ArrayList<Entry> values = new ArrayList<>();
@@ -551,8 +561,7 @@ public class ChartsChildFragment extends Fragment {
                     lineDate.setText(MainActivity.getDatetimeStr(fromCalLine, "MMM yyyy").toUpperCase());
                 } else
                     lineDate.setText(getString(R.string.full_date,MainActivity.getRelativePrefix(fromCalLine), MainActivity.getDatetimeStr(fromCalLine, "dd MMM yyyy")).toUpperCase());
-                updateExpenseList();
-                updateAverages();
+                updateExpenseRecyclerView();
             }
 
             @Override
@@ -618,17 +627,30 @@ public class ChartsChildFragment extends Fragment {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         expenseList.setLayoutManager(linearLayoutManager);
     }
+
+    /**
+     * Update
+     */
     public void updateAverages() {
         if (getActivity() == null)
             return;
-        float avg = ((MainActivity) getActivity()).db.getDayAverage(expenses);
-        avgDay.setText(String.format(MainActivity.locale,"%.2f", avg));
-        avg = ((MainActivity) getActivity()).db.getWeekAverage(expenses);
-        avgWeek.setText(String.format(MainActivity.locale,"%.2f", avg));
-        avg = ((MainActivity) getActivity()).db.getMonthAverage(expenses);
-        avgMonth.setText(String.format(MainActivity.locale,"%.2f", avg));
+        float avgDayValue = ((MainActivity) getActivity()).db.getDayAverage(expenses);
+        float avgWeekValue = ((MainActivity) getActivity()).db.getWeekAverage(expenses);
+        float avgMonthValue = ((MainActivity) getActivity()).db.getMonthAverage(expenses);
+        avgDay.setText(String.format(MainActivity.locale,"%.2f", avgDayValue));
+        avgWeek.setText(String.format(MainActivity.locale,"%.2f", avgWeekValue));
+        avgMonth.setText(String.format(MainActivity.locale,"%.2f", avgMonthValue));
     }
-    public Calendar updateDateRange(Calendar cal, int range, int firstDayOfWeek) {
+    public void updateCurrency(String curr) {
+        ((TextView) view.findViewById(R.id.summaryCurrency)).setText(curr);
+        ((TextView) view.findViewById(R.id.curr1)).setText(curr);
+        ((TextView) view.findViewById(R.id.curr2)).setText(curr);
+        ((TextView) view.findViewById(R.id.curr3)).setText(curr);
+    }
+    public Calendar updateDateRange(Calendar cal, int range) {
+        if (getActivity() == null)
+            return null;
+        int firstDayOfWeek = ((MainActivity) getActivity()).getDefaultFirstDayOfWeek();
         Calendar copy = MainActivity.getCalendarCopy(cal, range);
         if (selDateState == DateGridAdapter.DAY) {
             int lastDayOfWeek = (firstDayOfWeek == Calendar.MONDAY) ? Calendar.SUNDAY : Calendar.SATURDAY;
@@ -644,17 +666,6 @@ public class ChartsChildFragment extends Fragment {
         }
         return copy;
     }
-    public Calendar updateDateRange(Calendar cal, int range) {
-        if (getActivity() == null)
-            return null;
-        return updateDateRange(cal, range, ((MainActivity) getActivity()).getDefaultFirstDayOfWeek());
-    }
-    public void updateCurrency(String curr) {
-        ((TextView) view.findViewById(R.id.summaryCurrency)).setText(curr);
-        ((TextView) view.findViewById(R.id.curr1)).setText(curr);
-        ((TextView) view.findViewById(R.id.curr2)).setText(curr);
-        ((TextView) view.findViewById(R.id.curr3)).setText(curr);
-    }
     public void updateExpenses() {
         if (getActivity() == null)
             return;
@@ -664,7 +675,7 @@ public class ChartsChildFragment extends Fragment {
         if (expensesByFilter != null)
             expenses.retainAll(expensesByFilter);
     }
-    public void updateExpenseList() {
+    public void updateExpenseRecyclerView() {
         updateExpenses();
         MainActivity.sortExpenses(expenses, Constants.DESCENDING);
         expenses = MainActivity.insertExpDateHeaders(expenses);
@@ -672,28 +683,23 @@ public class ChartsChildFragment extends Fragment {
         if (expenses.size() > 0) placeholder.setVisibility(View.GONE);
         else placeholder.setVisibility(View.VISIBLE);
     }
-    public ArrayList<Expense> getExpensesBySectionFilter() {
-        if (getActivity() == null)
-            return null;
-        if (accFilters.isEmpty() && catFilters.isEmpty())
-            return null;
-        return ((MainActivity) getActivity()).db.getExpensesByFilters(accFilters, catFilters);
-    }
     public void updateLineChartSummary() {
-        lineAmt.setText(String.format(MainActivity.locale,"%.2f",totalAmt));
+        String lineDateText;
         if (isSelRange) {
             if (selDateState == DateGridAdapter.YEAR)
-                lineDate.setText(getString(R.string.date_range,MainActivity.getDatetimeStr(fromCalLine, "MMM yyyy"),MainActivity.getDatetimeStr(toCalLine, "MMM yyyy")).toUpperCase());
+                lineDateText = getString(R.string.date_range,MainActivity.getDatetimeStr(fromCalLine, "MMM yyyy"),MainActivity.getDatetimeStr(toCalLine, "MMM yyyy")).toUpperCase();
             else
-                lineDate.setText(getString(R.string.date_range,MainActivity.getDatetimeStr(fromCalLine, "dd MMM yyyy"),MainActivity.getDatetimeStr(toCalLine, "dd MMM yyyy")).toUpperCase());
+                lineDateText = getString(R.string.date_range,MainActivity.getDatetimeStr(fromCalLine, "dd MMM yyyy"),MainActivity.getDatetimeStr(toCalLine, "dd MMM yyyy")).toUpperCase();
         } else {
             if (selDateState == DateGridAdapter.YEAR)
-                lineDate.setText(MainActivity.getDatetimeStr(fromCalLine, "yyyy").toUpperCase());
+                lineDateText = MainActivity.getDatetimeStr(fromCalLine, "yyyy").toUpperCase();
             else if (selDateState <= DateGridAdapter.WEEK)
-                lineDate.setText(getString(R.string.date_range,MainActivity.getDatetimeStr(fromCalLine, "dd MMM yyyy"),MainActivity.getDatetimeStr(toCalLine, "dd MMM yyyy")).toUpperCase());
+                lineDateText = getString(R.string.date_range,MainActivity.getDatetimeStr(fromCalLine, "dd MMM yyyy"),MainActivity.getDatetimeStr(toCalLine, "dd MMM yyyy")).toUpperCase();
             else
-                lineDate.setText(MainActivity.getDatetimeStr(fromCalLine, "MMMM yyyy").toUpperCase());
+                lineDateText = MainActivity.getDatetimeStr(fromCalLine, "MMMM yyyy").toUpperCase();
         }
+        lineAmt.setText(String.format(MainActivity.locale,"%.2f",totalAmt));
+        lineDate.setText(lineDateText);
     }
     public void updateSelDateState() {
         if (getParentFragment() == null)
@@ -744,6 +750,14 @@ public class ChartsChildFragment extends Fragment {
             }
         });
     }
+
+    public ArrayList<Expense> getExpensesBySectionFilter() {
+        if (getActivity() == null)
+            return null;
+        if (accFilters.isEmpty() && catFilters.isEmpty())
+            return null;
+        return ((MainActivity) getActivity()).db.getExpensesByFilters(accFilters, catFilters);
+    }
     public String getDtf() {
         if (selDateState == DateGridAdapter.YEAR) return "MM-yyyy";
         else return "dd-MM-yyyy";
@@ -764,7 +778,7 @@ public class ChartsChildFragment extends Fragment {
         lineChart.highlightValues(null);
         highlightLineAmt(false);
         updateLineChartSummary();
-        updateExpenseList();
+        updateExpenseRecyclerView();
         updateAverages();
     }
 

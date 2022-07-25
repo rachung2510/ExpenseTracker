@@ -7,7 +7,9 @@
     <string name="Exp">Expense</string>
     <string name="EXPS">EXPENSES</string>
     <string name="CAT">CATEGORY</string>
+    <string name="CATS">CATEGORIES</string>
     <string name="ACC">ACCOUNT</string>
+    <string name="ACCS">ACCOUNTS</string>
     <string name="Cat">Category</string>
     <string name="Acc">Account</string>
     <string name="cat">category</string>

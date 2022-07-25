@@ -17,8 +17,11 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputFilter;
+import android.util.Log;
+import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -31,6 +34,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -38,14 +42,11 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.expensetracker.ChartsPage.ChartsChildFragment;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
@@ -60,7 +61,10 @@ import com.example.expensetracker.HomePage.HomeFragment;
 import com.example.expensetracker.ManagePage.ManageChildFragment;
 import com.example.expensetracker.ManagePage.ManageFragment;
 import com.example.expensetracker.ManagePage.SectionOptDialogFragment;
+import com.example.expensetracker.RecyclerViewAdapters.ViewPagerAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
+import com.google.android.material.navigation.NavigationView;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,7 +79,7 @@ import java.util.Objects;
 
 import kotlin.Triple;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {
 
     public static String TAG = "MainActivity";
 
@@ -84,7 +88,9 @@ public class MainActivity extends AppCompatActivity {
     private HashMap<Integer, String> iconMap = new HashMap<>();
     private HashMap<Integer, String> colorMap = new HashMap<>();
 
+    // Side menu
     private TextView sideMenuValueCurr, sideMenuValueFirst;
+    private DrawerLayout navDrawer;
 
     // Dialog components
     private AlertDialog.Builder dialogBuilder;
@@ -92,6 +98,12 @@ public class MainActivity extends AppCompatActivity {
     private TextView expAccName, expCatName, expDate, sectionType, expCurr, sectionCurr;
     private ImageButton expAccIcon, expCatIcon, sectionIcon;
     private LinearLayout expAccBox, expCatBox, expDelBtn, expDateBtn, expSaveBtn, sectionBanner, sectionCurrRow, sectionDelBtn, sectionSaveBtn;
+
+    // Fragments
+    private BottomNavigationView bottomNavView;
+    private ViewPager2 viewPager;
+    private ViewPagerAdapter adapter;
+    private boolean updateFragments = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,25 +125,21 @@ public class MainActivity extends AppCompatActivity {
             initialiseDefaultSettings();
 
         // Initialize the bottom navigation view
-        BottomNavigationView bottomNavView = findViewById(R.id.bottom_nav_view);
-        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_home, R.id.navigation_manage, R.id.navigation_charts)
-                .build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-        NavigationUI.setupWithNavController(bottomNavView, navController);
+        bottomNavView = findViewById(R.id.bottom_nav_view);
+        viewPager = findViewById(R.id.viewPager);
+        bottomNavView.setOnItemSelectedListener(this);
+        getTabs();
 
         // Initialise menu
+        navDrawer = findViewById(R.id.drawer_layout);
         LinearLayout sideMenuItemCurr = findViewById(R.id.sideMenuItemCurrency);
         LinearLayout sideMenuItemFirst = findViewById(R.id.sideMenuItemFirst);
         LinearLayout sideMenuItemImport = findViewById(R.id.sideMenuItemImport);
         LinearLayout sideMenuItemExport = findViewById(R.id.sideMenuItemExport);
         sideMenuValueCurr = findViewById(R.id.sideMenuValueCurrency);
         sideMenuValueFirst = findViewById(R.id.sideMenuValueFirst);
-
         sideMenuValueCurr.setText(getDefaultCurrency());
         sideMenuValueFirst.setText((getDefaultFirstDayOfWeek() == Calendar.SUNDAY) ? "Sunday" : "Monday");
-
         sideMenuItemCurr.setOnClickListener(view2 -> {
             CurrencyAdapter adapter = new CurrencyAdapter(this, db.getAllCurrencies(), getDefaultCurrency());
             final View view1 = getLayoutInflater().inflate(R.layout.dialog_recyclerview, null);
@@ -195,6 +203,66 @@ public class MainActivity extends AppCompatActivity {
                     .setNegativeButton(android.R.string.no, (dialogInterface1, i1) -> dialogInterface1.dismiss())
                     .show();
         });
+    }
+
+    /**
+     * FRAGMENTS
+     */
+    public void getTabs() {
+        adapter = new ViewPagerAdapter(getSupportFragmentManager(), getLifecycle());
+        adapter.addFragment(new HomeFragment());
+        adapter.addFragment(new ChartsFragment());
+        adapter.addFragment(new ManageFragment());
+        viewPager.setAdapter(adapter);
+        viewPager.setOffscreenPageLimit(3);
+
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                switch (position) {
+                    case Constants.HOME:
+                        bottomNavView.getMenu().findItem(R.id.navigation_home).setChecked(true);
+                        setMenuEnabled(true);
+                        break;
+                    case Constants.CHARTS:
+                        bottomNavView.getMenu().findItem(R.id.navigation_charts).setChecked(true);
+                        setMenuEnabled(false);
+                        break;
+                    case Constants.MANAGE:
+                        bottomNavView.getMenu().findItem(R.id.navigation_manage).setChecked(true);
+                        setMenuEnabled(false);
+                        break;
+                }
+                if (updateFragments) {
+                    updateHomeData();
+                    ((ChartsFragment) adapter.createFragment(Constants.CHARTS)).updateData();
+                    ((ManageFragment) adapter.createFragment(Constants.MANAGE)).updateData();
+                    setUpdateFragments(false);
+                }
+            }
+        });
+    }
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.navigation_home)
+            viewPager.setCurrentItem(Constants.HOME, false);
+        else if (id == R.id.navigation_charts)
+            viewPager.setCurrentItem(Constants.CHARTS, false);
+        else if (id == R.id.navigation_manage)
+            viewPager.setCurrentItem(Constants.MANAGE, false);
+        else
+            return false;
+        return true;
+    }
+    public Fragment getFragment() {
+        return adapter.createFragment(viewPager.getCurrentItem());
+//        Fragment navHostFragment = getSupportFragmentManager().findFragmentById(R.id.fragment);
+//        return (navHostFragment == null) ? null : navHostFragment.getChildFragmentManager().getFragments().get(0);
+    }
+    public void setUpdateFragments(boolean enable) {
+        updateFragments = enable;
     }
 
     /**
@@ -368,13 +436,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * UPDATE/GETTERS/SETTERS
+     * UPDATE
      */
     // Update
     public void updateHomeData() {
         ArrayList<Expense> expenses = getExpenseList();
         updateExpenseData(expenses);
-        updateSummaryData(expenses);
+        updateSummaryData(expenses, Constants.HOME);
+    }
+    public void updateAllExpenseData() {
+        HomeFragment homeFrag = (HomeFragment) adapter.createFragment(Constants.HOME);
+        ChartsFragment chartsFrag = (ChartsFragment) adapter.createFragment(Constants.CHARTS);
+        for (int i = 0;i < 2;i++) {
+            ArrayList<Expense> expenses = new ArrayList<>();
+            if (i == Constants.HOME) {
+                Calendar from = homeFrag.getDateRange()[0];
+                Calendar to = homeFrag.getDateRange()[1];
+                if (homeFrag.getSelDateState() == DateGridAdapter.ALL)
+                    expenses =  db.getAllExpenses();
+                else
+                    expenses = db.getExpensesByDateRange(from, to);
+                ArrayList<Expense> expensesByFilter = db.getExpensesByFilters(homeFrag.getSelAccFilters(), homeFrag.getSelCatFilters());
+                expenses.retainAll(expensesByFilter);
+            } else if (i == Constants.CHARTS) {
+                Calendar from = chartsFrag.getDateRange()[0];
+                Calendar to = chartsFrag.getDateRange()[1];
+                if (chartsFrag.getSelDateState() == DateGridAdapter.ALL)
+                    expenses =  db.getAllExpenses();
+                else
+                    expenses = db.getExpensesByDateRange(from, to);
+            }
+            expenses = insertExpDateHeaders(sortExpenses(expenses, Constants.DESCENDING));
+            ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+            linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+            ((HomeFragment) adapter.createFragment(Constants.HOME)).setExpenseData(linearLayoutManager, expAdapter);
+        }
     }
     public void updateExpenseData(ArrayList<Expense> expenses) {
         expenses = insertExpDateHeaders(sortExpenses(expenses, Constants.DESCENDING));
@@ -384,22 +481,21 @@ public class MainActivity extends AppCompatActivity {
         if (getFragment() instanceof HomeFragment)
             ((HomeFragment) getFragment()).setExpenseData(linearLayoutManager, expAdapter);
     }
-    public void updateSummaryData(ArrayList<Expense> expenses) {
+    public void updateSummaryData(ArrayList<Expense> expenses, int page) {
         Calendar from, to;
         int state;
-        if (getFragment() instanceof HomeFragment) {
-            HomeFragment fragment = (HomeFragment) getFragment();
+        if (page == Constants.HOME) {
+            HomeFragment fragment = (HomeFragment) adapter.createFragment(page);
             from = fragment.getDateRange()[0];
             to = fragment.getDateRange()[1];
             state = fragment.getSelDateState();
-        } else if (getFragment() instanceof ChartsFragment) {
-            ChartsFragment fragment = (ChartsFragment) getFragment();
+        } else if (page == Constants.CHARTS) {
+            ChartsFragment fragment = (ChartsFragment) adapter.createFragment(page);
             from = fragment.getDateRange()[0];
             to = fragment.getDateRange()[1];
             state = fragment.getSelDateState();
-        } else {
+        } else
             return;
-        }
 
         String summaryDateText;
         float totalAmt = 0;
@@ -432,11 +528,53 @@ public class MainActivity extends AppCompatActivity {
             }
             for (Expense exp : expenses) totalAmt += exp.getAmount();
         }
-        if (getFragment() instanceof HomeFragment) {
-            ((HomeFragment) getFragment()).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
-        } else if (getFragment() instanceof ChartsFragment) {
-            ((ChartsFragment) getFragment()).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
+        if (page == Constants.HOME)
+            ((HomeFragment) adapter.createFragment(page)).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
+        else if (page == Constants.CHARTS)
+            ((ChartsFragment) adapter.createFragment(page)).setSummaryData(summaryDateText.toUpperCase(), totalAmt,true);
+    }
+    public void updateSummaryData(int page) {
+        updateSummaryData(getExpenseList(), page);
+    }
+    public Pair<String,Float> getSummaryData(ArrayList<Expense> expenses, int fragType) {
+        if (fragType != Constants.CHARTS)
+            return null;
+        ChartsFragment fragment = (ChartsFragment) adapter.createFragment(Constants.CHARTS);
+        Calendar from = fragment.getDateRange()[0];
+        Calendar to = fragment.getDateRange()[1];
+        int state = fragment.getSelDateState();
+        String summaryDateText;
+        float totalAmt = 0;
+        if (state == DateGridAdapter.ALL) {
+            summaryDateText = "All time";
+            totalAmt = db.getTotalAmt();
+        } else {
+            Calendar cal = getCalendarCopy(to, DateGridAdapter.FROM);
+            String dtf;
+            switch (state) {
+                case DateGridAdapter.MONTH:
+                    dtf = "MMM yyyy";
+                    break;
+                case DateGridAdapter.YEAR:
+                    dtf = "yyyy";
+                    break;
+                default:
+                    dtf = "dd MMM yyyy";
+            }
+            if (getDatetimeStr(from, dtf).equals(getDatetimeStr(cal, dtf))) {
+                if (state == DateGridAdapter.DAY || state == DateGridAdapter.SELECT_SINGLE) {
+                    summaryDateText = getRelativePrefix(from);
+                    summaryDateText += getDatetimeStr(from, ", dd MMM yyyy");
+                } else if (state == DateGridAdapter.MONTH)
+                    summaryDateText = getDatetimeStr(from, "MMMM yyyy");
+                else
+                    summaryDateText = getDatetimeStr(from, dtf);
+            } else {
+                summaryDateText = getDatetimeStr(from, dtf) + " - " + getDatetimeStr(to, dtf);
+            }
+            for (Expense exp : expenses) totalAmt += exp.getAmount();
         }
+        return new Pair<>(summaryDateText.toUpperCase(), totalAmt);
     }
     @SuppressWarnings("unchecked")
     public void updateAccountData() {
@@ -487,8 +625,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * GETTERS
+     */
     // Expenses
     public ArrayList<Expense> getExpenseList() {
+        if (getFragment() instanceof ChartsFragment) Log.e(TAG,"yes");
         ArrayList<Expense> expensesByDate = new ArrayList<>();
         if (getFragment() instanceof HomeFragment) {
             HomeFragment fragment = (HomeFragment) getFragment();
@@ -610,6 +752,7 @@ public class MainActivity extends AppCompatActivity {
                 Expense expense = new Expense(amt, desc, acc1, cat1, datetime);
                 db.createExpense(expense);
                 updateHomeData(); // update summary & expense list
+                setUpdateFragments(true);
             } else {
                 Toast.makeText(MainActivity.this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
             }
@@ -661,8 +804,8 @@ public class MainActivity extends AppCompatActivity {
                 desc = (desc.isEmpty()) ? cat1.getName() : desc;
                 Expense expense = new Expense(id, amt, desc, acc1, cat1, exp.getDatetime());
                 db.updateExpense(expense);
-
                 updateHomeData(); // update data lists
+                setUpdateFragments(true);
             } else {
                 Toast.makeText(MainActivity.this, "Amount cannot be 0. Expense not updated", Toast.LENGTH_SHORT).show();
             }
@@ -677,6 +820,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Expense deleted", Toast.LENGTH_SHORT).show();
                 updateHomeData();
                 expDialog.dismiss();
+                setUpdateFragments(true);
             })
                     .setNeutralButton(android.R.string.no, (dialog, which) -> {
                 dialog.cancel(); // close dialog
@@ -814,6 +958,7 @@ public class MainActivity extends AppCompatActivity {
                 db.updateAccount(new Account(MainActivity.this, id, name, iconMap.get(icon_id), colorMap.get(color_id), pos, currency));
                 updateAccountData();
                 updateHomeData();
+                setUpdateFragments(true);
             }
             dialog.dismiss();
         });
@@ -896,6 +1041,7 @@ public class MainActivity extends AppCompatActivity {
                 db.updateCategory(new Category(MainActivity.this, id, name, iconMap.get(icon_id), colorMap.get(color_id), pos));
                 updateCategoryData();
                 updateHomeData();
+                setUpdateFragments(true);
             }
             dialog.dismiss();
         });
@@ -903,6 +1049,20 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    /**
+     * HELPER FUNCTIONS
+     */
+    public static float convertDpToPx(Context context, float dp) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
+                context.getResources().getDisplayMetrics());
+    }
+    public static Currency getCurrencyFromName(String name) {
+        return new Currency(name, "", Constants.currency_map.get(name));
+    }
+    public int getNewPosAcc() { return db.getNewPosAccount(); }
+    public int getNewPosCat() {
+        return db.getNewPosCategory();
+    }
     public void setEditSectionOptions(String iconName, String colorName) {
         Drawable icon = MainActivity.getIconFromName(this, iconName);
         String colorHex = MainActivity.getColorHexFromName(this, colorName);
@@ -924,37 +1084,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * FUNCTIONS
+     * MENU HELPER FUNCTIONS
      */
-    public Fragment getFragment() {
-        Fragment navHostFragment = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_activity_main);
-        return (navHostFragment == null) ? null : navHostFragment.getChildFragmentManager().getFragments().get(0);
+    public void setupMenuBtn(ImageButton menuBtn) {
+        menuBtn.setOnClickListener(view1 -> {
+            navDrawer.openDrawer(GravityCompat.START);
+        });
     }
-    public void resetDefaultAccs() {
-        ArrayList<Account> accounts = db.getAllAccounts();
-        HashMap<String,Boolean> defaultAccNames = new HashMap<>();
-        for (String name : Constants.defaultAccNames)
-            defaultAccNames.put(name, true);
-        for (Account acc : accounts) {
-            if (defaultAccNames.containsKey(acc.getName()))
-                continue;
-            db.deleteAccount(acc,false);
-        }
-    }
-    public void resetDefaultCats() {
-        ArrayList<Category> categories = db.getAllCategories();
-        HashMap<String,Boolean> defaultCatNames = new HashMap<>();
-        for (String name : Constants.defaultCatNames)
-            defaultCatNames.put(name, true);
-        for (Category cat : categories) {
-            if (defaultCatNames.containsKey(cat.getName()))
-                continue;
-            db.deleteCategory(cat,false);
-        }
+    public void setMenuEnabled(boolean enable) {
+        navDrawer.setDrawerLockMode(enable ? DrawerLayout.LOCK_MODE_UNLOCKED : DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
     /**
-     * STATIC METHODS
+     * ICON/COLOR HELPER FUNCTIONS
      */
     public static Bitmap drawableToBitmap (Drawable drawable) {
         if (drawable instanceof BitmapDrawable) {
@@ -1005,25 +1147,9 @@ public class MainActivity extends AppCompatActivity {
         return Color.parseColor("#" + hex);
     }
 
-    public static float convertDpToPx(Context context, float dp) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
-                context.getResources().getDisplayMetrics());
-    }
-    public static Calendar getCalendarCopy(Calendar cal, int range) {
-        Calendar copy = Calendar.getInstance();
-        if (range == DateGridAdapter.FROM)
-            copy.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 0,0,0);
-        else
-            copy.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 23,59,59);
-        return copy;
-    }
-    public static Currency getCurrencyFromName(String name) {
-        return new Currency(name, "", Constants.currency_map.get(name));
-    }
-    public static String getDatetimeStr(Calendar cal, String format) {
-        format = (format.isEmpty()) ? Expense.DATETIME_FORMAT : format;
-        return new SimpleDateFormat(format, locale).format(cal.getTime());
-    }
+    /**
+     * DEFAULT HELPER FUNCTIONS
+     */
     public String getDefaultAccName() {
         return db.getDefaultAccName();
     }
@@ -1047,12 +1173,66 @@ public class MainActivity extends AppCompatActivity {
     public String getImmutableCat() {
         return db.getCategory(1).getName();
     }
+    public void resetDefaultAccs() {
+        ArrayList<Account> accounts = db.getAllAccounts();
+        HashMap<String,Integer> defaultAccNames = new HashMap<>();
+        for (int i = 0;i < Constants.defaultAccNames.length;i++)
+            defaultAccNames.put(Constants.defaultAccNames[i], i);
+        // delete non-default accounts
+        for (Account acc : accounts) {
+            if (defaultAccNames.containsKey(acc.getName())) {
+                defaultAccNames.remove(acc.getName());
+                continue;
+            }
+            db.deleteAccount(acc,false);
+        }
+        // add back deleted accounts
+        for (String name : defaultAccNames.keySet()) {
+            int idx = defaultAccNames.get(name);
+            String icon = Constants.defaultAccIcons[idx];
+            String color = Constants.defaultAccColors[idx];
+            db.createAccount(new Account(this,idx+1,name,icon,color,getNewPosAcc()),true);
+        }
+    }
+    public void resetDefaultCats() {
+        ArrayList<Category> categories = db.getAllCategories();
+        HashMap<String,Integer> defaultCatNames = new HashMap<>();
+        for (int i = 0;i < Constants.defaultCatNames.length;i++)
+            defaultCatNames.put(Constants.defaultCatNames[i], i);
+        // delete non-default categories
+        for (Category cat : categories) {
+            if (defaultCatNames.containsKey(cat.getName())) {
+                defaultCatNames.remove(cat.getName());
+                continue;
+            }
+            db.deleteCategory(cat,false);
+        }
+        // add back deleted categories
+        for (String name : defaultCatNames.keySet()) {
+            int idx = defaultCatNames.get(name);
+            String icon = Constants.defaultCatIcons[idx];
+            String color = Constants.defaultCatColors[idx];
+            db.createCategory(new Category(this,idx+1,name,icon,color,getNewPosCat()),true);
+        }
+    }
+
+    /**
+     * CALENDAR HELPER FUNCTIONS
+     */
+    public static Calendar getCalendarCopy(Calendar cal, int range) {
+        Calendar copy = Calendar.getInstance();
+        if (range == DateGridAdapter.FROM)
+            copy.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 0,0,0);
+        else
+            copy.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH), 23,59,59);
+        return copy;
+    }
+    public static String getDatetimeStr(Calendar cal, String format) {
+        format = (format.isEmpty()) ? Expense.DATETIME_FORMAT : format;
+        return new SimpleDateFormat(format, locale).format(cal.getTime());
+    }
     public Calendar getInitSelectedDates(int range, int state) {
         return DateGridAdapter.getInitSelectedDates(range, state, getDefaultFirstDayOfWeek());
-    }
-    public int getNewPosAcc() { return db.getNewPosAccount(); }
-    public int getNewPosCat() {
-        return db.getNewPosCategory();
     }
     public static int getRelativeDate(Calendar cal) {
         Calendar today = Calendar.getInstance(locale);
@@ -1076,7 +1256,7 @@ public class MainActivity extends AppCompatActivity {
     public static String getRelativePrefix(Calendar cal) {
         int relativeDate = getRelativeDate(cal);
         return (relativeDate == Constants.TODAY) ? "Today" : (
-                    (relativeDate == Constants.YESTERDAY) ? "Yesterday" : getDatetimeStr(cal, "EEE"));
+                (relativeDate == Constants.YESTERDAY) ? "Yesterday" : getDatetimeStr(cal, "EEE"));
     }
     public static Calendar getCalFromString(String dtf, String date) {
         Calendar cal = Calendar.getInstance(locale);
@@ -1085,13 +1265,10 @@ public class MainActivity extends AppCompatActivity {
         } catch (ParseException e) { e.printStackTrace();}
         return cal;
     }
-    public void setupMenuBtn(ImageButton menuBtn) {
-        menuBtn.setOnClickListener(view1 -> {
-            DrawerLayout navDrawer = findViewById(R.id.drawer_layout);
-            navDrawer.openDrawer(GravityCompat.START);
-        });
-    }
 
+    /**
+     * KEYBOARD HELPER FUNCTIONS
+     */
     public static void showKeyboard(Context context, EditText view) {
         view.postDelayed(() -> {
             InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
@@ -1109,6 +1286,9 @@ public class MainActivity extends AppCompatActivity {
         hideKeyboard(this, view);
     }
 
+    /**
+     * IMPORT/EXPORT
+     */
     private void showFileChooser() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
