@@ -197,29 +197,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     public ArrayList<Expense> getExpensesByDateRange(Calendar from, Calendar to) {
         ArrayList<Expense> expenses = new ArrayList<>();
-        Cursor c = getCursorFromQueryOrNull(getQuerySelectAll(TABLE_EXPENSE), "");
+        String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
+        String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
+        Cursor c = getCursorFromQueryOrNull(
+                "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr + "'",
+                "");
         if (c == null)
             return expenses;
-        while (c.moveToNext()) {
-            String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-            Calendar cal = MainActivity.getCalFromString(Expense.DATETIME_FORMAT, datetime);
-            if (cal.compareTo(from)>-1 && cal.compareTo(to)<1)
-                expenses.add(getExpenseFromCursor(c));
-        }
+        while (c.moveToNext())
+            expenses.add(getExpenseFromCursor(c));
         c.close();
         return expenses;
     }
     public ArrayList<Expense> getExpensesByDateRangeAndCategory(Category cat, Calendar from, Calendar to) {
         ArrayList<Expense> expenses = new ArrayList<>();
-        Cursor c = getCursorFromQueryOrNull(getQuerySelectId(TABLE_EXPENSE, KEY_CAT_ID, cat.getId()), "");
+        String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
+        String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
+        Cursor c = getCursorFromQueryOrNull(
+                "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr + "' AND " +
+                KEY_CAT_ID + "=" + cat.getId(),
+                "");
         if (c == null)
             return expenses;
-        while (c.moveToNext()) {
-            String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-            Calendar cal = MainActivity.getCalFromString(Expense.DATETIME_FORMAT, datetime);
-            if (cal.compareTo(from)>-1 && cal.compareTo(to)<1)
-                expenses.add(getExpenseFromCursor(c));
-        }
+        while (c.moveToNext())
+            expenses.add(getExpenseFromCursor(c));
         c.close();
         return expenses;
     }
@@ -766,6 +767,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         float totalAmt = 0;
         ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
         for (Expense e : expenses) totalAmt += e.getAmount();
+        return totalAmt;
+    }
+    public float getTotalAmtByDate(Calendar cal, int range) {
+        float totalAmt = 0;
+        Cursor c = getCursorFromQueryOrNull(
+                "SELECT " + KEY_AMOUNT + "," + KEY_DATETIME + " FROM " + TABLE_EXPENSE,
+                "");
+        if (c == null)
+            return totalAmt;
+        while (c.moveToNext()) {
+            String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
+            float expAmt = c.getFloat(c.getColumnIndexOrThrow(KEY_AMOUNT));
+            Calendar expDate = MainActivity.getCalFromString(Expense.DATETIME_FORMAT, datetime);
+            String dtf = (range == Calendar.MONTH) ? "MM-yyyy" : "dd-MM-yyyy";
+            if ((MainActivity.getDatetimeStr(cal, dtf).equals(MainActivity.getDatetimeStr(expDate, dtf))))
+                totalAmt += expAmt;
+        }
         return totalAmt;
     }
 

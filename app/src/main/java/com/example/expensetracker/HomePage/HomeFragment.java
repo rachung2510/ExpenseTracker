@@ -57,7 +57,7 @@ public class HomeFragment extends Fragment {
     private ArrayList<Category> selCatFilters = new ArrayList<>();
 
     /**
-     * MAIN
+     * Main
      */
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getActivity() == null)
@@ -106,7 +106,7 @@ public class HomeFragment extends Fragment {
     }
 
     /**
-     * MENU
+     * Menu
      */
     public void createOptionsMenu(Toolbar toolbar) {
         toolbar.inflateMenu(R.menu.home_menu);
@@ -149,7 +149,7 @@ public class HomeFragment extends Fragment {
     };
 
     /**
-     * FUNCTIONS
+     * Functions
      */
     public void summaryDateAction() {
         if (getActivity() == null)
@@ -292,7 +292,7 @@ public class HomeFragment extends Fragment {
     }
 
     /**
-     * GETTERS & SETTERS
+     * Getters & Setters
      */
     public Calendar[] getDateRange() {
         return new Calendar[] { fromDate, toDate };

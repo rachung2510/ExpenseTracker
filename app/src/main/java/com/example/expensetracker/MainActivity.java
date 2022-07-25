@@ -1306,6 +1306,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                                     db.importDatabase(input);
                                     Toast.makeText(this, "Import successful", Toast.LENGTH_SHORT).show();
                                     updateHomeData();
+                                    setUpdateFragments(true);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                     Toast.makeText(this, "Import failed", Toast.LENGTH_SHORT).show();

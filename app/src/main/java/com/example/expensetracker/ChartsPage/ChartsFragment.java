@@ -32,13 +32,16 @@ import java.util.Objects;
 public class ChartsFragment extends Fragment {
 
     private static final String TAG = "ChartsFragment";
-    private int indicatorWidth;
+
     public String[] fragmentTitles = new String[] { "Categories", "Time", "Calendar" };
+    private int indicatorWidth;
+
+    // Layout components
     private TextView summaryDate;
     private ImageButton prevDate, nextDate;
     private Toolbar toolbar;
 
-    // Filter components
+    // Date filter components
     private DateGridAdapter filterDateAdapter;
     private Calendar fromDate, toDate;
     private int selDatePos, selDateState;
@@ -227,7 +230,7 @@ public class ChartsFragment extends Fragment {
     }
 
     /**
-     * GETTERS & SETTERS
+     * Getters & Setters
      */
     public ChartsChildFragment getChildFragment(int pos) {
         return (ChartsChildFragment) getChildFragmentManager().getFragments().get(pos);

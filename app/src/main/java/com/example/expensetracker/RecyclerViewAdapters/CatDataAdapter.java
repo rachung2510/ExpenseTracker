@@ -19,7 +19,6 @@ import com.example.expensetracker.Currency;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
-import com.github.mikephil.charting.highlight.Highlight;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -52,7 +51,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     /**
-     * INITIALISE ADAPTER
+     * Initialise adapter
      */
     @NonNull
     @Override
@@ -75,7 +74,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     /**
-     * VIEWHOLDER CLASS
+     * Viewholder class
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         View border;
