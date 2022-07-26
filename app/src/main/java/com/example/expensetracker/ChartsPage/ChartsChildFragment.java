@@ -186,9 +186,16 @@ public class ChartsChildFragment extends Fragment {
             case TYPE_PIECHART:
                 fromCalPie = MainActivity.getCalendarCopy(from, DateGridAdapter.FROM);
                 toCalPie = MainActivity.getCalendarCopy(to, DateGridAdapter.TO);
+                long tic = System.currentTimeMillis();
                 loadPieChartData();
+                long tic1 = System.currentTimeMillis();
                 catDataAdapter = new CatDataAdapter(getParentFragment().getActivity(), fromCalPie, toCalPie);
+                long tic2 = System.currentTimeMillis();
                 catDataGrid.setAdapter(catDataAdapter);
+                long toc = System.currentTimeMillis();
+//                Log.e(TAG,"loadPieChartData="+(tic1-tic));
+//                Log.e(TAG,"newAdapter="+(tic2-tic1));
+//                Log.e(TAG,"setAdapter="+(toc-tic2));
                 break;
 
             case TYPE_GRAPH:

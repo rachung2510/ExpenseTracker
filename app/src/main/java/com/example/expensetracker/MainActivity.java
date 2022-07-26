@@ -496,6 +496,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
         String summaryDateText;
         float totalAmt = 0;
+        long tic = System.currentTimeMillis();
         if (state == DateGridAdapter.ALL) {
             summaryDateText = "All time";
             totalAmt = db.getTotalAmt();
@@ -525,10 +526,13 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             }
             for (Expense exp : expenses) totalAmt += exp.getAmount();
         }
+        long tic1 = System.currentTimeMillis();
         if (page == Constants.HOME)
             ((HomeFragment) adapter.createFragment(page)).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         else if (page == Constants.CHARTS)
             ((ChartsFragment) adapter.createFragment(page)).setSummaryData(summaryDateText.toUpperCase(), totalAmt,true);
+        long toc = System.currentTimeMillis();
+//        Log.e(TAG,"setSummaryData="+(toc-tic1));
     }
     public void updateSummaryData(int page) {
         updateSummaryData(getExpenseList(), page);

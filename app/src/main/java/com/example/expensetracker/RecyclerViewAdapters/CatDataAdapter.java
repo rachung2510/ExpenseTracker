@@ -47,7 +47,6 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             categories.sort((cat1, cat2) -> {
                 return Float.compare(db.getTotalAmtByCategoryInRange(cat2, fromDate, toDate), db.getTotalAmtByCategoryInRange(cat1, fromDate, toDate)); // descending order
             });
-
     }
 
     /**

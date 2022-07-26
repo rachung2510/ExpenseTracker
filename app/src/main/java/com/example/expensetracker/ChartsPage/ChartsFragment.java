@@ -1,6 +1,7 @@
 package com.example.expensetracker.ChartsPage;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -179,7 +180,10 @@ public class ChartsFragment extends Fragment {
                     toDate = filterDateAdapter.getSelDateRange()[1];
                     selDatePos = filterDateAdapter.getSelectedPos();
                     selDateState = filterDateAdapter.getSelectedState();
+                    long tic = System.currentTimeMillis();
                     ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS); // update summary
+                    long toc = System.currentTimeMillis();
+                    Log.e(TAG,"updateSummaryData=" + (toc-tic));
                 }
 
                 if (selDatePos == DateGridAdapter.ALL) {
@@ -256,11 +260,16 @@ public class ChartsFragment extends Fragment {
         pieChartFrag.setPieChartTotalAmt(summaryAmt);
         if (!update)
             return;
+        long tic = System.currentTimeMillis();
         pieChartFrag.updateDateFilters();
+        long tic1 = System.currentTimeMillis();
         if (getChildFragmentManager().getFragments().size() > 1) {
             ChartsChildFragment lineChartFrag = (ChartsChildFragment) getChildFragmentManager().getFragments().get(1);
             lineChartFrag.updateDateFilters();
         }
+        long toc = System.currentTimeMillis();
+//        Log.e(TAG,"pieUpdate="+(tic1-tic));
+//        Log.e(TAG,"lineUpdate="+(toc-tic1));
     }
 
 }
