@@ -22,5 +22,5 @@ A simple expense tracker for android which has three pages.
 
 ## Bug fixes
 - ~~Disappearing accounts in MANAGE~~
-- ~~Update stats in CHARTS/graph after setting section filters~
+- ~~Update stats in CHARTS/graph after setting section filters~~
 - ~~Graph should be continuous instead of starting from/ending at 0~~
