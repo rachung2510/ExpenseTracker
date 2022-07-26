@@ -13,6 +13,7 @@ A simple expense tracker for android which has three pages.
 - ~~Fix dialog widget~~
 - ~~Static widget~~
 - ~~User settings (default currency, first day of week)~~
+- Optimise CHARTS page
 
 ## Potential features
 - Load on scroll
@@ -21,5 +22,5 @@ A simple expense tracker for android which has three pages.
 
 ## Bug fixes
 - ~~Disappearing accounts in MANAGE~~
-- Update stats in CHARTS/graph after setting section filters
-- Graph should be continuous instead of starting from/ending at 0
+- ~~Update stats in CHARTS/graph after setting section filters~
+- ~~Graph should be continuous instead of starting from/ending at 0~~
