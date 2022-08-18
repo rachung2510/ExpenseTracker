@@ -107,8 +107,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/card_shadow"
-            android:paddingTop="20dp"
-            android:paddingBottom="20dp"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
             android:gravity="center"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -119,9 +119,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:overScrollMode="never"
-                android:translationX="15dp"
-                android:paddingLeft="15dp"
-                android:paddingRight="15dp"
+                android:translationX="10dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
                 tools:listitem="@layout/item_cat_data"/>
 
         </LinearLayout>
