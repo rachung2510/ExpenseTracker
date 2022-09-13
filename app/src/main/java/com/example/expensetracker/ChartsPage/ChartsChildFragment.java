@@ -340,6 +340,7 @@ public class ChartsChildFragment extends Fragment {
         if (getActivity() == null)
             return;
         ArrayList<PieEntry> pieEntries = new ArrayList<>();
+        pieCategories = new ArrayList<>();
         ArrayList<Category> categories = ((MainActivity) getActivity()).db.getAllCategories();
         ArrayList<Integer> colors = new ArrayList<>();
         int count = 0;
@@ -351,7 +352,7 @@ public class ChartsChildFragment extends Fragment {
                 pieEntries.add(new PieEntry(amt, cat.getIcon()));
                 colors.add(ContextCompat.getColor(getActivity(), cat.getColorId()));
                 pieCategories.add(cat);
-                pieCategoriesMap.put(cat.getName(),count);
+                pieCategoriesMap.put(cat.getName(), count);
                 count++;
             }
         }
