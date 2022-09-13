@@ -306,6 +306,9 @@ public class HomeFragment extends Fragment {
     public ArrayList<Category> getSelCatFilters() {
         return selCatFilters;
     }
+    public boolean hasNoFilters() {
+        return selAccFilters.isEmpty() && selCatFilters.isEmpty();
+    }
 
     public void setExpenseData(LinearLayoutManager linearLayoutManager, ExpenseAdapter expAdapter) {
         expenseList.setLayoutManager(linearLayoutManager);

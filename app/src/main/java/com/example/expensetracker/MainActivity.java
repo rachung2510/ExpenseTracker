@@ -480,26 +480,29 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public void updateSummaryData(ArrayList<Expense> expenses, int page) {
         Calendar from, to;
+        Fragment fragment;
         int state;
         if (page == Constants.HOME) {
-            HomeFragment fragment = (HomeFragment) adapter.createFragment(page);
-            from = fragment.getDateRange()[0];
-            to = fragment.getDateRange()[1];
-            state = fragment.getSelDateState();
+            fragment = adapter.createFragment(page);
+            from = ((HomeFragment) fragment).getDateRange()[0];
+            to = ((HomeFragment) fragment).getDateRange()[1];
+            state = ((HomeFragment) fragment).getSelDateState();
         } else if (page == Constants.CHARTS) {
-            ChartsFragment fragment = (ChartsFragment) adapter.createFragment(page);
-            from = fragment.getDateRange()[0];
-            to = fragment.getDateRange()[1];
-            state = fragment.getSelDateState();
+            fragment = adapter.createFragment(page);
+            from = ((ChartsFragment) fragment).getDateRange()[0];
+            to = ((ChartsFragment) fragment).getDateRange()[1];
+            state = ((ChartsFragment) fragment).getSelDateState();
         } else
             return;
 
         String summaryDateText;
         float totalAmt = 0;
-        long tic = System.currentTimeMillis();
         if (state == DateGridAdapter.ALL) {
             summaryDateText = "All time";
-            totalAmt = db.getTotalAmt();
+            if (((HomeFragment) fragment).hasNoFilters())
+                totalAmt = db.getTotalAmt();
+            else
+                for (Expense exp : expenses) totalAmt += exp.getAmount();
         } else {
             Calendar cal = getCalendarCopy(to, DateGridAdapter.FROM);
             String dtf;
@@ -526,12 +529,11 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             }
             for (Expense exp : expenses) totalAmt += exp.getAmount();
         }
-        long tic1 = System.currentTimeMillis();
         if (page == Constants.HOME)
             ((HomeFragment) adapter.createFragment(page)).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         else if (page == Constants.CHARTS)
             ((ChartsFragment) adapter.createFragment(page)).setSummaryData(summaryDateText.toUpperCase(), totalAmt,true);
-        long toc = System.currentTimeMillis();
+//        long toc = System.currentTimeMillis();
 //        Log.e(TAG,"setSummaryData="+(toc-tic1));
     }
     public void updateSummaryData(int page) {
