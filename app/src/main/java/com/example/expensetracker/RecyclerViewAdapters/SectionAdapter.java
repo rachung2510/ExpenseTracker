@@ -265,7 +265,10 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
         } else {
             holder.listItemName.setText(section.getName());
             holder.listItemCurr.setText(((Account) section).getCurrencySymbol());
-            holder.listItemAmt.setText(String.format(MainActivity.locale, "%.2f", ((MainActivity) context).db.getTotalAmtByAccount((Account) section)));
+            float totalAmt = ((MainActivity) context).db.getTotalAmtByAccount((Account) section);
+            String truncatedAmt = (totalAmt <= 1000) ? String.format(MainActivity.locale, "%.2f", totalAmt) :
+                    String.format(MainActivity.locale, "%.2f", totalAmt/1000) + "k";
+            holder.listItemAmt.setText(truncatedAmt);
             holder.listItemIcon.setForeground(section.getIcon());
             holder.listItemIcon.setForegroundTintList(MainActivity.getColorStateListFromId(context, R.color.white));
             holder.listItemIcon.setBackground(MainActivity.getIconFromId(context, R.drawable.shape_rounded_square));
