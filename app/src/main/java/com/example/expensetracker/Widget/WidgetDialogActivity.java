@@ -83,7 +83,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         expCatIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + cat.getColorHex())));
         expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex())); // set bg color
         expCatBox.setBackgroundColor(Color.parseColor("#" + cat.getColorHex()));
-        expCurr.setText(new Currency(this).getSymbol());
+        expCurr.setText(acc.getCurrencySymbol());
 
         // actions
         expAccBox.setOnClickListener(view -> {

@@ -719,7 +719,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         expCatIcon.setForegroundTintList(getColorStateListFromHex(cat.getColorHex()));
         expAccBox.setBackgroundColor(acc.getColor()); // set bg color
         expCatBox.setBackgroundColor(cat.getColor());
-        expCurr.setText(new Currency(this).getSymbol());
+        expCurr.setText(acc.getCurrencySymbol());
 
         // actions
         expAccBox.setOnClickListener(view -> {
