@@ -39,7 +39,7 @@ public class Constants {
             "cat_magenta_purple", "cat_fiery_fuchsia", "cat_lotus_pink", "cat_jigglypuff",
             "cat_blue_ballerina", "cat_storm_petrel", "cat_fuel_town", "cat_imperial_primer"
     };
-    public static final String[] allAccIcons = new String[] { "acc_cash", "acc_visa", "acc_nets", "acc_dbs", "acc_hsbc" };
+    public static final String[] allAccIcons = new String[] { "acc_cash", "acc_visa", "acc_nets", "acc_dbs", "acc_hsbc", "acc_youtrip" };
     public static final String[] allCatIcons = new String[] {
             "cat_food", "cat_drinks", "cat_snacks", "cat_home", "cat_office", "cat_groceries", "cat_taxi",
             "cat_transport", "cat_health", "cat_electronics", "cat_social", "cat_shopping", "cat_clothes",
