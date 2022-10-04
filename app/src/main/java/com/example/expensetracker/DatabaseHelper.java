@@ -57,6 +57,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_COLOR = "color";
     private static final String KEY_POSITION = "position";
     private static final String KEY_CURRENCY = "currency";
+    private static final String KEY_XRATE = "exchange_rate";
 
     // EXPENSES table create statement
     private static final String CREATE_TABLE_EXPENSE =
@@ -95,7 +96,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "CREATE TABLE " + TABLE_CURRENCY + "("
                     + KEY_NAME + " TEXT PRIMARY KEY,"
                     + KEY_DESC + " TEXT NOT NULL,"
-                    + KEY_CURRENCY + " TEXT NOT NULL"
+                    + KEY_CURRENCY + " TEXT NOT NULL,"
+                    + KEY_XRATE + " REAL NOT NULL"
                     + ")";
 
     /**
@@ -163,12 +165,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Toast.makeText(context, toast + category.getName(), Toast.LENGTH_SHORT).show();
         }
     }
-    public void createCurrency(String name, String desc, String symbol) {
+    public void createCurrency(Currency currency) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(KEY_NAME, name);
-        values.put(KEY_DESC, desc);
-        values.put(KEY_CURRENCY, symbol);
+        values.put(KEY_NAME, currency.getName());
+        values.put(KEY_DESC, currency.getDescription());
+        values.put(KEY_CURRENCY, currency.getSymbol());
+        values.put(KEY_XRATE, currency.getRate());
         db.insert(TABLE_CURRENCY, null, values);
     }
 
@@ -335,7 +338,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String name = c.getString(c.getColumnIndexOrThrow(KEY_NAME));
             String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
             String symbol = c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY));
-            currencies.add(new Currency(name, desc, symbol));
+            float xrate = c.getFloat(c.getColumnIndexOrThrow(KEY_XRATE));
+            currencies.add(new Currency(name, desc, xrate, symbol));
         }
         c.close();
         return currencies;

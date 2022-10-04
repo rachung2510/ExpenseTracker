@@ -279,10 +279,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         }
     }
     public void initialiseCurrencies() {
-        for (int i = 0;i < Constants.currencies.size();i++) {
-            Triple<String, String, String> triple = Constants.currencies.get(i);
-            db.createCurrency(triple.getFirst(), triple.getThird(), triple.getSecond());
-        }
+        for (Currency c : Constants.currencies) db.createCurrency(c);
     }
     public void getIconMap() {
         iconMap = new HashMap<>();
@@ -1059,7 +1056,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 context.getResources().getDisplayMetrics());
     }
     public static Currency getCurrencyFromName(String name) {
-        return new Currency(name, "", Constants.currency_map.get(name));
+        return Constants.currency_map.get(name);
     }
     public int getNewPosAcc() { return db.getNewPosAccount(); }
     public int getNewPosCat() {

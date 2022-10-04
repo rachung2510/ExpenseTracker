@@ -45,18 +45,17 @@ public class Constants {
             "cat_transport", "cat_health", "cat_electronics", "cat_social", "cat_shopping", "cat_clothes",
             "cat_beauty", "cat_crafts", "cat_gift", "cat_entertainment", "cat_music", "cat_others"
     };
-    public static ArrayList<Triple<String, String, String>> currencies = new ArrayList<>();
-    public static HashMap<String, String> currency_map = new HashMap<>();
+
+    public static ArrayList<Currency> currencies = new ArrayList<>();
+    public static HashMap<String, Currency> currency_map = new HashMap<>();
     static {
-        currencies.add(new Triple<>("SGD", "$","Singaporean dollar"));
-        currencies.add(new Triple<>("GBP", "£","British pound"));
-        currencies.add(new Triple<>("USD", "$", "United States dollar"));
-        currencies.add(new Triple<>("EUR", "€", "Euro"));
-        currencies.add(new Triple<>("CNY", "¥","Chinese yuan"));
-        currencies.add(new Triple<>("JPY", "¥","Japanese yen"));
-        for (Triple<String,String,String> triple : currencies) {
-            currency_map.put(triple.getFirst(), triple.getSecond());
-        }
+        currencies.add(new Currency("SGD","$",.732f,"Singaporean dollar"));
+        currencies.add(new Currency("GBP","£",1.306f,"British pound"));
+        currencies.add(new Currency("USD","U$",1.000f,"United States dollar"));
+        currencies.add(new Currency("EUR","€",1.130f,"Euro"));
+        currencies.add(new Currency("CNY","￥",.144f,"Chinese yuan"));
+        currencies.add(new Currency("JPY","¥",.00877f,"Japanese yen"));
+        for (Currency c : currencies) currency_map.put(c.getName(), c);
     }
 
     // Page modes
