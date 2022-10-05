@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.expensetracker.Constants;
+import com.example.expensetracker.HomePage.HomeFragment;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;
@@ -183,7 +184,7 @@ public class ChartsFragment extends Fragment {
                     long tic = System.currentTimeMillis();
                     ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS); // update summary
                     long toc = System.currentTimeMillis();
-                    Log.e(TAG,"updateSummaryData=" + (toc-tic));
+//                    Log.e(TAG,"updateSummaryData=" + (toc-tic));
                 }
 
                 if (selDatePos == DateGridAdapter.ALL) {
@@ -223,13 +224,19 @@ public class ChartsFragment extends Fragment {
         ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS); // update summary
     }
     public void updateData() {
-        ((ChartsChildFragment) getChildFragment(ChartsChildFragment.TYPE_PIECHART)).updateDateFilters();
+        ChartsChildFragment pieFrag = getChildFragment(ChartsChildFragment.TYPE_PIECHART);
+        pieFrag.updateDateFilters();
+        pieFrag.updateCurrency();
+        pieFrag.setPieChartTotalAmt(((HomeFragment) ((MainActivity) getActivity()).getFragment(Constants.HOME)).getSummaryAmt());
         if (getNumFragments() > 1) {
-            ChartsChildFragment graphFrag = ((ChartsChildFragment) getChildFragment(ChartsChildFragment.TYPE_GRAPH));
-            graphFrag.loadLineChartData();
-            graphFrag.updateExpenseRecyclerView();
-            graphFrag.updateLineChartSummary();
-            graphFrag.updateAverages();
+            ChartsChildFragment graphFrag = getChildFragment(ChartsChildFragment.TYPE_GRAPH);
+            graphFrag.updateDateFilters();
+//            if (graphFrag.getSelDateState() != DateGridAdapter.DAY) graphFrag.resetOnClick();
+//            graphFrag.loadLineChartData();
+//            graphFrag.updateExpenseRecyclerView();
+//            graphFrag.updateLineChartSummary();
+//            graphFrag.updateAverages();
+            graphFrag.updateCurrency();
         }
     }
 

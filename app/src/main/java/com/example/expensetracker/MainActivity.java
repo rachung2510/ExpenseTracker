@@ -17,7 +17,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputFilter;
-import android.util.Log;
 import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -75,8 +74,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
-
-import kotlin.Triple;
 
 public class MainActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {
 
@@ -156,8 +153,11 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         editor.putString(getString(R.string.key_default_currency), adapter.getSelected());
                         editor.apply();
                         sideMenuValueCurr.setText(getDefaultCurrency());
-                        if (getCurrentFragment() instanceof HomeFragment)
+                        if (getCurrentFragment() instanceof HomeFragment) {
                             ((HomeFragment) getCurrentFragment()).setSummaryCurr(new Currency(this).getSymbol());
+                            updateSummaryData(Constants.HOME);
+                        }
+                        setUpdateFragments(true);
                     })
                     .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {})
                     .show();
@@ -235,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         break;
                 }
                 if (updateFragments) {
-                    updateHomeData();
+                    if (position == Constants.HOME) updateHomeData();
                     ((ChartsFragment) adapter.createFragment(Constants.CHARTS)).updateData();
                     ((ManageFragment) adapter.createFragment(Constants.MANAGE)).updateData();
                     setUpdateFragments(false);
@@ -258,6 +258,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public Fragment getCurrentFragment() {
         return adapter.createFragment(viewPager.getCurrentItem());
+    }
+    public Fragment getFragment(int page) {
+        return adapter.createFragment(page);
     }
     public void setUpdateFragments(boolean enable) {
         updateFragments = enable;
@@ -479,27 +482,28 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         Calendar from, to;
         Fragment fragment;
         int state;
+        fragment = adapter.createFragment(page);
         if (page == Constants.HOME) {
-            fragment = adapter.createFragment(page);
             from = ((HomeFragment) fragment).getDateRange()[0];
             to = ((HomeFragment) fragment).getDateRange()[1];
             state = ((HomeFragment) fragment).getSelDateState();
         } else if (page == Constants.CHARTS) {
-            fragment = adapter.createFragment(page);
             from = ((ChartsFragment) fragment).getDateRange()[0];
             to = ((ChartsFragment) fragment).getDateRange()[1];
             state = ((ChartsFragment) fragment).getSelDateState();
         } else
             return;
+        ChartsChildFragment.logFromTo("", from, to);
 
         String summaryDateText;
         float totalAmt = 0;
         if (state == DateGridAdapter.ALL) {
             summaryDateText = "All time";
             if (((HomeFragment) fragment).hasNoFilters())
-                totalAmt = db.getTotalAmt();
+                totalAmt = db.getConvertedTotalAmt();
             else
-                for (Expense exp : expenses) totalAmt += exp.getAmount();
+                for (Expense exp : expenses)
+                    totalAmt += convertAmt(exp);
         } else {
             Calendar cal = getCalendarCopy(to, DateGridAdapter.FROM);
             String dtf;
@@ -524,12 +528,13 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             } else {
                 summaryDateText = getDatetimeStr(from, dtf) + " - " + getDatetimeStr(to, dtf);
             }
-            for (Expense exp : expenses) totalAmt += exp.getAmount();
+            for (Expense exp : expenses)
+                totalAmt += convertAmt(exp);
         }
         if (page == Constants.HOME)
-            ((HomeFragment) adapter.createFragment(page)).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
+            ((HomeFragment) adapter.createFragment(Constants.HOME)).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         else if (page == Constants.CHARTS)
-            ((ChartsFragment) adapter.createFragment(page)).setSummaryData(summaryDateText.toUpperCase(), totalAmt,true);
+            ((ChartsFragment) adapter.createFragment(Constants.CHARTS)).setSummaryData(summaryDateText.toUpperCase(), totalAmt, true);
 //        long toc = System.currentTimeMillis();
 //        Log.e(TAG,"setSummaryData="+(toc-tic1));
     }
@@ -547,7 +552,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         float totalAmt = 0;
         if (state == DateGridAdapter.ALL) {
             summaryDateText = "All time";
-            totalAmt = db.getTotalAmt();
+            totalAmt = db.getConvertedTotalAmt();
         } else {
             Calendar cal = getCalendarCopy(to, DateGridAdapter.FROM);
             String dtf;
@@ -697,6 +702,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public AccountAdapter getAccountData(int mode) {
         return new AccountAdapter(this, sortSections(db.getAllAccounts()), mode);
     }
+
 
     /**
      * Add/edit functions
@@ -1051,6 +1057,22 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     /**
      * Helper functions
      */
+    public float convertAmt(Expense exp) {
+        Currency defaultCurr = db.getCurrency(getDefaultCurrency());
+        Currency thisCurr = db.getCurrency(exp.getAccount().getCurrencyName());
+        if (thisCurr.equals(defaultCurr))
+            return exp.getAmount();
+        else
+            return exp.getAmount() * thisCurr.getRate() / defaultCurr.getRate();
+    }
+    public float convertAmt(Account acc) {
+        Currency defaultCurr = db.getCurrency(getDefaultCurrency());
+        Currency thisCurr = db.getCurrency(acc.getCurrencyName());
+        if (thisCurr.equals(defaultCurr))
+            return db.getTotalAmtByAccount(acc);
+        else
+            return db.getTotalAmtByAccount(acc) * thisCurr.getRate() / defaultCurr.getRate();
+    }
     public static float convertDpToPx(Context context, float dp) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
                 context.getResources().getDisplayMetrics());
@@ -1155,6 +1177,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public String getDefaultCurrency() {
         return getDefaultCurrency(this);
+    }
+    public String getDefaultCurrencySymbol() {
+        return db.getCurrency(getDefaultCurrency()).getSymbol();
     }
     public static String getDefaultCurrency(Context context) {
         SharedPreferences pref = context.getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);

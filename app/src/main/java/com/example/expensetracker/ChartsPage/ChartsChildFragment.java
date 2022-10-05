@@ -236,6 +236,22 @@ public class ChartsChildFragment extends Fragment {
                 break;
         }
     }
+    public void updateCurrency() {
+        updateCurrency(((MainActivity) getActivity()).getDefaultCurrencySymbol());
+    }
+    public void updateCurrency(String curr) {
+        switch (chartType) {
+            case TYPE_PIECHART:
+                ((TextView) view.findViewById(R.id.summaryCurrency)).setText(curr);
+                break;
+            case TYPE_GRAPH:
+                ((TextView) view.findViewById(R.id.summaryCurrency)).setText(curr);
+                ((TextView) view.findViewById(R.id.curr1)).setText(curr);
+                ((TextView) view.findViewById(R.id.curr2)).setText(curr);
+                ((TextView) view.findViewById(R.id.curr3)).setText(curr);
+                break;
+        }
+    }
 
     /**
      * Menu
@@ -287,7 +303,7 @@ public class ChartsChildFragment extends Fragment {
         if (!accFilters.isEmpty())
             updateCurrency(accFilters.get(0).getCurrencySymbol());
         else
-            updateCurrency(new Currency(getActivity()).getSymbol());
+            updateCurrency();
         if (clearFiltersMenuOption != null) // on view created
             updateClearFiltersItem();
         loadLineChartData();
@@ -346,8 +362,8 @@ public class ChartsChildFragment extends Fragment {
         int count = 0;
         for (Category cat : categories) {
             float amt;
-            if (fromCalPie == null) amt = ((MainActivity) getActivity()).db.getTotalAmtByCategory(cat);
-            else amt = ((MainActivity) getActivity()).db.getTotalAmtByCategoryInRange(cat, fromCalPie, toCalPie);
+            if (fromCalPie == null) amt = ((MainActivity) getActivity()).db.getConvertedTotalAmtByCategory(cat);
+            else amt = ((MainActivity) getActivity()).db.getConvertedTotalAmtByCategoryInRange(cat, fromCalPie, toCalPie);
             if (amt != 0f) {
                 pieEntries.add(new PieEntry(amt, cat.getIcon()));
                 colors.add(ContextCompat.getColor(getActivity(), cat.getColorId()));
@@ -439,6 +455,9 @@ public class ChartsChildFragment extends Fragment {
         this.totalAmt = totalAmt;
         pieAmt.setText(String.format(MainActivity.locale, "%.2f", this.totalAmt));
     }
+    public void setPieChartTotalAmt(String totalAmt) {
+        pieAmt.setText(totalAmt);
+    }
     public boolean isPieHighlighted(String name) {
         Highlight[] highlights = pieChart.getHighlighted();
         if (highlights != null) {
@@ -491,18 +510,18 @@ public class ChartsChildFragment extends Fragment {
         for (Expense e : expenses) {
             if (!dates.contains(e.getDatetimeStr(getDtf()))) {
                 if (totalAmt == 0)
-                    prevAmt += e.getAmount();
+                    prevAmt += ((MainActivity) getActivity()).convertAmt(e);
                 else
-                    nextAmt += e.getAmount();
+                    nextAmt += ((MainActivity) getActivity()).convertAmt(e);
                 continue;
             }
             int x = dates.indexOf(e.getDatetimeStr(getDtf()));
 //            Log.e(TAG, "x=" + x + "/" + num_units);
-            float newAmt = values.get(x).getY() + e.getAmount();
+            float newAmt = values.get(x).getY() + ((MainActivity) getActivity()).convertAmt(e);
             values.set(x, new Entry(x, newAmt));
             if (newAmt > maxAmt)
                 maxAmt = newAmt;
-            totalAmt += e.getAmount();
+            totalAmt += ((MainActivity) getActivity()).convertAmt(e);
         }
 //        for (Entry v : values) Log.e(TAG, "x=" + v.getX() + ", y=" + v.getY());
 
@@ -668,12 +687,6 @@ public class ChartsChildFragment extends Fragment {
         avgDay.setText(String.format(MainActivity.locale,"%.2f", avgDayValue));
         avgWeek.setText(String.format(MainActivity.locale,"%.2f", avgWeekValue));
         avgMonth.setText((selDateState <= DateGridAdapter.WEEK) ? "–" : String.format(MainActivity.locale,"%.2f", avgMonthValue));
-    }
-    public void updateCurrency(String curr) {
-        ((TextView) view.findViewById(R.id.summaryCurrency)).setText(curr);
-        ((TextView) view.findViewById(R.id.curr1)).setText(curr);
-        ((TextView) view.findViewById(R.id.curr2)).setText(curr);
-        ((TextView) view.findViewById(R.id.curr3)).setText(curr);
     }
     public Calendar updateDateRange(Calendar cal, int range) {
         if (getActivity() == null)

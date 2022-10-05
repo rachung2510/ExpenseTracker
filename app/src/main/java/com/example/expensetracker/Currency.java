@@ -19,17 +19,17 @@ public class Currency {
         this.xrate = xrate;
     }
     public Currency(Context context) {
-        String defaultCurrency = "";
+        String defaultCurrName = "";
         if (context instanceof MainActivity)
-            defaultCurrency = ((MainActivity) context).getDefaultCurrency();
+            defaultCurrName = ((MainActivity) context).getDefaultCurrency();
         else if (context instanceof WidgetDialogActivity) {
-            defaultCurrency = ((WidgetDialogActivity) context).getDefaultCurrency();
+            defaultCurrName = ((WidgetDialogActivity) context).getDefaultCurrency();
         }
-        this.name = defaultCurrency;
-        if (!defaultCurrency.isEmpty()) {
-            this.description = Constants.currency_map.get(defaultCurrency).getDescription();
-            this.symbol = Constants.currency_map.get(defaultCurrency).getSymbol();
-            this.xrate = Constants.currency_map.get(defaultCurrency).getRate();
+        this.name = defaultCurrName;
+        if (!defaultCurrName.isEmpty()) {
+            this.description = Constants.currency_map.get(defaultCurrName).getDescription();
+            this.symbol = Constants.currency_map.get(defaultCurrName).getSymbol();
+            this.xrate = Constants.currency_map.get(defaultCurrName).getRate();
         } else {
             this.description = "";
             this.symbol = "";

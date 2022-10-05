@@ -306,6 +306,7 @@ public class HomeFragment extends Fragment {
     public ArrayList<Category> getSelCatFilters() {
         return selCatFilters;
     }
+    public String getSummaryAmt() { return summaryAmt.getText().toString(); }
     public boolean hasNoFilters() {
         return selAccFilters.isEmpty() && selCatFilters.isEmpty();
     }

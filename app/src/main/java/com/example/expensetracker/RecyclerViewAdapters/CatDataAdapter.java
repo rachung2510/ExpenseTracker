@@ -1,7 +1,6 @@
 package com.example.expensetracker.RecyclerViewAdapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,11 +40,11 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         categories = db.getAllCategories();
         if (fromDate == null)
             categories.sort((cat1, cat2) -> {
-                return Float.compare(db.getTotalAmtByCategory(cat2), db.getTotalAmtByCategory(cat1)); // descending order
+                return Float.compare(db.getConvertedTotalAmtByCategory(cat2), db.getConvertedTotalAmtByCategory(cat1)); // descending order
             });
         else
             categories.sort((cat1, cat2) -> {
-                return Float.compare(db.getTotalAmtByCategoryInRange(cat2, fromDate, toDate), db.getTotalAmtByCategoryInRange(cat1, fromDate, toDate)); // descending order
+                return Float.compare(db.getConvertedTotalAmtByCategoryInRange(cat2, fromDate, toDate), db.getConvertedTotalAmtByCategoryInRange(cat1, fromDate, toDate)); // descending order
             });
     }
 
@@ -98,10 +97,10 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.catDataCurr.setText(new Currency(context).getSymbol());
         float totalAmt;
         if (fromDate == null) {
-            totalAmt = ((MainActivity) context).db.getTotalAmtByCategory(cat);
+            totalAmt = ((MainActivity) context).db.getConvertedTotalAmtByCategory(cat);
             holder.catDataNumExpenses.setText(String.valueOf(((MainActivity) context).db.getNumExpensesByCategory(cat)));
         } else {
-            totalAmt = ((MainActivity) context).db.getTotalAmtByCategoryInRange(cat, fromDate, toDate);
+            totalAmt = ((MainActivity) context).db.getConvertedTotalAmtByCategoryInRange(cat, fromDate, toDate);
             holder.catDataNumExpenses.setText(String.valueOf(((MainActivity) context).db.getNumExpensesByCategoryInRange(cat, fromDate, toDate)));
         }
         holder.catDataAmt.setText(String.format(MainActivity.locale, "%.2f", totalAmt));
