@@ -306,10 +306,11 @@ public class ChartsChildFragment extends Fragment {
             updateCurrency();
         if (clearFiltersMenuOption != null) // on view created
             updateClearFiltersItem();
-        loadLineChartData();
-        updateExpenseRecyclerView();
-        updateLineChartSummary();
-        updateAverages();
+        updateDateFilters();
+//        loadLineChartData();
+//        updateExpenseRecyclerView();
+//        updateLineChartSummary();
+//        updateAverages();
     }
     public void filterAccDialog(AccountAdapter adapter) {
         if (getActivity() == null)
