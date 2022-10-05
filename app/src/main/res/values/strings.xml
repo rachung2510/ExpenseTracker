@@ -49,8 +49,10 @@
 
     <string name="default_fdow_title">First day of week</string>
     <string name="default_curr_title">Default currency</string>
+    <string name="set_xrate_title">Currency in USD</string>
     <string name="action_import">Import</string>
     <string name="action_export">Export</string>
+    <string name="action_xrate">Set exchange rate</string>
 
 <!--    ChartsChildFragment-->
     <string name="filter_dialog_title">FILTER BY %1$s</string>

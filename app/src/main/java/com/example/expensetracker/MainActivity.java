@@ -17,6 +17,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputFilter;
+import android.util.Log;
 import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -24,10 +25,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -133,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         LinearLayout sideMenuItemFirst = findViewById(R.id.sideMenuItemFirst);
         LinearLayout sideMenuItemImport = findViewById(R.id.sideMenuItemImport);
         LinearLayout sideMenuItemExport = findViewById(R.id.sideMenuItemExport);
+        LinearLayout sideMenuItemXrate = findViewById(R.id.sideMenuItemXrate);
         sideMenuValueCurr = findViewById(R.id.sideMenuValueCurrency);
         sideMenuValueFirst = findViewById(R.id.sideMenuValueFirst);
         sideMenuValueCurr.setText(getDefaultCurrency());
@@ -201,6 +206,50 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     .setMessage("Database will be exported to Downloads folder.")
                     .setPositiveButton(android.R.string.yes, (dialogInterface1, i1) -> db.exportDatabase())
                     .setNegativeButton(android.R.string.no, (dialogInterface1, i1) -> dialogInterface1.dismiss())
+                    .show();
+        });
+        sideMenuItemXrate.setOnClickListener(view2 -> {
+            final View view1 = getLayoutInflater().inflate(R.layout.dialog_xrate, null);
+            Spinner spinner = (Spinner) view1.findViewById(R.id.spinnerCurrencies);
+            EditText editText = (EditText) view1.findViewById(R.id.xrate);
+            ArrayList<String> spinnerArray = new ArrayList<>();
+            for (Currency c : db.getAllCurrencies())
+                if (!c.getName().equals("USD")) spinnerArray.add(c.getName());
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                    this, android.R.layout.simple_spinner_item, spinnerArray);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(adapter);
+            spinner.setSelection(Constants.currencies.indexOf(db.getCurrency(getDefaultCurrency())));
+            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    Float xrate = db.getCurrency(spinner.getSelectedItem().toString()).getRate();
+                    editText.setText(String.format(MainActivity.locale, "%.3f", xrate));
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
+
+            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder.setTitle(getString(R.string.set_xrate_title))
+                    .setView(view1)
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+                        Currency currency = db.getCurrency(spinner.getSelectedItem().toString());
+                        try {
+                            currency.setRate(Float.parseFloat(editText.getText().toString()));
+                            db.updateCurrency(currency);
+                            Toast.makeText(this, "Conversion rate for " + currency.getName() + " updated.", Toast.LENGTH_SHORT).show();
+                            updateSummaryData(Constants.HOME);
+                            setUpdateFragments(true);
+                        } catch (Exception e) {
+                            Log.e(TAG, e.toString());
+                            Toast.makeText(this, "Something went wrong. Conversion rate for " + currency.getName() + " not updated.", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {})
                     .show();
         });
     }
@@ -493,7 +542,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             state = ((ChartsFragment) fragment).getSelDateState();
         } else
             return;
-        ChartsChildFragment.logFromTo("", from, to);
 
         String summaryDateText;
         float totalAmt = 0;

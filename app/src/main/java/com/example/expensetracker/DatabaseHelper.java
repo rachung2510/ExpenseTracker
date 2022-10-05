@@ -387,6 +387,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.update(TABLE_CATEGORY, values, KEY_ID + " = ?",
                 new String[] { String.valueOf(category.getId()) });
     }
+    public void updateCurrency(Currency currency) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = createCurrencyValues(currency);
+        db.update(TABLE_CURRENCY, values, KEY_NAME + " = ?",
+                new String[] { currency.getName() });
+    }
     public int moveExpenses(Section section, String key_id, String section_name) {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor c = getCursorFromQueryOrNull(getQuerySelectId(TABLE_EXPENSE, key_id, section.getId()), "");
@@ -477,6 +483,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     /**
      * Helper functions
      */
+    public ContentValues createCurrencyValues(Currency currency) {
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, currency.getName());
+        values.put(KEY_DESC, currency.getDescription());
+        values.put(KEY_CURRENCY, currency.getSymbol());
+        values.put(KEY_XRATE, currency.getRate());
+        return values;
+    }
     public ContentValues createExpenseValues(Expense expense) {
         ContentValues values = new ContentValues();
         values.put(KEY_AMOUNT, expense.getAmount());
