@@ -4,6 +4,7 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,6 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.util.Log;
 import android.util.Pair;
@@ -70,9 +72,11 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1409,9 +1413,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 0);
     }
     public void exportToCsv() {
-        File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        root = new File(root , "expenses.csv");
-
         // content
         StringBuilder data = new StringBuilder("Date,Account,Category,Description,Amount,Currency,Amount (" + getDefaultCurrency() + ")\n");
         ArrayList<Expense> expenses = sortExpenses(db.getAllExpenses(), Constants.DESCENDING);
@@ -1422,14 +1423,21 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             data.append(e.getDescription()).append(",");
             data.append(String.format(locale, "%.2f", e.getAmount())).append(",");
             data.append(e.getAccount().getCurrencyName()).append(",");
-            data.append(String.format(locale, "%.2f", convertAmt(e))).append(",");
+            data.append(String.format(locale, "%.2f", convertAmt(e))).append("\n");
         }
 
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, "expenses.csv");   // file name
+        values.put(MediaStore.MediaColumns.MIME_TYPE, "text/csv");
+        Uri extVolumeUri = MediaStore.Files.getContentUri("external");
+        Uri fileUri = getContentResolver().insert(extVolumeUri, values);
+
         try {
-            FileOutputStream output = new FileOutputStream(root);
+            OutputStream output = getContentResolver().openOutputStream(fileUri);
             output.write(data.toString().getBytes());
+            output.flush();
             output.close();
-            Toast.makeText(this, "CSV data exported to Downloads." , Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Database exported to Downloads" , Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             Log.e(TAG, String.valueOf(e));
             Toast.makeText(this, "Export failed", Toast.LENGTH_SHORT).show();
