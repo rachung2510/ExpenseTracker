@@ -52,6 +52,7 @@
     <string name="set_xrate_title">Currency in USD</string>
     <string name="action_import">Import</string>
     <string name="action_export">Export</string>
+    <string name="action_export_csv">Export to CSV</string>
     <string name="action_xrate">Set exchange rate</string>
 
 <!--    ChartsChildFragment-->

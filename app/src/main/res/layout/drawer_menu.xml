@@ -214,6 +214,43 @@
         android:foreground="@color/tag_bg_gray"/>
 
     <LinearLayout
+        android:id="@+id/sideMenuItemExportCsv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/sideMenuItemMarginLarger"
+        android:paddingBottom="@dimen/sideMenuItemMarginLarger"
+        android:paddingStart="@dimen/sideMenuMarginStart"
+        android:foreground="?selectableItemBackgroundBorderless"
+        android:gravity="center|start">
+
+        <ImageButton
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@drawable/ic_csv"
+            android:backgroundTint="@color/generic_icon_gray"
+            android:clickable="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@string/action_export_csv"
+            android:textColor="@color/black"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="45dp"
+        android:foreground="@color/tag_bg_gray"/>
+
+    <LinearLayout
         android:id="@+id/sideMenuItemXrate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -226,7 +263,7 @@
         <ImageButton
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:background="@drawable/ic_currency"
+            android:background="@drawable/ic_xrate"
             android:backgroundTint="@color/generic_icon_gray"
             android:clickable="false" />
 

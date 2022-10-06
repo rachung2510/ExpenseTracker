@@ -16,6 +16,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.InputFilter;
 import android.util.Log;
 import android.util.Pair;
@@ -68,6 +69,8 @@ import com.example.expensetracker.RecyclerViewAdapters.ViewPagerAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -137,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         LinearLayout sideMenuItemFirst = findViewById(R.id.sideMenuItemFirst);
         LinearLayout sideMenuItemImport = findViewById(R.id.sideMenuItemImport);
         LinearLayout sideMenuItemExport = findViewById(R.id.sideMenuItemExport);
+        LinearLayout sideMenuItemExportCsv = findViewById(R.id.sideMenuItemExportCsv);
         LinearLayout sideMenuItemXrate = findViewById(R.id.sideMenuItemXrate);
         sideMenuValueCurr = findViewById(R.id.sideMenuValueCurrency);
         sideMenuValueFirst = findViewById(R.id.sideMenuValueFirst);
@@ -208,6 +212,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     .setNegativeButton(android.R.string.no, (dialogInterface1, i1) -> dialogInterface1.dismiss())
                     .show();
         });
+        sideMenuItemExportCsv.setOnClickListener(view -> exportToCsv());
         sideMenuItemXrate.setOnClickListener(view2 -> {
             final View view1 = getLayoutInflater().inflate(R.layout.dialog_xrate, null);
             Spinner spinner = (Spinner) view1.findViewById(R.id.spinnerCurrencies);
@@ -215,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             ArrayList<String> spinnerArray = new ArrayList<>();
             for (Currency c : db.getAllCurrencies())
                 if (!c.getName().equals("USD")) spinnerArray.add(c.getName());
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     this, android.R.layout.simple_spinner_item, spinnerArray);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinner.setAdapter(adapter);
@@ -1402,5 +1407,32 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         ActivityCompat.requestPermissions(this,
                 new String[] { Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE },
                 0);
+    }
+    public void exportToCsv() {
+        File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        root = new File(root , "expenses.csv");
+
+        // content
+        StringBuilder data = new StringBuilder("Date,Account,Category,Description,Amount,Currency,Amount (" + getDefaultCurrency() + ")\n");
+        ArrayList<Expense> expenses = sortExpenses(db.getAllExpenses(), Constants.DESCENDING);
+        for (Expense e : expenses) {
+            data.append(e.getDatetimeStr()).append(",");
+            data.append(e.getAccount().getName()).append(",");
+            data.append(e.getCategory().getName()).append(",");
+            data.append(e.getDescription()).append(",");
+            data.append(String.format(locale, "%.2f", e.getAmount())).append(",");
+            data.append(e.getAccount().getCurrencyName()).append(",");
+            data.append(String.format(locale, "%.2f", convertAmt(e))).append(",");
+        }
+
+        try {
+            FileOutputStream output = new FileOutputStream(root);
+            output.write(data.toString().getBytes());
+            output.close();
+            Toast.makeText(this, "CSV data exported to Downloads." , Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Log.e(TAG, String.valueOf(e));
+            Toast.makeText(this, "Export failed", Toast.LENGTH_SHORT).show();
+        }
     }
 }
