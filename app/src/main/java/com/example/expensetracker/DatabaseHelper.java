@@ -812,14 +812,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         float totalAmt = 0;
         ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
         for (Expense e : expenses) totalAmt += ((MainActivity) context).convertAmt(e);
-//        String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
-//        String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
-//        Cursor c = getCursorFromQuery(
-//                "SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE + " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr + "' AND " +
-//                        KEY_CAT_ID + "=" + cat.getId(),
-//                "");
-//        if (c.moveToFirst()) totalAmt = c.getFloat(0);
-//        c.close();
         return totalAmt;
     }
     public float getTotalAmtByDate(Calendar cal, int range) {
