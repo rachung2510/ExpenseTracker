@@ -7,12 +7,8 @@ A simple expense tracker for android which has three pages.
 <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-home.png?raw=true" alt="Home Page" width="180" /> <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-expense.png?raw=true" alt="Add expense" width="180" /> <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-piechart.png?raw=true" alt="Piechart" width="180" /> <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-graph.png?raw=true" alt="Graph of expenses over time" width="180" />
 
 ## Todo
-- ~~Charts piechart fragment~~
-- ~~Import/export db~~
-- ~~Charts graph fragment~~
-- ~~Fix dialog widget~~
-- ~~Static widget~~
-- ~~User settings (default currency, first day of week)~~
+- Search expense function
+- Favourites shortcut
 - Optimise CHARTS page
 
 ## Potential features
@@ -21,6 +17,6 @@ A simple expense tracker for android which has three pages.
 - Quick photo with image recognition for amount
 
 ## Bug fixes
-- ~~Disappearing accounts in MANAGE~~
-- ~~Update stats in CHARTS/graph after setting section filters~~
-- ~~Graph should be continuous instead of starting from/ending at 0~~
+- Wrong currency symbols for everything other than Charts>Time
+- Charts>Pie not switching back to "EXPENSES" when CatData is clicked
+- App crash when bulk change category & undo
