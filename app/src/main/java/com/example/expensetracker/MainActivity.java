@@ -899,12 +899,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                 expDatetime.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
                 exp.setDatetime(expDatetime);
-                String datePrefix1 = "";
-                if (exp.getDatetime().get(Calendar.YEAR) == today.get(Calendar.YEAR)) {
-                    int dateDiff = exp.getDatetime().get(Calendar.DAY_OF_YEAR) - today.get(Calendar.DAY_OF_YEAR);
-                    datePrefix1 = (dateDiff == 0) ? "TODAY" : ((dateDiff == -1) ? "YESTERDAY" : "");
-                }
-                expDate.setText(getString(R.string.full_date,datePrefix1,exp.getDatetimeStr("dd MMMM yyyy").toUpperCase()));
+                String datePrefix1 = getRelativePrefix(expDatetime);
+                expDate.setText(getString(R.string.full_date, datePrefix1, exp.getDatetimeStr("dd MMMM yyyy")).toUpperCase());
             })
                     .setNeutralButton(android.R.string.no, (dialog, which) -> {
                 dialog.cancel(); // close dialog
