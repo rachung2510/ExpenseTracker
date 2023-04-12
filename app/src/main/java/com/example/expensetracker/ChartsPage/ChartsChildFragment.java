@@ -435,10 +435,7 @@ public class ChartsChildFragment extends Fragment {
             public void onNothingSelected() {
                 if (getActivity() == null)
                     return;
-                pieIcon.setVisibility(ImageButton.GONE);
-                pieLabel.setText(getString(R.string.EXPS));
-                pieLabel.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.roboto_medium));
-                pieAmt.setText(String.format(MainActivity.locale,"%.2f", totalAmt));
+                clearPieHighlights();
             }
         });
         pieChart.invalidate();
@@ -457,6 +454,7 @@ public class ChartsChildFragment extends Fragment {
         pieAmt.setText(String.format(MainActivity.locale, "%.2f", this.totalAmt));
     }
     public void setPieChartTotalAmt(String totalAmt) {
+        this.totalAmt = Float.parseFloat(totalAmt);
         pieAmt.setText(totalAmt);
     }
     public boolean isPieHighlighted(String name) {
@@ -472,6 +470,10 @@ public class ChartsChildFragment extends Fragment {
         pieChart.highlightValue(x,0);
     }
     public void clearPieHighlights() {
+        pieIcon.setVisibility(ImageButton.GONE);
+        pieLabel.setText(getString(R.string.EXPS));
+        pieLabel.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.roboto_medium));
+        pieAmt.setText(String.format(MainActivity.locale,"%.2f", totalAmt));
         pieChart.highlightValues(null);
     }
 
