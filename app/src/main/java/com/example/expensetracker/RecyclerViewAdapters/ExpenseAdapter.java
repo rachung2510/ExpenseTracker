@@ -294,10 +294,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         title.setText(R.string.CAT);
 
         dialog.setOnCancelListener(dialogInterface -> {
-            if (adapter.getSelected().getId() == -1) {
-                Toast.makeText(context, "No category selected", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            if (adapter.getSelected() == null) return;
             AlertDialog.Builder confirmEdit = new AlertDialog.Builder(context, R.style.DiscardChangesDialog);
             confirmEdit.setMessage("Change category to " + adapter.getSelected().getName() + "?");
             confirmEdit.setPositiveButton(android.R.string.yes, (dialog1, which) -> {
@@ -324,10 +321,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         title.setText(R.string.ACC);
 
         dialog.setOnCancelListener(dialogInterface -> {
-            if (adapter.getSelected().getId() == -1) {
-                Toast.makeText(context, "No account selected", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            if (adapter.getSelected() == null) return;
             AlertDialog.Builder confirmEdit = new AlertDialog.Builder(context, R.style.DiscardChangesDialog);
             confirmEdit.setMessage("Change account to " + adapter.getSelected().getName() + "?");
             confirmEdit.setPositiveButton(android.R.string.yes, (dialog1, which) -> {

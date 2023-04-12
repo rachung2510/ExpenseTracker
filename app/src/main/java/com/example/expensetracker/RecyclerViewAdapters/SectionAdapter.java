@@ -364,7 +364,8 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             return null;
     }
     public T getSelected() {
-        return getSelected(selectedPos.get(0));
+        if (selectedPos.isEmpty()) return null;
+        else return getSelected(selectedPos.get(0));
     }
     public ArrayList<Integer> getSelectedPos() {
         return selectedPos;
