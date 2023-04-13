@@ -1198,7 +1198,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         return ContextCompat.getDrawable(context, id);
     }
     public static int getColorIdFromName(Context context, String name) {
-        return context.getResources().getIdentifier(name, "color", context.getPackageName());
+        int colorId = context.getResources().getIdentifier(name, "color", context.getPackageName());
+        if (colorId == 0) return R.color.cat_imperial_primer;
+        else return colorId;
     }
     public static String getColorHexFromName(Context context, String name) {
         return getColorHexFromId(context, getColorIdFromName(context, name));

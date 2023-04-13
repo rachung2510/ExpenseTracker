@@ -69,7 +69,8 @@ public class Section {
         return MainActivity.getColorHexFromName(context, color);
     }
     public int getColorId() {
-        return context.getResources().getIdentifier(color, "color", context.getPackageName());
+        return MainActivity.getColorIdFromName(context, color);
+//        return context.getResources().getIdentifier(color, "color", context.getPackageName());
     }
     public String getColorName() {
         return color;

@@ -24,34 +24,50 @@
     <color name="tag_text_orange">#8f3415</color>
     <color name="tag_icon_orange">#a1673f</color>
 
-    <!--    Canadian palette-->
-    <color name="cat_jigglypuff">#ff9ff3</color>
-    <color name="cat_lotus_pink">#f368e0</color>
-    <color name="cat_casandora_yellow">#feca57</color>
-    <color name="cat_dragon_skin">#ff9f43</color>
-    <color name="cat_pastel_red">#ff6b6b</color>
-    <color name="cat_amour">#ee5253</color>
-    <color name="cat_megaman">#48dbfb</color>
-    <color name="cat_cyanite">#0abde3</color>
-    <color name="cat_caribbean_green">#1dd1a1</color>
-    <color name="cat_mountain_meadow">#10ac84</color>
-    <color name="cat_jade_dust">#00d2d3</color>
-    <color name="cat_aqua_velvet">#01a3a4</color>
-    <color name="cat_joust_blue">#54a0ff</color>
-    <color name="cat_bleu_de_france">#2e86de</color>
-    <color name="cat_nasu_purple">#5f27cd</color>
-    <color name="cat_bluebell">#341f97</color>
-    <color name="cat_blue_ballerina">#c8d6e5</color>
-    <color name="cat_storm_petrel">#8395a7</color>
-    <color name="cat_fuel_town">#576574</color>
-    <color name="cat_imperial_primer">#222f3e</color>
-    <color name="cat_june_bud">#badc58</color>
-    <color name="cat_pure_apple">#6ab04c</color>
-    <color name="cat_fiery_fuchsia">#B33771</color>
-    <color name="cat_magenta_purple">#6D214F</color>
     <color name="light_blue_50">#FFE1F5FE</color>
     <color name="light_blue_200">#FF81D4FA</color>
     <color name="light_blue_600">#FF039BE5</color>
     <color name="light_blue_900">#FF01579B</color>
+
+    <!--Categories-->
+    <color name="cat_amour">#ee5253</color>
+    <color name="cat_pastel_red">#ff6b6b</color>
+    <color name="cat_synthetic_pumpkin">#ff793f</color>
+    <color name="cat_dragon_skin">#ff9f43</color>
+    <color name="cat_casandora_yellow">#feca57</color>
+
+    <color name="cat_june_bud">#badc58</color>
+    <color name="cat_android_green">#a3cb38</color>
+    <color name="cat_pure_apple">#6ab04c</color>
+    <color name="cat_pixelated_grass">#009432</color>
+    <color name="cat_green_800">#007848</color>
+
+    <color name="cat_aqua_velvet">#01a3a4</color>
+    <color name="cat_megaman">#48dbfb</color>
+    <color name="cat_cyanite">#0abde3</color>
+    <color name="cat_joust_blue">#54a0ff</color>
+    <color name="cat_bleu_de_france">#2e86de</color>
+
+    <color name="cat_merchant_marine_blue">#0652DD</color>
+    <color name="cat_bluebell">#341f97</color>
+    <color name="cat_nasu_purple">#5f27cd</color>
+    <color name="cat_forgotten_purple">#9980FA</color>
+    <color name="cat_light_purple">#c56cf0</color>
+
+    <color name="cat_magenta_purple">#6D214F</color>
+    <color name="cat_fiery_fuchsia">#B33771</color>
+    <color name="cat_flamingo_pink">#f78fb3</color>
+    <color name="cat_lotus_pink">#f368e0</color>
+    <color name="cat_jigglypuff">#ff9ff3</color>
+
+    <color name="cat_hot_stone">#aaa69d</color>
+    <color name="cat_blue_ballerina">#c8d6e5</color>
+    <color name="cat_storm_petrel">#8395a7</color>
+    <color name="cat_fuel_town">#576574</color>
+    <color name="cat_imperial_primer">#222f3e</color>
+
+    <!--    <color name="cat_caribbean_green">#1dd1a1</color>-->
+    <!--    <color name="cat_mountain_meadow">#10ac84</color>-->
+    <!--    <color name="cat_jade_dust">#00d2d3</color>-->
 
 </resources>

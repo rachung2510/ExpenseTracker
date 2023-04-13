@@ -122,9 +122,14 @@
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.111" />
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/xml/widget_static_info.xml" value="0.20052083333333334" />
+        <entry key="app/src/main/res/drawable/acc_cash.xml" value="0.196" />
         <entry key="app/src/main/res/drawable/acc_dbs.xml" value="0.331" />
         <entry key="app/src/main/res/drawable/acc_visa.xml" value="0.331" />
         <entry key="app/src/main/res/drawable/acc_youtrip.xml" value="0.331" />
+        <entry key="app/src/main/res/drawable/cat_beauty.xml" value="0.2945" />
+        <entry key="app/src/main/res/drawable/cat_education.xml" value="0.2945" />
+        <entry key="app/src/main/res/drawable/cat_home.xml" value="0.2945" />
+        <entry key="app/src/main/res/drawable/cat_shopping.xml" value="0.2945" />
         <entry key="app/src/main/res/drawable/ic_export.xml" value="0.314" />
         <entry key="app/src/main/res/layout/dialog_expense_opt_section.xml" value="0.24682971014492755" />
         <entry key="app/src/main/res/layout/dialog_recyclerview.xml" value="0.2391304347826087" />
