@@ -574,7 +574,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
         String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
         int pos = c.getInt(c.getColumnIndexOrThrow(KEY_POSITION));
-        Currency currency = MainActivity.getCurrencyFromName(c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY)));
+        Currency currency = ((MainActivity) context).getCurrencyFromName(c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY)));
         return new Account(context, id, name, icon, color, pos, currency);
     }
     public Category getCategoryFromCursor(Cursor c) {
@@ -808,7 +808,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         for (Expense e : expenses) totalAmt += ((MainActivity) context).convertAmt(e);
         return totalAmt;
     }
-    public float getConvertedTotalAmtByCategoryInRange(Category cat, Calendar from, Calendar to) {
+    public float getConvertedTotalAmtByCategoryInDateRange(Category cat, Calendar from, Calendar to) {
         float totalAmt = 0;
         ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
         for (Expense e : expenses) totalAmt += ((MainActivity) context).convertAmt(e);

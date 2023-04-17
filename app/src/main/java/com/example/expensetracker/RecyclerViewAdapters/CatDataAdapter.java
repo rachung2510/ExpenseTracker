@@ -12,9 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Category;
-import com.example.expensetracker.ChartsPage.ChartsChildFragment;
+import com.example.expensetracker.ChartsPage.ChartsChildFragmentPie;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
-import com.example.expensetracker.Currency;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
@@ -44,7 +43,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             });
         else
             categories.sort((cat1, cat2) -> {
-                return Float.compare(db.getConvertedTotalAmtByCategoryInRange(cat2, fromDate, toDate), db.getConvertedTotalAmtByCategoryInRange(cat1, fromDate, toDate)); // descending order
+                return Float.compare(db.getConvertedTotalAmtByCategoryInDateRange(cat2, fromDate, toDate), db.getConvertedTotalAmtByCategoryInDateRange(cat1, fromDate, toDate)); // descending order
             });
     }
 
@@ -94,13 +93,14 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void populateCategories(ViewHolder holder, Category cat) {
         holder.catDataLabel.setText(cat.getName());
         holder.catDataIcon.setForeground(cat.getIcon());
-        holder.catDataCurr.setText(new Currency(context).getSymbol());
+        String currencySymbol = ((MainActivity) context).getDefaultCurrencySymbol();
+        holder.catDataCurr.setText(currencySymbol);
         float totalAmt;
         if (fromDate == null) {
             totalAmt = ((MainActivity) context).db.getConvertedTotalAmtByCategory(cat);
             holder.catDataNumExpenses.setText(String.valueOf(((MainActivity) context).db.getNumExpensesByCategory(cat)));
         } else {
-            totalAmt = ((MainActivity) context).db.getConvertedTotalAmtByCategoryInRange(cat, fromDate, toDate);
+            totalAmt = ((MainActivity) context).db.getConvertedTotalAmtByCategoryInDateRange(cat, fromDate, toDate);
             holder.catDataNumExpenses.setText(String.valueOf(((MainActivity) context).db.getNumExpensesByCategoryInRange(cat, fromDate, toDate)));
         }
         holder.catDataAmt.setText(String.format(MainActivity.locale, "%.2f", totalAmt));
@@ -114,7 +114,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         holder.itemView.setOnClickListener(view -> {
-            ChartsChildFragment fragment = ((ChartsFragment) ((MainActivity) context).getCurrentFragment()).getChildFragment(ChartsChildFragment.TYPE_PIECHART);
+            ChartsChildFragmentPie fragment = ((ChartsFragment) ((MainActivity) context).getCurrentFragment()).getChildFragmentPie();
             if (fragment.isPieHighlighted(cat.getName()))
                 fragment.clearPieHighlights();
             else

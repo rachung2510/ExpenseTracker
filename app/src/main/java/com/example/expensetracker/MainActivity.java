@@ -17,7 +17,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.util.Log;
@@ -54,7 +53,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.example.expensetracker.ChartsPage.ChartsChildFragment;
+import com.example.expensetracker.ChartsPage.ChartsChildFragmentGraph;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
@@ -71,9 +70,6 @@ import com.example.expensetracker.RecyclerViewAdapters.ViewPagerAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -592,8 +588,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             ((HomeFragment) adapter.createFragment(Constants.HOME)).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         else if (page == Constants.CHARTS)
             ((ChartsFragment) adapter.createFragment(Constants.CHARTS)).setSummaryData(summaryDateText.toUpperCase(), totalAmt, true);
-//        long toc = System.currentTimeMillis();
-//        Log.e(TAG,"setSummaryData="+(toc-tic1));
     }
     public void updateSummaryData(int page) {
         updateSummaryData(getExpenseList(), page);
@@ -667,9 +661,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             return;
         }
         if (getCurrentFragment() instanceof ChartsFragment) {
-            ChartsChildFragment fragment = (ChartsChildFragment) getCurrentFragment().getChildFragmentManager().getFragments().get(1);
-            fragment.setAccFilters(filters);
-            fragment.applyFilters(true);
+            ChartsChildFragmentGraph graphFrag = (ChartsChildFragmentGraph) ((ChartsFragment) getCurrentFragment()).getChildFragmentLine();
+            graphFrag.setAccFilters(filters);
+            graphFrag.applyFilters(true);
         }
     }
     public void updateCatFilters(ArrayList<Category> filters) {
@@ -681,9 +675,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             return;
         }
         if (getCurrentFragment() instanceof ChartsFragment) {
-            ChartsChildFragment fragment = (ChartsChildFragment) getCurrentFragment().getChildFragmentManager().getFragments().get(1);
-            fragment.setCatFilters(filters);
-            fragment.applyFilters(true);
+            ChartsChildFragmentGraph graphFrag = (ChartsChildFragmentGraph) ((ChartsFragment) getCurrentFragment()).getChildFragmentLine();
+            graphFrag.setCatFilters(filters);
+            graphFrag.applyFilters(true);
         }
     }
 
@@ -759,7 +753,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public AccountAdapter getAccountData(int mode) {
         return new AccountAdapter(this, sortSections(db.getAllAccounts()), mode);
     }
-
 
     /**
      * Add/edit functions
@@ -842,7 +835,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         expCatBox.setBackgroundColor(cat.getColor());
         expCurr.setText(acc.getCurrencySymbol());
 
-        Calendar today = Calendar.getInstance(locale);
         expDate.setText(getString(R.string.full_date,getRelativePrefix(exp.getDatetime()),exp.getDatetimeStr("dd MMMM yyyy")).toUpperCase());
 
         // actions
@@ -1130,8 +1122,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
                 context.getResources().getDisplayMetrics());
     }
-    public static Currency getCurrencyFromName(String name) {
-        return Constants.currency_map.get(name);
+    public Currency getCurrencyFromName(String name) {
+        return db.getCurrency(name);
+//        return Constants.currency_map.get(name);
     }
     public int getNewPosAcc() { return db.getNewPosAccount(); }
     public int getNewPosCat() {

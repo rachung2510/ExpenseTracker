@@ -1,7 +1,6 @@
 package com.example.expensetracker.ChartsPage;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -76,8 +75,10 @@ public class ChartsFragment extends Fragment {
 
         // load fragments
         ViewPagerAdapter adapter = new ViewPagerAdapter(this);
-        adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_PIECHART));
-        adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_GRAPH));
+        adapter.addFragment(new ChartsChildFragmentPie());
+        adapter.addFragment(new ChartsChildFragmentGraph());
+//        adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_PIECHART));
+//        adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_GRAPH));
 //        adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_CALENDAR));
         viewPager.setAdapter(adapter);
         viewPager.setOffscreenPageLimit(2);
@@ -224,12 +225,12 @@ public class ChartsFragment extends Fragment {
         ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS); // update summary
     }
     public void updateData() {
-        ChartsChildFragment pieFrag = getChildFragment(ChartsChildFragment.TYPE_PIECHART);
+        ChartsChildFragmentPie pieFrag = getChildFragmentPie();
         pieFrag.updateDateFilters();
         pieFrag.updateCurrency();
         pieFrag.setPieChartTotalAmt(((HomeFragment) ((MainActivity) getActivity()).getFragment(Constants.HOME)).getSummaryAmt());
         if (getNumFragments() > 1) {
-            ChartsChildFragment graphFrag = getChildFragment(ChartsChildFragment.TYPE_GRAPH);
+            ChartsChildFragmentGraph graphFrag = getChildFragmentLine();
             graphFrag.updateDateFilters();
 //            if (graphFrag.getSelDateState() != DateGridAdapter.DAY) graphFrag.resetOnClick();
 //            graphFrag.loadLineChartData();
@@ -243,8 +244,11 @@ public class ChartsFragment extends Fragment {
     /**
      * Getters & Setters
      */
-    public ChartsChildFragment getChildFragment(int pos) {
-        return (ChartsChildFragment) getChildFragmentManager().getFragments().get(pos);
+    public ChartsChildFragmentPie getChildFragmentPie() {
+        return (ChartsChildFragmentPie) getChildFragmentManager().getFragments().get(ChartsChildFragment.TYPE_PIECHART);
+    }
+    public ChartsChildFragmentGraph getChildFragmentLine() {
+        return (ChartsChildFragmentGraph) getChildFragmentManager().getFragments().get(ChartsChildFragment.TYPE_GRAPH);
     }
     public int getNumFragments() {
         return getChildFragmentManager().getFragments().size();
@@ -263,7 +267,7 @@ public class ChartsFragment extends Fragment {
     }
     public void setSummaryData(String summaryDateText, float summaryAmt, boolean update) {
         summaryDate.setText(summaryDateText);
-        ChartsChildFragment pieChartFrag = (ChartsChildFragment) getChildFragmentManager().getFragments().get(0);
+        ChartsChildFragmentPie pieChartFrag = (ChartsChildFragmentPie) getChildFragmentManager().getFragments().get(0);
         pieChartFrag.setPieChartTotalAmt(summaryAmt);
         if (!update)
             return;

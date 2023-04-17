@@ -238,10 +238,12 @@ public class HomeFragment extends Fragment {
         manager.setJustifyContent(JustifyContent.FLEX_START);
         filterList.setLayoutManager(manager);
         filterList.setAdapter(filterAdapter);
-        if (!selAccFilters.isEmpty())
+        if (!selAccFilters.isEmpty()) {
             summaryCurr.setText(selAccFilters.get(0).getCurrencySymbol()); // get currency of first filter
-        else
-            summaryCurr.setText(new Currency(getActivity()).getSymbol()); // default
+        } else {
+            String currencySymbol = ((MainActivity) getActivity()).getDefaultCurrencySymbol();
+            summaryCurr.setText(currencySymbol); // default
+        }
     }
     public void filterAccDialog(AccountAdapter adapter) {
         if (getActivity() == null)
