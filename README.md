@@ -17,6 +17,4 @@ A simple expense tracker for android which has three pages.
 - Quick photo with image recognition for amount
 
 ## Bug fixes
-- Wrong currency symbols for everything other than Charts>Time
-- Charts>Pie not switching back to "EXPENSES" when CatData is clicked
-- App crash when bulk change category & undo
+- CatDataAdaptor transparency not updating properly
