@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.Toast;
 
 import com.example.expensetracker.HelperClasses.FileUtils;
@@ -19,12 +20,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -130,11 +134,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.setVersion(DATABASE_VERSION);
         }
     }
-    public void closeDB() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        if (db != null && db.isOpen())
-            db.close();
-    }
 
     /**
      * CRUD Operations - Create
@@ -179,16 +178,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Read - Getters & Setters
      */
     // Expenses
-    public ArrayList<Expense> getAllExpenses() {
-        ArrayList<Expense> expenses = new ArrayList<>();
-        Cursor c = getCursorFromQueryOrNull(getQuerySelectAll(TABLE_EXPENSE), "");
-        if (c == null)
-            return expenses;
-        while (c.moveToNext())
-            expenses.add(getExpenseFromCursor(c));
-        c.close();
-        return expenses;
-    }
     public Expense getExpense(int id) {
         Expense exp = new Expense();
         Cursor c = getCursorFromQuery(
@@ -198,10 +187,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return exp;
     }
-    public ArrayList<Expense> getExpensesByCategory(Category cat) {
+    public ArrayList<Expense> getSortedAllExpenses(int direction) {
         ArrayList<Expense> expenses = new ArrayList<>();
+        String KEY_DIRECTION = (direction == Constants.ASCENDING) ? "ASC" : "DESC";
         Cursor c = getCursorFromQueryOrNull(
-                "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + "=" + cat.getId(),
+                "SELECT * FROM " + TABLE_EXPENSE + " ORDER BY " + KEY_DATETIME + " " + KEY_DIRECTION,
                 "");
         if (c == null)
             return expenses;
@@ -210,12 +200,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return expenses;
     }
-    public ArrayList<Expense> getExpensesByDateRange(Calendar from, Calendar to) {
+    public ArrayList<Expense> getSortedExpensesByDateRange(Calendar from, Calendar to, int direction) {
         ArrayList<Expense> expenses = new ArrayList<>();
         String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
         String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
+        String KEY_DIRECTION = (direction == Constants.ASCENDING) ? "ASC" : "DESC";
         Cursor c = getCursorFromQueryOrNull(
-                "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr + "'",
+                "SELECT * FROM " + TABLE_EXPENSE +
+                        " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr +
+                        "' ORDER BY " + KEY_DATETIME + " " + KEY_DIRECTION,
                 "");
         if (c == null)
             return expenses;
@@ -224,14 +217,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return expenses;
     }
-    public ArrayList<Expense> getExpensesByDateRangeAndCategory(Category cat, Calendar from, Calendar to) {
+    public ArrayList<Expense> getSortedFilteredExpenses(ArrayList<Account> accs, ArrayList<Category> cats, int direction) {
+        if (accs.isEmpty() && cats.isEmpty()) // no filters
+            return getSortedAllExpenses(direction);
+
         ArrayList<Expense> expenses = new ArrayList<>();
-        String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
-        String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
-        Cursor c = getCursorFromQueryOrNull(
-                "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr + "' AND " +
-                KEY_CAT_ID + "=" + cat.getId(),
-                "");
+        String KEY_DIRECTION = (direction == Constants.ASCENDING) ? "ASC" : "DESC";
+        String query = getQueryFromFilters("*", accs, cats, KEY_DATETIME + " " + KEY_DIRECTION);
+        Cursor c = getCursorFromQueryOrNull(query, "");
         if (c == null)
             return expenses;
         while (c.moveToNext())
@@ -239,9 +232,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return expenses;
     }
-    @SuppressWarnings("ConstantConditions")
-    public ArrayList<Expense> getExpensesByFilters(ArrayList<Account> accs, ArrayList<Category> cats) {
+    public ArrayList<Expense> getSortedFilteredExpensesInDateRange(ArrayList<Account> accs, ArrayList<Category> cats, Calendar from, Calendar to, int direction) {
+        if (accs.isEmpty() && cats.isEmpty()) // no filters
+            return getSortedExpensesByDateRange(from, to, direction);
+
         ArrayList<Expense> expenses = new ArrayList<>();
+        String KEY_DIRECTION = (direction == Constants.ASCENDING) ? "ASC" : "DESC";
+        String query = getQueryFromFiltersInDateRange("*", accs, cats, from, to, KEY_DATETIME + " " + KEY_DIRECTION);
+        Cursor c = getCursorFromQueryOrNull(query, "");
+        if (c == null)
+            return expenses;
+        while (c.moveToNext())
+            expenses.add(getExpenseFromCursor(c));
+        c.close();
+        return expenses;
+    }
+    public String getQueryFromFilters(String select, ArrayList<Account> accs, ArrayList<Category> cats, String order) {
+        return getQueryFromFiltersInDateRange(select, accs, cats, null, null, order);
+    }
+    public String getQueryFromFiltersInDateRange(String select, ArrayList<Account> accs, ArrayList<Category> cats, Calendar from, Calendar to, String order) {
+
+        // convert filter sections to string
         StringBuilder accListStr = new StringBuilder();
         StringBuilder catListStr = new StringBuilder();
         for (int i = 0;i < accs.size();i++) {
@@ -254,26 +265,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 catListStr.append(",");
             catListStr.append(cats.get(i).getId());
         }
-        String query;
-        if (accs.isEmpty() && cats.isEmpty()) { // no filters
-            return getAllExpenses();
-        }
-        if (accs.isEmpty() && !cats.isEmpty()) { // cat filters
-            query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_CAT_ID + " IN (" + catListStr + ")";
-        } else if (cats.isEmpty()) { // acc filters
-            query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " IN (" + accListStr + ")";
-        } else { // both filters
-            query = "SELECT * FROM " + TABLE_EXPENSE + " WHERE "
-                    + KEY_ACC_ID + " IN (" + accListStr + ") AND "
+
+        String query = "SELECT " + select + " FROM " + TABLE_EXPENSE;
+        if (accs.isEmpty() && !cats.isEmpty()) // cat filters
+            query += " WHERE " + KEY_CAT_ID + " IN (" + catListStr + ")";
+        else if (cats.isEmpty()) // acc filters
+            query += " WHERE " + KEY_ACC_ID + " IN (" + accListStr + ")";
+        else // both filters
+            query += " WHERE " + KEY_ACC_ID + " IN (" + accListStr + ") AND "
                     + KEY_CAT_ID + " IN (" + catListStr + ")";
+
+        // get datetime strings for querying
+        if (from != null) {
+            String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
+            String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
+            query += " AND " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr + "'";
         }
-        Cursor c = getCursorFromQueryOrNull(query, "");
-        if (c == null)
-            return expenses;
-        while (c.moveToNext())
-            expenses.add(getExpenseFromCursor(c));
-        c.close();
-        return expenses;
+
+        // order by
+        if (!order.isEmpty())
+            query += " ORDER BY " + order;
+
+        return query;
     }
 
     // Sections
@@ -574,7 +587,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
         String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
         int pos = c.getInt(c.getColumnIndexOrThrow(KEY_POSITION));
-        Currency currency = ((MainActivity) context).getCurrencyFromName(c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY)));
+        Currency currency = MainActivity.getCurrencyFromNameStatic(c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY)));
         return new Account(context, id, name, icon, color, pos, currency);
     }
     public Category getCategoryFromCursor(Cursor c) {
@@ -599,60 +612,88 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      * Computation
      */
     public Calendar[] getFirstLastDates() {
-        Calendar firstDate = null;
-        Calendar lastDate = Calendar.getInstance();
-        String query = "SELECT " + KEY_DATETIME + " FROM " + TABLE_EXPENSE;
-        Cursor c = getCursorFromQueryOrNull(query, "");
-        if (c == null)
-            return null;
-        while (c.moveToNext()) {
-            try {
-                Date date = new SimpleDateFormat(Expense.DATETIME_FORMAT, MainActivity.locale).parse(c.getString(0));
-                if (date == null)
-                    return null;
-                if (firstDate == null) {
-                    firstDate = Calendar.getInstance();
-                    firstDate.setTime(date);
-                    lastDate.setTime(date);
-                }
-                if (firstDate.getTime().compareTo(date) > 0) // first > date
-                    firstDate.setTime(date);
-                if (lastDate.getTime().compareTo(date) < 0) // last < date
-                    lastDate.setTime(date);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        Calendar[] firstLastDates = null;
+        String dateFormat = Expense.DATETIME_FORMAT;
+        Cursor c = getCursorFromQuery(
+                "SELECT MIN(strftime('" + dateFormat + "', " + KEY_DATETIME + ")), " +
+                        "MAX(strftime('" + dateFormat + "', " + KEY_DATETIME + ")) FROM " + TABLE_EXPENSE,
+                "");
+        Calendar firstDate, lastDate;
+        if (c.moveToFirst()) {
+            firstDate = MainActivity.getCalFromString(dateFormat, c.getString(0));
+            lastDate = MainActivity.getCalFromString(dateFormat, c.getString(1));
+            firstLastDates = new Calendar[] { firstDate, lastDate };
+        }
+        c.close();
+        return firstLastDates;
+    }
+    public Calendar[] getFirstLastDatesInDateRange(int period, Calendar from, Calendar to) {
+        String DATEFORMAT, dtf;
+        switch (period) {
+            case DateGridAdapter.MONTH:
+                DATEFORMAT = "%Y-%m";
+                dtf = "yyyy-MM";
+                break;
+            case DateGridAdapter.WEEK:
+                DATEFORMAT = "%Y-%W";
+                dtf = "yyyy-ww";
+                break;
+            default:
+                DATEFORMAT = "%Y-%m-%d";
+                dtf = "yyyy-MM-dd";
+        }
+
+        String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
+        String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
+        Cursor c = getCursorFromQuery(
+                "SELECT MIN(strftime('" + DATEFORMAT + "', " + KEY_DATETIME +
+                        ")), MAX(strftime('" + DATEFORMAT + "', " + KEY_DATETIME + ")) FROM " + TABLE_EXPENSE +
+                        " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr + "'",
+                "");
+        Calendar firstDate, lastDate;
+        if (c.moveToFirst()) {
+            firstDate = MainActivity.getCalFromString(dtf, c.getString(0));
+            lastDate = MainActivity.getCalFromString(dtf, c.getString(1));
+        } else {
+            firstDate = lastDate = null;
         }
         c.close();
         return new Calendar[] { firstDate, lastDate };
     }
 
     // average
-    public float getAverage(int period, ArrayList<Expense> expenses) {
-        float totalAmt = 0;
-        int count = 0;
-        HashMap<String,Boolean> dates = new HashMap<>();
-        for (Expense e : expenses) {
-            if (e.getAmount() == 0f) continue; // null expenses included on startup for some reason
-            totalAmt += ((MainActivity) context).convertAmt(e);
-            String date = (period == DateGridAdapter.MONTH) ? e.getDatetimeStr("MM-yyyy") :
-                    ((period == DateGridAdapter.WEEK) ? e.getDatetime().get(Calendar.WEEK_OF_YEAR) + "-" + e.getDatetimeStr("yyyy") :
-                            e.getDatetimeStr("dd-MM-yyyy"));
-            if (!dates.containsKey(date)) {
-                dates.put(date, true);
-                count++;
-            }
+    public int getNumUnits(int period, Calendar from, Calendar to) {
+        int numUnits = 0;
+
+        // get first and last dates of recorded expenses in given date range
+        Calendar[] firstLastDates = getFirstLastDatesInDateRange(period, from, to);
+        Calendar lastDate;
+        if (firstLastDates == null) // no expenses in the range
+            return numUnits;
+        else // only return most recent expense
+            lastDate = firstLastDates[1];
+
+        // get number of days/months/weeks
+        LocalDate fromDate = LocalDateTime.ofInstant(from.toInstant(), from.getTimeZone().toZoneId()).toLocalDate();
+        LocalDate toDate = LocalDateTime.ofInstant(lastDate.toInstant(), lastDate.getTimeZone().toZoneId()).toLocalDate();
+        switch (period) {
+            case DateGridAdapter.MONTH: numUnits = (int) ChronoUnit.MONTHS.between(fromDate, toDate) + 1; break;
+            case DateGridAdapter.WEEK: numUnits = (int) ChronoUnit.WEEKS.between(fromDate, toDate) + 1; break;
+            default: numUnits = (int) (ChronoUnit.DAYS.between(fromDate, toDate) + 1);
         }
-        return (count > 0) ? totalAmt / count : totalAmt;
+        return numUnits;
     }
-    public float getDayAverage(ArrayList<Expense> expenses) {
-        return getAverage(DateGridAdapter.DAY, expenses);
-    }
-    public float getWeekAverage(ArrayList<Expense> expenses) {
-        return getAverage(DateGridAdapter.WEEK, expenses);
-    }
-    public float getMonthAverage(ArrayList<Expense> expenses) {
-        return getAverage(DateGridAdapter.MONTH, expenses);
+    public float[] getAverages(Calendar from, Calendar to) {
+        float totalAmt = getConvertedTotalAmtInDateRange(from, to);
+        int numDays = getNumUnits(DateGridAdapter.DAY, from, to);
+        int numWeeks = getNumUnits(DateGridAdapter.WEEK, from, to);
+        int numMonths = getNumUnits(DateGridAdapter.MONTH, from, to);
+        float avgDay = totalAmt / numDays;
+        float avgWeek = totalAmt / numWeeks;
+        float avgMonths = totalAmt / numMonths;
+//        Log.e(TAG, "totalAmt=" + totalAmt);
+//        Log.e(TAG, "numDays=" + numDays + ", numWeeks=" + numWeeks + ", numMonths=" + numMonths);
+        return new float[] { avgDay, avgWeek, avgMonths };
     }
 
     // position of new section
@@ -721,10 +762,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         c.close();
         return count;
     }
-    public int getNumExpensesByCategoryInRange(Category cat, Calendar from, Calendar to) {
-        ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
-        return expenses.size();
-    }
     public int getNumExpensesNonDefaultAccount() {
         int count = 0;
         StringBuilder accListStr = new StringBuilder();
@@ -787,49 +824,177 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // totals
-    public float getConvertedTotalAmt() {
-        float totalAmt = 0;
-        ArrayList<Account> accounts = getAllAccounts();
-        for (Account acc : accounts) {
-            totalAmt += ((MainActivity) context).convertAmt(acc);
-        }
-        return totalAmt;
-    }
     public float getTotalAmtByAccount(Account acc) {
         float totalAmt = 0;
-        Cursor c = getCursorFromQuery("SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE + " WHERE " + KEY_ACC_ID + " = " + acc.getId(), "");
+        Cursor c = getCursorFromQuery(
+                "SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE +
+                " WHERE " + KEY_ACC_ID + "=" + acc.getId(),
+                "");
         if (c.moveToFirst()) totalAmt = c.getFloat(0);
         c.close();
         return totalAmt;
     }
-    public float getConvertedTotalAmtByCategory(Category cat) {
-        float totalAmt = 0;
-        ArrayList<Expense> expenses = getExpensesByCategory(cat);
-        for (Expense e : expenses) totalAmt += ((MainActivity) context).convertAmt(e);
-        return totalAmt;
-    }
-    public float getConvertedTotalAmtByCategoryInDateRange(Category cat, Calendar from, Calendar to) {
-        float totalAmt = 0;
-        ArrayList<Expense> expenses = getExpensesByDateRangeAndCategory(cat, from, to);
-        for (Expense e : expenses) totalAmt += ((MainActivity) context).convertAmt(e);
-        return totalAmt;
-    }
-    public float getTotalAmtByDate(Calendar cal, int range) {
+    public float getConvertedTotalAmt() {
         float totalAmt = 0;
         Cursor c = getCursorFromQueryOrNull(
-                "SELECT " + KEY_AMOUNT + "," + KEY_DATETIME + " FROM " + TABLE_EXPENSE,
+                "SELECT " + KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE +
+                " GROUP BY " + KEY_ACC_ID,
                 "");
         if (c == null)
             return totalAmt;
         while (c.moveToNext()) {
-            String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-            float expAmt = c.getFloat(c.getColumnIndexOrThrow(KEY_AMOUNT));
-            Calendar expDate = MainActivity.getCalFromString(Expense.DATETIME_FORMAT, datetime);
-            String dtf = (range == Calendar.MONTH) ? "MM-yyyy" : "dd-MM-yyyy";
-            if ((MainActivity.getDatetimeStr(cal, dtf).equals(MainActivity.getDatetimeStr(expDate, dtf))))
-                totalAmt += expAmt;
+            Account acc = getAccount(c.getInt(0));
+            totalAmt += ((MainActivity) context).convertAmt(c.getFloat(1), acc);
         }
+        c.close();
         return totalAmt;
+    }
+    public float getConvertedTotalAmtInDateRange(Calendar from, Calendar to) {
+        float totalAmt = 0;
+        String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
+        String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
+        Cursor c = getCursorFromQueryOrNull(
+                "SELECT " + KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE +
+                        " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr +
+                        "' GROUP BY " + KEY_ACC_ID,
+                "");
+        if (c == null)
+            return totalAmt;
+        while (c.moveToNext()) {
+            Account acc = getAccount(c.getInt(0));
+            totalAmt += ((MainActivity) context).convertAmt(c.getFloat(1), acc);
+        }
+        c.close();
+        return totalAmt;
+    }
+    public float getConvertedFilteredTotalAmt(ArrayList<Account> accs, ArrayList<Category> cats) {
+        if (accs.isEmpty() && cats.isEmpty()) // no filters
+            return getConvertedTotalAmt();
+        float totalAmt = 0;
+        String query = getQueryFromFiltersInDateRange(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")", accs, cats, null, null, KEY_ACC_ID);
+        Cursor c = getCursorFromQueryOrNull(query, "");
+        if (c == null)
+            return totalAmt;
+        while (c.moveToNext()) {
+            Account acc = getAccount(c.getInt(0));
+            totalAmt += ((MainActivity) context).convertAmt(c.getFloat(1), acc);
+        }
+        c.close();
+        return totalAmt;
+    }
+    public float getConvertedFilteredTotalAmtInDateRange(ArrayList<Account> accs, ArrayList<Category> cats, Calendar from, Calendar to) {
+        if (accs.isEmpty() && cats.isEmpty()) // no filters
+            return getConvertedTotalAmtInDateRange(from, to);
+        float totalAmt = 0;
+        String query = getQueryFromFiltersInDateRange(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")", accs, cats, from, to, KEY_ACC_ID);
+        Cursor c = getCursorFromQueryOrNull(query, "");
+        if (c == null)
+            return totalAmt;
+        while (c.moveToNext()) {
+            Account acc = getAccount(c.getInt(0));
+            totalAmt += ((MainActivity) context).convertAmt(c.getFloat(1), acc);
+        }
+        c.close();
+        return totalAmt;
+    }
+    public ArrayList<Category> getSortedCategoriesByConvertedTotalAmt() {
+        ArrayList<Category> categories = new ArrayList<>();
+
+        HashMap<Integer, Pair<Float,Integer>> catIdAmtMap = new HashMap<>();
+        Cursor c = getCursorFromQueryOrNull(
+                "SELECT " + KEY_CAT_ID + "," + KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + "), COUNT(*) FROM " + TABLE_EXPENSE +
+                        " GROUP BY " + KEY_CAT_ID + "," + KEY_ACC_ID,
+                "");
+        if (c == null)
+            return categories;
+        while (c.moveToNext()) {
+            int catId = c.getInt(0);
+            float catAmt = 0;
+            int catNumExp = 0;
+            if (catIdAmtMap.containsKey(catId)) {
+                catAmt = catIdAmtMap.get(catId).first;
+                catNumExp = catIdAmtMap.get(catId).second;
+            }
+            Account acc = getAccount(c.getInt(1));
+            catAmt += ((MainActivity) context).convertAmt(c.getFloat(2), acc);
+            catNumExp += c.getInt(3);
+            catIdAmtMap.put(catId, new Pair<>(catAmt, catNumExp));
+        }
+        c.close();
+
+        ArrayList<Map.Entry<Integer, Pair<Float,Integer>>> entries = new ArrayList<>(catIdAmtMap.entrySet());
+        entries.sort((Comparator<Map.Entry<Integer, Pair<Float,Integer>>>) (o1, o2) -> Float.compare(o2.getValue().first, o1.getValue().first));
+
+        for (Map.Entry<Integer, Pair<Float,Integer>> entry : entries) {
+            Category cat = getCategory(entry.getKey());
+            cat.setAmount(entry.getValue().first);
+            cat.setNumExpenses(entry.getValue().second);
+            categories.add(cat);
+        }
+        return categories;
+    }
+    public ArrayList<Category> getSortedCategoriesByConvertedTotalAmtInDateRange(Calendar from, Calendar to) {
+        ArrayList<Category> categories = new ArrayList<>();
+
+        HashMap<Integer, Pair<Float,Integer>> catIdAmtMap = new HashMap<>();
+        String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
+        String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
+        Cursor c = getCursorFromQueryOrNull(
+                "SELECT " + KEY_CAT_ID + "," + KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + "), COUNT(*) FROM " + TABLE_EXPENSE +
+                        " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr +
+                        "' GROUP BY " + KEY_CAT_ID + "," + KEY_ACC_ID,
+                "");
+        if (c == null)
+            return categories;
+        while (c.moveToNext()) {
+            int catId = c.getInt(0);
+            float catAmt = 0;
+            int catNumExp = 0;
+            if (catIdAmtMap.containsKey(catId)) {
+                catAmt = catIdAmtMap.get(catId).first;
+                catNumExp = catIdAmtMap.get(catId).second;
+            }
+            Account acc = getAccount(c.getInt(1));
+            catAmt += ((MainActivity) context).convertAmt(c.getFloat(2), acc);
+            catNumExp += c.getInt(3);
+            catIdAmtMap.put(catId, new Pair<>(catAmt, catNumExp));
+        }
+        c.close();
+
+        ArrayList<Map.Entry<Integer, Pair<Float,Integer>>> entries = new ArrayList<>(catIdAmtMap.entrySet());
+        entries.sort((Comparator<Map.Entry<Integer, Pair<Float,Integer>>>) (o1, o2) -> Float.compare(o2.getValue().first, o1.getValue().first));
+
+        for (Map.Entry<Integer, Pair<Float,Integer>> entry : entries) {
+            Category cat = getCategory(entry.getKey());
+            cat.setAmount(entry.getValue().first);
+            cat.setNumExpenses(entry.getValue().second);
+            categories.add(cat);
+        }
+        return categories;
+    }
+    public HashMap<String, Float> getSortedAmountsByDateRange(Calendar from, Calendar to, String dateFormat) {
+        HashMap<String, Float> dateAmtMap = new HashMap<>();
+        String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
+        String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
+        Cursor c = getCursorFromQueryOrNull(
+                "SELECT " + KEY_ACC_ID + ", strftime('" + dateFormat + "', " + KEY_DATETIME + "), SUM(" + KEY_AMOUNT +
+                        ") FROM " + TABLE_EXPENSE +
+                        " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr +
+                        "' GROUP BY strftime('" + dateFormat + "', " + KEY_DATETIME + "), " + KEY_ACC_ID,
+                "");
+        if (c == null)
+            return dateAmtMap;
+        while (c.moveToNext()) {
+            Account acc = getAccount(c.getInt(0));
+            String date = c.getString(1);
+            float dateAmt = 0;
+            if (dateAmtMap.containsKey(date))
+                dateAmt = dateAmtMap.get(date);
+            dateAmt += ((MainActivity) context).convertAmt(c.getFloat(2), acc);
+            dateAmtMap.put(date, dateAmt);
+        }
+        c.close();
+        return dateAmtMap;
     }
 
     /**

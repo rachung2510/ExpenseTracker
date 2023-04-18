@@ -1,6 +1,7 @@
 package com.example.expensetracker.ChartsPage;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -77,9 +78,6 @@ public class ChartsFragment extends Fragment {
         ViewPagerAdapter adapter = new ViewPagerAdapter(this);
         adapter.addFragment(new ChartsChildFragmentPie());
         adapter.addFragment(new ChartsChildFragmentGraph());
-//        adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_PIECHART));
-//        adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_GRAPH));
-//        adapter.addFragment(new ChartsChildFragment(ChartsChildFragment.TYPE_CALENDAR));
         viewPager.setAdapter(adapter);
         viewPager.setOffscreenPageLimit(2);
 
@@ -222,7 +220,10 @@ public class ChartsFragment extends Fragment {
                 fromDate.set(Calendar.DAY_OF_YEAR, fromDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
                 toDate.set(Calendar.DAY_OF_YEAR, toDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
         }
+        long tic1 = System.currentTimeMillis();
         ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS); // update summary
+        long toc = System.currentTimeMillis();
+//        Log.e(TAG, "updateSummaryData=" + (toc-tic1));
     }
     public void updateData() {
         ChartsChildFragmentPie pieFrag = getChildFragmentPie();
@@ -230,13 +231,8 @@ public class ChartsFragment extends Fragment {
         pieFrag.updateCurrency();
         pieFrag.setPieChartTotalAmt(((HomeFragment) ((MainActivity) getActivity()).getFragment(Constants.HOME)).getSummaryAmt());
         if (getNumFragments() > 1) {
-            ChartsChildFragmentGraph graphFrag = getChildFragmentLine();
+            ChartsChildFragmentGraph graphFrag = getChildFragmentGraph();
             graphFrag.updateDateFilters();
-//            if (graphFrag.getSelDateState() != DateGridAdapter.DAY) graphFrag.resetOnClick();
-//            graphFrag.loadLineChartData();
-//            graphFrag.updateExpenseRecyclerView();
-//            graphFrag.updateLineChartSummary();
-//            graphFrag.updateAverages();
             graphFrag.updateCurrency();
         }
     }
@@ -247,7 +243,7 @@ public class ChartsFragment extends Fragment {
     public ChartsChildFragmentPie getChildFragmentPie() {
         return (ChartsChildFragmentPie) getChildFragmentManager().getFragments().get(ChartsChildFragment.TYPE_PIECHART);
     }
-    public ChartsChildFragmentGraph getChildFragmentLine() {
+    public ChartsChildFragmentGraph getChildFragmentGraph() {
         return (ChartsChildFragmentGraph) getChildFragmentManager().getFragments().get(ChartsChildFragment.TYPE_GRAPH);
     }
     public int getNumFragments() {
@@ -267,7 +263,7 @@ public class ChartsFragment extends Fragment {
     }
     public void setSummaryData(String summaryDateText, float summaryAmt, boolean update) {
         summaryDate.setText(summaryDateText);
-        ChartsChildFragmentPie pieChartFrag = (ChartsChildFragmentPie) getChildFragmentManager().getFragments().get(0);
+        ChartsChildFragmentPie pieChartFrag = (ChartsChildFragmentPie) getChildFragmentPie();
         pieChartFrag.setPieChartTotalAmt(summaryAmt);
         if (!update)
             return;
@@ -275,7 +271,7 @@ public class ChartsFragment extends Fragment {
         pieChartFrag.updateDateFilters();
         long tic1 = System.currentTimeMillis();
         if (getChildFragmentManager().getFragments().size() > 1) {
-            ChartsChildFragment lineChartFrag = (ChartsChildFragment) getChildFragmentManager().getFragments().get(1);
+            ChartsChildFragmentGraph lineChartFrag = (ChartsChildFragmentGraph) getChildFragmentGraph();
             lineChartFrag.updateDateFilters();
         }
         long toc = System.currentTimeMillis();

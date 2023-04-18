@@ -46,23 +46,4 @@ public class ChartsChildFragment extends Fragment {
     }
     public void updateCurrency(String curr) {
     }
-
-    // debug
-    public static void logFromTo(String tag, Calendar from, Calendar to) {
-        Log.e(TAG, String.format("from%s=", tag) + MainActivity.getDatetimeStr(from,"dd MMM yyyy") + String.format(", to%s=", tag) + MainActivity.getDatetimeStr(to,"dd MMM yyyy"));
-    }
-    public static String logExpenses(ArrayList<Expense> expenses) {
-        StringBuilder msg = new StringBuilder();
-        for (Expense e : expenses)
-            msg.append(e.getDescription().isEmpty() ? "date" : e.getDescription()).append(", ");
-        return msg.toString();
-    }
-    public static <T extends Section> void logFilters(ArrayList<T> arrayList, String arrayName) {
-        StringBuilder msg = new StringBuilder();
-        for (T t : arrayList) {
-            if (msg.length() > 0) msg.append(", ");
-            msg.append(t.getName());
-        }
-        Log.e(TAG, arrayName + "={ " + msg + " }");
-    }
 }

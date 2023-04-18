@@ -22,6 +22,7 @@ import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.Currency;
+import com.example.expensetracker.Expense;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
@@ -82,7 +83,7 @@ public class HomeFragment extends Fragment {
         nextDate.setOnClickListener((l) -> navDateAction(Constants.NEXT));
 
         // update data
-        context.updateHomeData(); // update summary & expense list
+        updateData(); // update summary & expense list
 
         // apply filters
         filterList = view.findViewById(R.id.sectionFilters);
@@ -142,7 +143,7 @@ public class HomeFragment extends Fragment {
             selCatFilters.clear();
             applyFilters();
             updateClearFiltersItem();
-            ((MainActivity) getActivity()).updateHomeData(); // update summary & expense list
+            updateData(); // update summary & expense list
             return true;
         }
         return false;
@@ -192,7 +193,7 @@ public class HomeFragment extends Fragment {
                     toDate = filterDateAdapter.getSelDateRange()[1];
                     selDatePos = filterDateAdapter.getSelectedPos();
                     selDateState = filterDateAdapter.getSelectedState();
-                    ((MainActivity) getActivity()).updateHomeData(); // update summary & expense list
+                    updateData(); // update summary & expense list
                 }
 
                 if (selDatePos == DateGridAdapter.ALL) {
@@ -229,7 +230,7 @@ public class HomeFragment extends Fragment {
                 fromDate.set(Calendar.DAY_OF_YEAR, fromDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
                 toDate.set(Calendar.DAY_OF_YEAR, toDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
         }
-        ((MainActivity) getActivity()).updateHomeData(); // update summary & expense list
+        updateData(); // update summary & expense list
     }
     public void applyFilters() {
         FilterAdapter filterAdapter = new FilterAdapter(getActivity(), selAccFilters, selCatFilters);
@@ -258,7 +259,7 @@ public class HomeFragment extends Fragment {
             applyFilters();
             updateClearFiltersItem();
             if (!selAccFilters.isEmpty() || !selCatFilters.isEmpty())
-                ((MainActivity) getActivity()).updateHomeData(); // update summary & expense list
+                updateData(); // update summary & expense list
         }));
         dialogBuilder.setNeutralButton(android.R.string.no, (((dialog, i) -> dialog.cancel())));
 
@@ -286,7 +287,7 @@ public class HomeFragment extends Fragment {
     public void updateClearFiltersItem() {
         clearFilters.setVisible(!selAccFilters.isEmpty() || !selCatFilters.isEmpty());
     }
-    public void updateDate() {
+    public void updateDateRange() {
         if (getActivity() == null)
             return;
         fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selDateState);
@@ -313,11 +314,32 @@ public class HomeFragment extends Fragment {
         return selAccFilters.isEmpty() && selCatFilters.isEmpty();
     }
 
-    public void setExpenseData(LinearLayoutManager linearLayoutManager, ExpenseAdapter expAdapter) {
+    public void updateData() {
+        updateData(false);
+    }
+    public void updateData(boolean retainScrollPos) {
+        int index, top;
+        index = top = 0;
+        if (retainScrollPos) { // save scroll position
+            LinearLayoutManager linearLayoutManager = (LinearLayoutManager) expenseList.getLayoutManager();
+            index = linearLayoutManager.findFirstVisibleItemPosition();
+            View v = linearLayoutManager.getChildAt(0);
+            top = (v == null) ? 0 : (v.getTop() - linearLayoutManager.getPaddingTop());
+        }
+
+        ArrayList<Expense> expenses = ((MainActivity) getActivity()).getExpenseList();
+        expenses = ((MainActivity) getActivity()).insertExpDateHeaders(expenses);
+        ExpenseAdapter expAdapter = new ExpenseAdapter(getActivity(), expenses);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        if (retainScrollPos)
+            linearLayoutManager.scrollToPositionWithOffset(index, top);
         expenseList.setLayoutManager(linearLayoutManager);
         expenseList.setAdapter(expAdapter);
         if (expAdapter.getItemCount() > 0) placeholder.setVisibility(View.GONE);
         else placeholder.setVisibility(View.VISIBLE);
+
+        ((MainActivity) getActivity()).updateSummaryData(Constants.HOME);
     }
     public void setSummaryData(String summaryDateText, float summaryAmtText) {
         summaryDate.setText(summaryDateText);

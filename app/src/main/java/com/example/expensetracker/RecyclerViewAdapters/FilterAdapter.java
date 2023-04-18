@@ -99,9 +99,9 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
                 return;
             }
             if (((MainActivity) context).getCurrentFragment() instanceof ChartsFragment) {
-                ChartsChildFragmentGraph frag = (ChartsChildFragmentGraph) ((ChartsFragment) ((MainActivity) context).getCurrentFragment()).getChildFragmentLine();
+                ChartsChildFragmentGraph frag = (ChartsChildFragmentGraph) ((ChartsFragment) ((MainActivity) context).getCurrentFragment()).getChildFragmentGraph();
                 frag.applyFilters(true);
-                frag.updateExpenseRecyclerView();
+                frag.updateExpenseList();
             }
         });
     }

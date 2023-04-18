@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -16,13 +15,10 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.SimpleItemAnimator;
 
-import com.example.expensetracker.Account;
-import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
-import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 
 import java.util.Objects;
 
@@ -82,7 +78,7 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
                         context.resetDefaultAccs();
                         context.updateAccountData();
                         resetOrder();
-                        context.updateAllExpenseData();
+                        context.setUpdateFragments(true);
                         Toast.makeText(context, "Accounts reset to defaults", Toast.LENGTH_SHORT).show();
                     })
                     .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())

@@ -1,6 +1,7 @@
 package com.example.expensetracker.RecyclerViewAdapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,12 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.ChartsPage.ChartsChildFragmentPie;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
-import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
 public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -27,24 +26,11 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private final ArrayList<Category> categories;
     private final Context context;
     private final LayoutInflater inflater;
-    private final DatabaseHelper db;
-    private final Calendar fromDate, toDate;
 
-    public CatDataAdapter(Context context, Calendar fromDate, Calendar toDate) {
+    public CatDataAdapter(Context context, ArrayList<Category> categories) {
         this.context = context;
         inflater = LayoutInflater.from(context);
-        this.db = ((MainActivity) context).db;
-        this.fromDate = fromDate;
-        this.toDate = toDate;
-        categories = db.getAllCategories();
-        if (fromDate == null)
-            categories.sort((cat1, cat2) -> {
-                return Float.compare(db.getConvertedTotalAmtByCategory(cat2), db.getConvertedTotalAmtByCategory(cat1)); // descending order
-            });
-        else
-            categories.sort((cat1, cat2) -> {
-                return Float.compare(db.getConvertedTotalAmtByCategoryInDateRange(cat2, fromDate, toDate), db.getConvertedTotalAmtByCategoryInDateRange(cat1, fromDate, toDate)); // descending order
-            });
+        this.categories = categories;
     }
 
     /**
@@ -60,7 +46,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Category cat = categories.get(position);
-        if (holder instanceof  ViewHolder) {
+        if (holder instanceof ViewHolder) {
             populateCategories((ViewHolder) holder, cat);
         }
     }
@@ -95,20 +81,13 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.catDataIcon.setForeground(cat.getIcon());
         String currencySymbol = ((MainActivity) context).getDefaultCurrencySymbol();
         holder.catDataCurr.setText(currencySymbol);
-        float totalAmt;
-        if (fromDate == null) {
-            totalAmt = ((MainActivity) context).db.getConvertedTotalAmtByCategory(cat);
-            holder.catDataNumExpenses.setText(String.valueOf(((MainActivity) context).db.getNumExpensesByCategory(cat)));
-        } else {
-            totalAmt = ((MainActivity) context).db.getConvertedTotalAmtByCategoryInDateRange(cat, fromDate, toDate);
-            holder.catDataNumExpenses.setText(String.valueOf(((MainActivity) context).db.getNumExpensesByCategoryInRange(cat, fromDate, toDate)));
-        }
-        holder.catDataAmt.setText(String.format(MainActivity.locale, "%.2f", totalAmt));
+        holder.catDataAmt.setText(String.format(MainActivity.locale, "%.2f", cat.getAmount()));
+        holder.catDataNumExpenses.setText(String.valueOf(cat.getNumExpenses()));
 
         holder.border.setBackgroundColor(cat.getColor());
         holder.catDataIconBg.setBackgroundTintList(MainActivity.getColorStateListFromHex(cat.getColorHex()));
 
-        if (totalAmt == 0f) {
+        if (cat.getAmount() == 0f) {
             holder.itemView.setAlpha(0.3f);
             return;
         }

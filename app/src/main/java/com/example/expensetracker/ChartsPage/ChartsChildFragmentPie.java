@@ -42,6 +42,8 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     private static final String TAG = "ChartsChildFragmentPie";
 
     private float totalAmt = 0;
+    HashMap<Category, Float> catAmtMap;
+    ArrayList<Category> categories;
 
     private PieChart pieChart;
     ImageView pieIcon;
@@ -99,14 +101,15 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         long tic = System.currentTimeMillis();
         loadPieChartData();
         long tic1 = System.currentTimeMillis();
-        catDataAdapter = new CatDataAdapter(getParentFragment().getActivity(), fromCal, toCal);
+        if (fromCal == null)
+            categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmt();
+        else
+            categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmtInDateRange(fromCal, toCal);
+        catDataAdapter = new CatDataAdapter(getActivity(), categories);
         long tic2 = System.currentTimeMillis();
         catDataGrid.setAdapter(catDataAdapter);
-        long toc = System.currentTimeMillis();
 //        Log.e(TAG,"loadPieChartData="+(tic1-tic));
 //        Log.e(TAG,"newAdapter="+(tic2-tic1));
-//        Log.e(TAG,"setAdapter="+(toc-tic2));
-
     }
     @Override
     public void updateCurrency(String curr) {
@@ -121,21 +124,23 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
             return;
         ArrayList<PieEntry> pieEntries = new ArrayList<>();
         pieCategories = new ArrayList<>();
-        ArrayList<Category> categories = ((MainActivity) getActivity()).db.getAllCategories();
         ArrayList<Integer> colors = new ArrayList<>();
         int count = 0;
+        long tic1 = System.currentTimeMillis();
+        if (fromCal == null)
+            categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmt();
+        else
+            categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmtInDateRange(fromCal, toCal);
         for (Category cat : categories) {
-            float amt;
-            if (fromCal == null) amt = ((MainActivity) getActivity()).db.getConvertedTotalAmtByCategory(cat);
-            else amt = ((MainActivity) getActivity()).db.getConvertedTotalAmtByCategoryInDateRange(cat, fromCal, toCal);
-            if (amt != 0f) {
-                pieEntries.add(new PieEntry(amt, cat.getIcon()));
-                colors.add(ContextCompat.getColor(getActivity(), cat.getColorId()));
-                pieCategories.add(cat);
-                pieCategoriesMap.put(cat.getName(), count);
-                count++;
-            }
+            float amt = cat.getAmount();
+            if (amt == 0f) continue;
+            pieEntries.add(new PieEntry(amt, cat.getIcon()));
+            colors.add(ContextCompat.getColor(getActivity(), cat.getColorId()));
+            pieCategories.add(cat);
+            pieCategoriesMap.put(cat.getName(), count);
+            count++;
         }
+        long tic2 = System.currentTimeMillis();
 
         PieDataSet dataSet = new PieDataSet(pieEntries, "data");
         dataSet.setColors(colors);
@@ -164,6 +169,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
 
         pieChart.setData(pieData);
         pieChart.invalidate();
+//        Log.e(TAG,"getConvertedTotalAmt="+(tic1-tic));
     }
     public void setupPieChart() {
         pieChart.setRenderer(new CustomPieChartRenderer(pieChart, 10f, pieChart.getAnimator(), pieChart.getViewPortHandler()));
@@ -206,11 +212,10 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     public void configPieChartRecyclerView() {
         if (getActivity() == null)
             return;
-        catDataAdapter = new CatDataAdapter(getActivity(), fromCal, toCal);
+        catDataAdapter = new CatDataAdapter(getActivity(), categories);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
         catDataGrid.setLayoutManager(gridLayoutManager);
         catDataGrid.setAdapter(catDataAdapter);
-//        return new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
     }
     public void setPieChartTotalAmt(float totalAmt) {
         this.totalAmt = totalAmt;

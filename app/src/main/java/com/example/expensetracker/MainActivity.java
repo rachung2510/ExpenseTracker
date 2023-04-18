@@ -20,7 +20,6 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.util.Log;
-import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -60,7 +59,6 @@ import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CurrencyAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;
-import com.example.expensetracker.RecyclerViewAdapters.ExpenseAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
 import com.example.expensetracker.HomePage.HomeFragment;
 import com.example.expensetracker.ManagePage.ManageChildFragment;
@@ -77,7 +75,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
@@ -190,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         sideMenuValueFirst.setText((getDefaultFirstDayOfWeek() == Calendar.SUNDAY) ? "Sunday" : "Monday");
                         if (!(getCurrentFragment() instanceof HomeFragment))
                             return;
-                        ((HomeFragment) getCurrentFragment()).updateDate();
+                        ((HomeFragment) getCurrentFragment()).updateDateRange();
                         updateHomeData();
                     })
                     .show();
@@ -289,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         break;
                 }
                 if (updateFragments) {
-                    if (position == Constants.HOME) updateHomeData();
+                    ((HomeFragment) adapter.createFragment(Constants.HOME)).updateData();
                     ((ChartsFragment) adapter.createFragment(Constants.CHARTS)).updateData();
                     ((ManageFragment) adapter.createFragment(Constants.MANAGE)).updateData();
                     setUpdateFragments(false);
@@ -491,146 +488,68 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
      * Update functions
      */
     public void updateHomeData() {
-        ArrayList<Expense> expenses = getExpenseList();
-        updateExpenseData(expenses);
-        updateSummaryData(expenses, Constants.HOME);
+        ((HomeFragment) adapter.createFragment(Constants.HOME)).updateData(true);
     }
-    public void updateAllExpenseData() {
-        HomeFragment homeFrag = (HomeFragment) adapter.createFragment(Constants.HOME);
-        ChartsFragment chartsFrag = (ChartsFragment) adapter.createFragment(Constants.CHARTS);
-        for (int i = 0;i < 2;i++) {
-            ArrayList<Expense> expenses = new ArrayList<>();
-            if (i == Constants.HOME) {
-                Calendar from = homeFrag.getDateRange()[0];
-                Calendar to = homeFrag.getDateRange()[1];
-                if (homeFrag.getSelDateState() == DateGridAdapter.ALL)
-                    expenses =  db.getAllExpenses();
-                else
-                    expenses = db.getExpensesByDateRange(from, to);
-                ArrayList<Expense> expensesByFilter = db.getExpensesByFilters(homeFrag.getSelAccFilters(), homeFrag.getSelCatFilters());
-                expenses.retainAll(expensesByFilter);
-            } else if (i == Constants.CHARTS) {
-                Calendar from = chartsFrag.getDateRange()[0];
-                Calendar to = chartsFrag.getDateRange()[1];
-                if (chartsFrag.getSelDateState() == DateGridAdapter.ALL)
-                    expenses =  db.getAllExpenses();
-                else
-                    expenses = db.getExpensesByDateRange(from, to);
-            }
-            expenses = insertExpDateHeaders(sortExpenses(expenses, Constants.DESCENDING));
-            ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
-            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-            linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-            ((HomeFragment) adapter.createFragment(Constants.HOME)).setExpenseData(linearLayoutManager, expAdapter);
-        }
-    }
-    public void updateExpenseData(ArrayList<Expense> expenses) {
-        expenses = insertExpDateHeaders(sortExpenses(expenses, Constants.DESCENDING));
-        ExpenseAdapter expAdapter = new ExpenseAdapter(this, expenses);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        if (getCurrentFragment() instanceof HomeFragment)
-            ((HomeFragment) getCurrentFragment()).setExpenseData(linearLayoutManager, expAdapter);
-    }
-    public void updateSummaryData(ArrayList<Expense> expenses, int page) {
+    public void updateSummaryData(int page) {
         Calendar from, to;
         Fragment fragment;
+        ArrayList<Account> accFilters = null;
+        ArrayList<Category> catFilters = null;
         int state;
         fragment = adapter.createFragment(page);
         if (page == Constants.HOME) {
             from = ((HomeFragment) fragment).getDateRange()[0];
             to = ((HomeFragment) fragment).getDateRange()[1];
             state = ((HomeFragment) fragment).getSelDateState();
+            accFilters = ((HomeFragment) fragment).getSelAccFilters();
+            catFilters = ((HomeFragment) fragment).getSelCatFilters();
         } else if (page == Constants.CHARTS) {
             from = ((ChartsFragment) fragment).getDateRange()[0];
             to = ((ChartsFragment) fragment).getDateRange()[1];
             state = ((ChartsFragment) fragment).getSelDateState();
-        } else
+        } else {
             return;
+        }
 
         String summaryDateText;
-        float totalAmt = 0;
+        float totalAmt;
         if (state == DateGridAdapter.ALL) {
             summaryDateText = "All time";
-            if (((HomeFragment) fragment).hasNoFilters())
-                totalAmt = db.getConvertedTotalAmt();
-            else
-                for (Expense exp : expenses)
-                    totalAmt += convertAmt(exp);
+            totalAmt = (page == Constants.HOME) ? db.getConvertedFilteredTotalAmt(accFilters, catFilters) : db.getConvertedTotalAmt();
         } else {
-            Calendar cal = getCalendarCopy(to, DateGridAdapter.FROM);
             String dtf;
             switch (state) {
-                case DateGridAdapter.MONTH:
-                    dtf = "MMM yyyy";
-                    break;
-                case DateGridAdapter.YEAR:
-                    dtf = "yyyy";
-                    break;
-                default:
-                    dtf = "dd MMM yyyy";
+                case DateGridAdapter.MONTH: dtf = "MMM yyyy"; break;
+                case DateGridAdapter.YEAR: dtf = "yyyy"; break;
+                default: dtf = "dd MMM yyyy";
             }
-            if (getDatetimeStr(from, dtf).equals(getDatetimeStr(cal, dtf))) {
-                if (state == DateGridAdapter.DAY || state == DateGridAdapter.SELECT_SINGLE) {
-                    summaryDateText = getRelativePrefix(from);
-                    summaryDateText += getDatetimeStr(from, ", dd MMM yyyy");
-                } else if (state == DateGridAdapter.MONTH)
-                    summaryDateText = getDatetimeStr(from, "MMMM yyyy");
-                else
-                    summaryDateText = getDatetimeStr(from, dtf);
+            if (getDatetimeStr(from, dtf).equals(getDatetimeStr(to, dtf))) {
+                switch (state) {
+                    case DateGridAdapter.DAY:
+                    case DateGridAdapter.SELECT_SINGLE:
+                        summaryDateText = getRelativePrefix(from);
+                        summaryDateText += getDatetimeStr(from, ", dd MMM yyyy");
+                        break;
+                    case DateGridAdapter.MONTH:
+                        summaryDateText = getDatetimeStr(from, "MMMM yyyy");
+                        break;
+                    default:
+                        summaryDateText = getDatetimeStr(from, dtf);
+                }
             } else {
                 summaryDateText = getDatetimeStr(from, dtf) + " - " + getDatetimeStr(to, dtf);
             }
-            for (Expense exp : expenses)
-                totalAmt += convertAmt(exp);
+            totalAmt = (page == Constants.HOME) ? db.getConvertedFilteredTotalAmtInDateRange(accFilters, catFilters, from, to) : db.getConvertedTotalAmtInDateRange(from, to);
         }
+
+        // set summary data
+        long tic = System.currentTimeMillis();
         if (page == Constants.HOME)
             ((HomeFragment) adapter.createFragment(Constants.HOME)).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         else if (page == Constants.CHARTS)
             ((ChartsFragment) adapter.createFragment(Constants.CHARTS)).setSummaryData(summaryDateText.toUpperCase(), totalAmt, true);
-    }
-    public void updateSummaryData(int page) {
-        updateSummaryData(getExpenseList(), page);
-    }
-    public Pair<String,Float> getSummaryData(ArrayList<Expense> expenses, int fragType) {
-        if (fragType != Constants.CHARTS)
-            return null;
-        ChartsFragment fragment = (ChartsFragment) adapter.createFragment(Constants.CHARTS);
-        Calendar from = fragment.getDateRange()[0];
-        Calendar to = fragment.getDateRange()[1];
-        int state = fragment.getSelDateState();
-        String summaryDateText;
-        float totalAmt = 0;
-        if (state == DateGridAdapter.ALL) {
-            summaryDateText = "All time";
-            totalAmt = db.getConvertedTotalAmt();
-        } else {
-            Calendar cal = getCalendarCopy(to, DateGridAdapter.FROM);
-            String dtf;
-            switch (state) {
-                case DateGridAdapter.MONTH:
-                    dtf = "MMM yyyy";
-                    break;
-                case DateGridAdapter.YEAR:
-                    dtf = "yyyy";
-                    break;
-                default:
-                    dtf = "dd MMM yyyy";
-            }
-            if (getDatetimeStr(from, dtf).equals(getDatetimeStr(cal, dtf))) {
-                if (state == DateGridAdapter.DAY || state == DateGridAdapter.SELECT_SINGLE) {
-                    summaryDateText = getRelativePrefix(from);
-                    summaryDateText += getDatetimeStr(from, ", dd MMM yyyy");
-                } else if (state == DateGridAdapter.MONTH)
-                    summaryDateText = getDatetimeStr(from, "MMMM yyyy");
-                else
-                    summaryDateText = getDatetimeStr(from, dtf);
-            } else {
-                summaryDateText = getDatetimeStr(from, dtf) + " - " + getDatetimeStr(to, dtf);
-            }
-            for (Expense exp : expenses) totalAmt += exp.getAmount();
-        }
-        return new Pair<>(summaryDateText.toUpperCase(), totalAmt);
+        long toc = System.currentTimeMillis();
+//        Log.e(TAG, "setSummaryData=" + (toc-tic));
     }
     @SuppressWarnings("unchecked")
     public void updateAccountData() {
@@ -661,7 +580,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             return;
         }
         if (getCurrentFragment() instanceof ChartsFragment) {
-            ChartsChildFragmentGraph graphFrag = (ChartsChildFragmentGraph) ((ChartsFragment) getCurrentFragment()).getChildFragmentLine();
+            ChartsChildFragmentGraph graphFrag = (ChartsChildFragmentGraph) ((ChartsFragment) getCurrentFragment()).getChildFragmentGraph();
             graphFrag.setAccFilters(filters);
             graphFrag.applyFilters(true);
         }
@@ -675,7 +594,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             return;
         }
         if (getCurrentFragment() instanceof ChartsFragment) {
-            ChartsChildFragmentGraph graphFrag = (ChartsChildFragmentGraph) ((ChartsFragment) getCurrentFragment()).getChildFragmentLine();
+            ChartsChildFragmentGraph graphFrag = (ChartsChildFragmentGraph) ((ChartsFragment) getCurrentFragment()).getChildFragmentGraph();
             graphFrag.setCatFilters(filters);
             graphFrag.applyFilters(true);
         }
@@ -686,29 +605,25 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
      */
     // Expenses
     public ArrayList<Expense> getExpenseList() {
-        ArrayList<Expense> expensesByDate = new ArrayList<>();
+        ArrayList<Expense> expenses = new ArrayList<>();
         if (getCurrentFragment() instanceof HomeFragment) {
             HomeFragment fragment = (HomeFragment) getCurrentFragment();
             Calendar from = fragment.getDateRange()[0];
             Calendar to = fragment.getDateRange()[1];
-            if (fragment.getSelDateState() == DateGridAdapter.ALL) {
-                expensesByDate =  db.getAllExpenses();
-            } else {
-                expensesByDate = db.getExpensesByDateRange(from, to);
-            }
-            ArrayList<Expense> expensesByFilter = db.getExpensesByFilters(fragment.getSelAccFilters(), fragment.getSelCatFilters());
-            expensesByDate.retainAll(expensesByFilter);
+            if (fragment.getSelDateState() == DateGridAdapter.ALL)
+                expenses = db.getSortedFilteredExpenses(fragment.getSelAccFilters(), fragment.getSelCatFilters(), Constants.DESCENDING);
+            else
+                expenses = db.getSortedFilteredExpensesInDateRange(fragment.getSelAccFilters(), fragment.getSelCatFilters(), from, to, Constants.DESCENDING);
         } else if (getCurrentFragment() instanceof ChartsFragment) {
             ChartsFragment fragment = (ChartsFragment) getCurrentFragment();
             Calendar from = fragment.getDateRange()[0];
             Calendar to = fragment.getDateRange()[1];
-            if (fragment.getSelDateState() == DateGridAdapter.ALL) {
-                expensesByDate =  db.getAllExpenses();
-            } else {
-                expensesByDate = db.getExpensesByDateRange(from, to);
-            }
+            if (fragment.getSelDateState() == DateGridAdapter.ALL)
+                expenses =  db.getSortedAllExpenses(Constants.DESCENDING);
+            else
+                expenses = db.getSortedExpensesByDateRange(from, to, Constants.DESCENDING);
         }
-        return expensesByDate;
+        return expenses;
     }
     public static ArrayList<Expense> insertExpDateHeaders(ArrayList<Expense> expenses) {
         int day = -1;
@@ -721,13 +636,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             newLst.add(exp); // add actual expense item
         }
         return newLst;
-    }
-    public static ArrayList<Expense> sortExpenses(ArrayList<Expense> expenses, int order) {
-        if (order == Constants.ASCENDING)
-            expenses.sort(Comparator.comparing(Expense::getDatetime));
-        else
-            expenses.sort((e1, e2) -> e2.getDatetime().compareTo(e1.getDatetime()));
-        return expenses;
     }
 
     // Sections
@@ -1090,7 +998,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 int pos = cat.getPosition();
                 db.updateCategory(new Category(MainActivity.this, id, name, iconMap.get(icon_id), colorMap.get(color_id), pos));
                 updateCategoryData();
-                updateHomeData();
+//                updateHomeData();
                 setUpdateFragments(true);
             }
             dialog.dismiss();
@@ -1102,7 +1010,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     /**
      * Helper functions
      */
-    public float convertAmt(Expense exp) {
+    public float convertExpenseAmt(Expense exp) {
+        if (exp.getId() == -1) return 0f;
         Currency defaultCurr = db.getCurrency(getDefaultCurrency());
         Currency thisCurr = db.getCurrency(exp.getAccount().getCurrencyName());
         if (thisCurr.equals(defaultCurr))
@@ -1110,13 +1019,13 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         else
             return exp.getAmount() * thisCurr.getRate() / defaultCurr.getRate();
     }
-    public float convertAmt(Account acc) {
+    public float convertAmt(Float amt, Account acc) {
         Currency defaultCurr = db.getCurrency(getDefaultCurrency());
         Currency thisCurr = db.getCurrency(acc.getCurrencyName());
         if (thisCurr.equals(defaultCurr))
-            return db.getTotalAmtByAccount(acc);
+            return amt;
         else
-            return db.getTotalAmtByAccount(acc) * thisCurr.getRate() / defaultCurr.getRate();
+            return amt * thisCurr.getRate() / defaultCurr.getRate();
     }
     public static float convertDpToPx(Context context, float dp) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
@@ -1124,7 +1033,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public Currency getCurrencyFromName(String name) {
         return db.getCurrency(name);
-//        return Constants.currency_map.get(name);
+    }
+    public static Currency getCurrencyFromNameStatic(String name) {
+        return Constants.currency_map.get(name);
     }
     public int getNewPosAcc() { return db.getNewPosAccount(); }
     public int getNewPosCat() {
@@ -1330,7 +1241,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public static Calendar getCalFromString(String dtf, String date) {
         Calendar cal = Calendar.getInstance(locale);
-
         try { cal.setTime(Objects.requireNonNull(new SimpleDateFormat(dtf, locale).parse(date)));
         } catch (ParseException e) { e.printStackTrace();}
         return cal;
@@ -1406,7 +1316,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public void exportToCsv() {
         // content
         StringBuilder data = new StringBuilder("Date,Account,Category,Description,Amount,Currency,Amount (" + getDefaultCurrency() + ")\n");
-        ArrayList<Expense> expenses = sortExpenses(db.getAllExpenses(), Constants.DESCENDING);
+        ArrayList<Expense> expenses = db.getSortedAllExpenses(Constants.DESCENDING);
+//        ArrayList<Expense> expenses = sortExpenses(db.getAllExpenses(), Constants.DESCENDING);
         for (Expense e : expenses) {
             data.append(e.getDatetimeStr()).append(",");
             data.append(e.getAccount().getName()).append(",");
@@ -1414,7 +1325,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             data.append(e.getDescription()).append(",");
             data.append(String.format(locale, "%.2f", e.getAmount())).append(",");
             data.append(e.getAccount().getCurrencyName()).append(",");
-            data.append(String.format(locale, "%.2f", convertAmt(e))).append("\n");
+            data.append(String.format(locale, "%.2f", convertExpenseAmt(e))).append("\n");
         }
 
         ContentValues values = new ContentValues();
@@ -1433,5 +1344,26 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             Log.e(TAG, String.valueOf(e));
             Toast.makeText(this, "Export failed", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Debug
+     */
+    public static void logFromTo(String pageTag, String tag, Calendar from, Calendar to) {
+        Log.e(pageTag, String.format("from%s=", tag) + MainActivity.getDatetimeStr(from,"dd MMM yyyy") + String.format(", to%s=", tag) + MainActivity.getDatetimeStr(to,"dd MMM yyyy"));
+    }
+    public static String logExpenses(ArrayList<Expense> expenses) {
+        StringBuilder msg = new StringBuilder();
+        for (Expense e : expenses)
+            msg.append(e.getDescription().isEmpty() ? "date" : e.getDescription()).append(", ");
+        return msg.toString();
+    }
+    public static <T extends Section> void logFilters(ArrayList<T> arrayList, String arrayName) {
+        StringBuilder msg = new StringBuilder();
+        for (T t : arrayList) {
+            if (msg.length() > 0) msg.append(", ");
+            msg.append(t.getName());
+        }
+        Log.e(TAG, arrayName + "={ " + msg + " }");
     }
 }

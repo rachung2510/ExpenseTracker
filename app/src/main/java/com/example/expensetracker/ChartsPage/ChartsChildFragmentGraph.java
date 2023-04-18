@@ -3,6 +3,7 @@ package com.example.expensetracker.ChartsPage;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -56,10 +57,12 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ChartsChildFragmentGraph extends ChartsChildFragment {
 
-    private static final String TAG = "ChartsChildFragment";
+    private static final String TAG = "ChartsChildFragmentGraph";
 
     private float totalAmt = 0;
 
@@ -73,7 +76,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     private int selDateState;
     private boolean isSelRange = false;
     private Calendar fromCal, toCal;
-    private int num_units = 1;
+    private int numUnits = 1;
     private static final float granDivisor = 10f;
 
     // Filter components
@@ -131,15 +134,22 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
             to = ((ChartsFragment) getParentFragment()).getDateRange()[1];
         }
         updateSelDateState();
+        
         fromCal = MainActivity.getCalendarCopy(from, DateGridAdapter.FROM);
         toCal = MainActivity.getCalendarCopy(to, DateGridAdapter.TO);
         Calendar old = MainActivity.getCalendarCopy(fromCal, DateGridAdapter.FROM);
         fromCal = updateDateRange(fromCal, DateGridAdapter.FROM);
         toCal = updateDateRange(toCal, DateGridAdapter.TO);
+        
+        long tic1 = System.currentTimeMillis();
         loadLineChartData();
-        updateExpenseRecyclerView();
+        long tic2 = System.currentTimeMillis();
+        updateExpenseList();
+        long tic3 = System.currentTimeMillis();
         updateLineChartSummary();
+        long tic4 = System.currentTimeMillis();
         updateAverages();
+        long tic5 = System.currentTimeMillis();
         lineChart.fitScreen();
         lineChart.highlightValues(null);
         highlightLineAmt(false);
@@ -147,6 +157,11 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
             lineChart.highlightValue((float) dates.indexOf(MainActivity.getDatetimeStr(old, getDtf())), 0);
             highlightLineAmt(true);
         }
+//        Log.e(TAG, "loadLineChartData=" + (tic2-tic1));
+//        Log.e(TAG, "updateExpenseList=" + (tic3-tic2));
+//        Log.e(TAG, "updateLineChartSummary=" + (tic4-tic3));
+//        Log.e(TAG, "updateAverages=" + (tic5-tic4));
+
     }
     @Override
     public void updateCurrency(String curr) {
@@ -256,56 +271,70 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     public void loadLineChartData() {
         if (getActivity() == null)
             return;
+        
         ArrayList<Entry> values = new ArrayList<>();
-        float maxAmt = 0;
-        totalAmt = 0;
-        updateExpenses(true);
-        MainActivity.sortExpenses(expenses, Constants.ASCENDING);
+        totalAmt = 0; // reset to 0
 
+        String dateFormat;
+        int range;
         LocalDate fromDate = LocalDateTime.ofInstant(fromCal.toInstant(), fromCal.getTimeZone().toZoneId()).toLocalDate();
         LocalDate toDate = LocalDateTime.ofInstant(toCal.toInstant(), toCal.getTimeZone().toZoneId()).toLocalDate();
-        if (selDateState == DateGridAdapter.YEAR)
-            num_units = isSelRange ? (int) ChronoUnit.MONTHS.between(fromDate, toDate)+1 : 12;
-        else if (selDateState <= DateGridAdapter.WEEK)
-            num_units = 7;
-        else
-            num_units = (int) (ChronoUnit.DAYS.between(fromDate, toDate) + 1);
+        if (selDateState == DateGridAdapter.YEAR) { // by months
+            dateFormat = "%Y-%m";
+            range = Calendar.MONTH;
+            numUnits = isSelRange ? (int) ChronoUnit.MONTHS.between(fromDate, toDate) + 1 : 12;
+        } else { // by day
+            dateFormat = "%Y-%m-%d";
+            range = Calendar.DATE;
+            if (selDateState <= DateGridAdapter.WEEK) // range is a week
+                numUnits = 7;
+            else // range is a month
+                numUnits = (int) (ChronoUnit.DAYS.between(fromDate, toDate) + 1);
+        }
 
-        int range = (selDateState == DateGridAdapter.YEAR) ? Calendar.MONTH : Calendar.DATE;
+        // create date xticks
+        long tic = System.currentTimeMillis();
+        Calendar calUnit = MainActivity.getCalendarCopy(fromCal, DateGridAdapter.FROM);
         dates.clear();
-        Calendar cal = MainActivity.getCalendarCopy(fromCal, DateGridAdapter.FROM);
-        for (int i = 0;i < num_units;i++) {
+        for (int i = 0; i < numUnits; i++) {
             values.add(new Entry(i, 0f));
 //            Log.e(TAG, "i=" + i + ", date=" + MainActivity.getDatetimeStr(cal, getDtf()));
-            dates.add(MainActivity.getDatetimeStr(cal, getDtf()));
-            cal.add(range, 1);
+            dates.add(MainActivity.getDatetimeStr(calUnit, getDtf()));
+            calUnit.add(range, 1);
         }
+        long tic0 = System.currentTimeMillis();
+
+        // populate y labels
+        float maxAmt = 0;
         float prevAmt = 0;
         float nextAmt = 0;
-        for (Expense e : expenses) {
-            if (!dates.contains(e.getDatetimeStr(getDtf()))) {
-                if (totalAmt == 0)
-                    prevAmt += ((MainActivity) getActivity()).convertAmt(e);
-                else
-                    nextAmt += ((MainActivity) getActivity()).convertAmt(e);
+        Calendar prev = MainActivity.getCalendarCopy(fromCal, DateGridAdapter.FROM);
+        Calendar next = MainActivity.getCalendarCopy(toCal, DateGridAdapter.TO);
+        prev.add(range, -1);
+        next.add(range, 1);
+        long tic1 = System.currentTimeMillis();
+        HashMap<String, Float> dateAmtMap = ((MainActivity) getActivity()).db.getSortedAmountsByDateRange(prev, next, dateFormat);
+        long tic2 = System.currentTimeMillis();
+        for (Map.Entry<String, Float> entry : dateAmtMap.entrySet()) {
+            if (!dates.contains(entry.getKey())) {
+                if (totalAmt == 0) prevAmt  = entry.getValue(); // first value
+                else nextAmt = entry.getValue(); // last value
                 continue;
             }
-            int x = dates.indexOf(e.getDatetimeStr(getDtf()));
-//            Log.e(TAG, "x=" + x + "/" + num_units);
-            float newAmt = values.get(x).getY() + ((MainActivity) getActivity()).convertAmt(e);
-            values.set(x, new Entry(x, newAmt));
-            if (newAmt > maxAmt)
-                maxAmt = newAmt;
-            totalAmt += ((MainActivity) getActivity()).convertAmt(e);
+            int x = dates.indexOf(entry.getKey());
+            float amt = entry.getValue();
+            values.set(x, new Entry(x, amt));
+            if (amt > maxAmt) maxAmt = amt;
+            totalAmt += amt;
         }
-//        for (Entry v : values) Log.e(TAG, "x=" + v.getX() + ", y=" + v.getY());
+        long tic3 = System.currentTimeMillis();
 
-        // append values at start and end
-        float xMin = (float) (-num_units*0.08);
-        float xMax = (float) (num_units*1.08-1);
+        float xMin = (float) (-numUnits * 0.08);
+        float xMax = (float) (numUnits * 1.08 - 1);
         values.add(0, new Entry(xMin, prevAmt));
         values.add(new Entry(xMax, nextAmt));
 
+        // set graph properties
         float yMin = (float) (maxAmt == 0 ? -0.45 : -0.45 * maxAmt);
         float yMax = (float) (maxAmt == 0 ? 1.2 : 1.2 * maxAmt);
         lineChart.getAxisLeft().setAxisMinimum(yMin);
@@ -314,7 +343,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         lineChart.getAxisRight().setAxisMaximum(yMax);
         lineChart.getXAxis().setAxisMinimum(xMin);
         lineChart.getXAxis().setAxisMaximum(xMax);
-        updateXLabels(num_units / granDivisor);
+        updateXLabels(numUnits / granDivisor);
 
         LineDataSet set;
         if (lineChart.getData() != null && lineChart.getData().getDataSetCount() > 0) {
@@ -338,14 +367,17 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
             set.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
         }
 
-        Drawable drawable = ContextCompat.getDrawable(getActivity(), R.drawable.fade_red);
-        set.setFillDrawable(drawable);
-//        set.setFillColor(Color.RED);
+        Drawable fadeRed = ContextCompat.getDrawable(getActivity(), R.drawable.fade_red);
+        set.setFillDrawable(fadeRed); // Color.RED
         ArrayList<ILineDataSet> dataSets = new ArrayList<>();
         dataSets.add(set);
         LineData data = new LineData(dataSets);
-
         lineChart.setData(data);
+        long tic4 = System.currentTimeMillis();
+//        Log.e(TAG, "createXticks (" + numUnits + ")=" + (tic0-tic));
+//        Log.e(TAG, "updateExpenses=" + (tic2-tic1));
+//        Log.e(TAG, "forLoop=" + (tic3-tic2));
+//        Log.e(TAG, "setGraphProperties=" + (tic4-tic3));
     }
     public void setupLineChart() {
         if (getActivity() == null)
@@ -371,7 +403,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         lineChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-                if (e.getX() < 0 || e.getX() > num_units) return;
+                if (e.getX() < 0 || e.getX() > numUnits) return;
                 lineAmt.setText(String.format(MainActivity.locale,"%.2f",e.getY()));
                 highlightLineAmt(true);
                 int x = (int) e.getX();
@@ -383,7 +415,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
                     lineDate.setText(MainActivity.getDatetimeStr(fromCal, "MMM yyyy").toUpperCase());
                 } else
                     lineDate.setText(getString(R.string.full_date,MainActivity.getRelativePrefix(fromCal), MainActivity.getDatetimeStr(fromCal, "dd MMM yyyy")).toUpperCase());
-                updateExpenseRecyclerView();
+                updateExpenseList();
             }
 
             @Override
@@ -404,8 +436,8 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
                 final MPPointD start = transformer.getValuesByTouchPoint(0, 0);
                 final MPPointD end = transformer.getValuesByTouchPoint(lineChart.getWidth(), 0);
                 diff = (int) (end.x - start.x);
-                if (diff > num_units)
-                    updateXLabels(num_units / granDivisor);
+                if (diff > numUnits)
+                    updateXLabels(numUnits / granDivisor);
                 else
                     updateXLabels((float) (end.x - start.x) / granDivisor);
             }
@@ -414,7 +446,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
                 if (lastPerformedGesture == ChartTouchListener.ChartGesture.X_ZOOM) {
                     scale *= scaleX;
                     if (scale <= 1) scale = 1;
-                    updateXLabels(num_units / scale / granDivisor);
+                    updateXLabels(numUnits / scale / granDivisor);
                 }
             }
 
@@ -456,12 +488,10 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     public void updateAverages() {
         if (getActivity() == null)
             return;
-        float avgDayValue = ((MainActivity) getActivity()).db.getDayAverage(expenses);
-        float avgWeekValue = ((MainActivity) getActivity()).db.getWeekAverage(expenses);
-        float avgMonthValue = ((MainActivity) getActivity()).db.getMonthAverage(expenses);
-        avgDay.setText(String.format(MainActivity.locale,"%.2f", avgDayValue));
-        avgWeek.setText(String.format(MainActivity.locale,"%.2f", avgWeekValue));
-        avgMonth.setText((selDateState <= DateGridAdapter.WEEK) ? "–" : String.format(MainActivity.locale,"%.2f", avgMonthValue));
+        float[] averages = ((MainActivity) getActivity()).db.getAverages(fromCal, toCal);
+        avgDay.setText(String.format(MainActivity.locale,"%.2f", averages[0]));
+        avgWeek.setText(String.format(MainActivity.locale,"%.2f", averages[1]));
+        avgMonth.setText((selDateState <= DateGridAdapter.WEEK) ? "–" : String.format(MainActivity.locale,"%.2f", averages[2]));
     }
     public Calendar updateDateRange(Calendar cal, int range) {
         if (getActivity() == null)
@@ -482,28 +512,17 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         }
         return copy;
     }
-    public void updateExpenses(boolean includePrevNext) {
-        if (getActivity() == null)
-            return;
-        Calendar prev = MainActivity.getCalendarCopy(fromCal, DateGridAdapter.FROM);
-        Calendar next = MainActivity.getCalendarCopy(toCal, DateGridAdapter.TO);
-        if (includePrevNext) {
-            int range = (selDateState == DateGridAdapter.YEAR) ? Calendar.MONTH : Calendar.DATE;
-            prev.add(range, -1);
-            next.add(range, 1);
-        }
-        expenses = ((MainActivity) getActivity()).db.getExpensesByDateRange(prev, next);
-        ArrayList<Expense> expensesByFilter = getExpensesBySectionFilter();
-        if (expensesByFilter != null)
-            expenses.retainAll(expensesByFilter);
-    }
-    public void updateExpenseRecyclerView() {
-        updateExpenses(false);
-        MainActivity.sortExpenses(expenses, Constants.DESCENDING);
+    public void updateExpenseList() {
+        long tic = System.currentTimeMillis();
+        expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(accFilters, catFilters, fromCal, toCal, Constants.DESCENDING);
+        long tic1 = System.currentTimeMillis();
         expenses = MainActivity.insertExpDateHeaders(expenses);
+        long tic2 = System.currentTimeMillis();
         expenseList.setAdapter(new ExpenseAdapter(getActivity(), expenses, true));
         if (expenses.size() > 0) placeholder.setVisibility(View.GONE);
         else placeholder.setVisibility(View.VISIBLE);
+//        Log.e(TAG, "getSortedFiltered=" + (tic1-tic));
+//        Log.e(TAG, "insertExpDateHeaders=" + (tic2-tic1));
     }
     public void updateLineChartSummary() {
         String lineDateText;
@@ -538,11 +557,11 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     public void updateXLabels(float granularityRef) {
         lineChart.getXAxis().setGranularity(1f);
         lineChart.getXAxis().setGranularityEnabled(true);
-        ((CustomXAxisRenderer) lineChart.getRendererXAxis()).setLabelCount(num_units);
+        ((CustomXAxisRenderer) lineChart.getRendererXAxis()).setLabelCount(numUnits);
         lineChart.getXAxis().setValueFormatter(new ValueFormatter() {
             @Override
             public String getAxisLabel(float value, AxisBase axis) {
-                if (value < 0 || value >= num_units) return "";
+                if (value < 0 || value >= numUnits) return "";
                 int x = (int) value;
                 Calendar cal = MainActivity.getCalFromString(getDtf(), dates.get(x));
                 if (selDateState == DateGridAdapter.YEAR) {
@@ -562,9 +581,9 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
 //                        Log.e(TAG, "d=" + d + ", cal=" + MainActivity.getDatetimeStr(cal, getDtf()));
                 if (d.equals("1") && value != 0f)
                     return MainActivity.getDatetimeStr(cal, "MMM").toUpperCase();
-                if (value == 0f || value == (num_units-1))
+                if (value == 0f || value == (numUnits -1))
                     return d;
-                if ((granularity>2 && value==num_units-2) || (num_units>27 && dd>=30))
+                if ((granularity>2 && value== numUnits -2) || (numUnits >27 && dd>=30))
                     return "";
                 if (dd%granularity == 0)
                     return d;
@@ -576,16 +595,9 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     /**
      * Helper functions
      */
-    public ArrayList<Expense> getExpensesBySectionFilter() {
-        if (getActivity() == null)
-            return null;
-        if (accFilters.isEmpty() && catFilters.isEmpty())
-            return null;
-        return ((MainActivity) getActivity()).db.getExpensesByFilters(accFilters, catFilters);
-    }
     public String getDtf() {
-        if (selDateState == DateGridAdapter.YEAR) return "MM-yyyy";
-        else return "dd-MM-yyyy";
+        if (selDateState == DateGridAdapter.YEAR) return "yyyy-MM";
+        else return "yyyy-MM-dd";
     }
     public void highlightLineAmt(boolean enable) {
         if (getActivity() == null)
@@ -603,7 +615,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         lineChart.highlightValues(null);
         highlightLineAmt(false);
         updateLineChartSummary();
-        updateExpenseRecyclerView();
-        updateAverages();
+        updateExpenseList();
+//        updateAverages();
     }
 }

@@ -77,7 +77,7 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
                         context.resetDefaultCats();
                         context.updateCategoryData();
                         resetOrder();
-                        context.updateAllExpenseData();
+                        context.setUpdateFragments(true);
                         Toast.makeText(context, "Categories reset to defaults", Toast.LENGTH_SHORT).show();
                     })
                     .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())

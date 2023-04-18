@@ -4,6 +4,9 @@ import android.content.Context;
 
 public class Category extends Section {
 
+    private float amount = -1;
+    private int numExpenses = -1;
+
     /**
      * CONSTRUCTORS
      */
@@ -38,5 +41,17 @@ public class Category extends Section {
                 && this.getName().equals(cat.getName())
                 && this.getIconName().equals(cat.getIconName())
                 && this.getColorName().equals(cat.getColorName());
+    }
+    public void setAmount(Float amount) {
+        this.amount = amount;
+    }
+    public float getAmount() {
+        return this.amount;
+    }
+    public int getNumExpenses() {
+        return numExpenses;
+    }
+    public void setNumExpenses(int numExpenses) {
+        this.numExpenses = numExpenses;
     }
 }
