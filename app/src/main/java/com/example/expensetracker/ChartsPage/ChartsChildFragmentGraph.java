@@ -315,10 +315,11 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         long tic1 = System.currentTimeMillis();
         HashMap<String, Float> dateAmtMap = ((MainActivity) getActivity()).db.getSortedAmountsByDateRange(prev, next, dateFormat);
         long tic2 = System.currentTimeMillis();
+        int index = 0;
         for (Map.Entry<String, Float> entry : dateAmtMap.entrySet()) {
             if (!dates.contains(entry.getKey())) {
-                if (totalAmt == 0) prevAmt  = entry.getValue(); // first value
-                else nextAmt = entry.getValue(); // last value
+                if (index == 0) prevAmt = entry.getValue();
+                if (index == (dateAmtMap.size() - 1)) nextAmt = entry.getValue();
                 continue;
             }
             int x = dates.indexOf(entry.getKey());
@@ -326,6 +327,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
             values.set(x, new Entry(x, amt));
             if (amt > maxAmt) maxAmt = amt;
             totalAmt += amt;
+            index++;
         }
         long tic3 = System.currentTimeMillis();
 
