@@ -9,7 +9,7 @@ A simple expense tracker for android which has three pages.
 ## Todo
 - Search expense function
 - Favourites shortcut
-- Optimise CHARTS page
+- Remove expense list in CHARTS>Graph, redirect to HOME
 
 ## Potential features
 - Load on scroll
