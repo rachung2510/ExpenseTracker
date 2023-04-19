@@ -124,6 +124,9 @@
         <entry key="..\:/Users/User/workspace/ExpenseTracker/app/src/main/res/xml/widget_static_info.xml" value="0.20052083333333334" />
         <entry key="app/src/main/res/drawable/acc_cash.xml" value="0.196" />
         <entry key="app/src/main/res/drawable/acc_dbs.xml" value="0.331" />
+        <entry key="app/src/main/res/drawable/acc_hsbc.xml" value="0.2535" />
+        <entry key="app/src/main/res/drawable/acc_master.xml" value="0.2535" />
+        <entry key="app/src/main/res/drawable/acc_nets.xml" value="0.2535" />
         <entry key="app/src/main/res/drawable/acc_visa.xml" value="0.331" />
         <entry key="app/src/main/res/drawable/acc_youtrip.xml" value="0.331" />
         <entry key="app/src/main/res/drawable/cat_beauty.xml" value="0.2945" />
