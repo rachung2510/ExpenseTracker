@@ -132,18 +132,27 @@
         <entry key="app/src/main/res/drawable/cat_home.xml" value="0.2945" />
         <entry key="app/src/main/res/drawable/cat_shopping.xml" value="0.2945" />
         <entry key="app/src/main/res/drawable/ic_export.xml" value="0.314" />
+        <entry key="app/src/main/res/drawable/selector_fully_rounded_rectangle.xml" value="0.197" />
+        <entry key="app/src/main/res/drawable/selector_rounded_square.xml" value="0.197" />
+        <entry key="app/src/main/res/drawable/shape_fully_rounded_rectangle.xml" value="0.197" />
+        <entry key="app/src/main/res/drawable/shape_rounded_square.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/shape_rounded_top_left_rectangle.xml" value="0.197" />
+        <entry key="app/src/main/res/drawable/shape_tab_bg.xml" value="0.197" />
+        <entry key="app/src/main/res/drawable/shape_tab_indicator.xml" value="0.197" />
         <entry key="app/src/main/res/layout/dialog_expense_opt_section.xml" value="0.24682971014492755" />
         <entry key="app/src/main/res/layout/dialog_recyclerview.xml" value="0.2391304347826087" />
         <entry key="app/src/main/res/layout/dialog_xrate.xml" value="0.1" />
         <entry key="app/src/main/res/layout/drawer_menu.xml" value="0.33" />
-        <entry key="app/src/main/res/layout/fragment_charts_graph.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/fragment_charts_graph.xml" value="0.20606884057971014" />
         <entry key="app/src/main/res/layout/fragment_charts_piechart.xml" value="0.3770833333333333" />
         <entry key="app/src/main/res/layout/fragment_home.xml" value="0.19635416666666666" />
-        <entry key="app/src/main/res/layout/item_cat_data.xml" value="0.3770833333333333" />
+        <entry key="app/src/main/res/layout/item_cat_data.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_category_data.xml" value="0.3770833333333333" />
         <entry key="app/src/main/res/layout/item_currency.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/item_expense.xml" value="0.31354166666666666" />
+        <entry key="app/src/main/res/layout/item_section_filter.xml" value="0.31354166666666666" />
         <entry key="app/src/main/res/layout/item_section_grid.xml" value="0.24682971014492755" />
+        <entry key="app/src/main/res/layout/item_section_list.xml" value="0.31354166666666666" />
         <entry key="app/src/main/res/layout/summary.xml" value="0.19635416666666666" />
       </map>
     </option>

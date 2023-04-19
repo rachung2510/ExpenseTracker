@@ -1,7 +1,6 @@
 package com.example.expensetracker.ChartsPage;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -180,10 +179,7 @@ public class ChartsFragment extends Fragment {
                     toDate = filterDateAdapter.getSelDateRange()[1];
                     selDatePos = filterDateAdapter.getSelectedPos();
                     selDateState = filterDateAdapter.getSelectedState();
-                    long tic = System.currentTimeMillis();
                     ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS); // update summary
-                    long toc = System.currentTimeMillis();
-//                    Log.e(TAG,"updateSummaryData=" + (toc-tic));
                 }
 
                 if (selDatePos == DateGridAdapter.ALL) {
@@ -220,19 +216,16 @@ public class ChartsFragment extends Fragment {
                 fromDate.set(Calendar.DAY_OF_YEAR, fromDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
                 toDate.set(Calendar.DAY_OF_YEAR, toDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
         }
-        long tic1 = System.currentTimeMillis();
         ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS); // update summary
-        long toc = System.currentTimeMillis();
-//        Log.e(TAG, "updateSummaryData=" + (toc-tic1));
     }
     public void updateData() {
         ChartsChildFragmentPie pieFrag = getChildFragmentPie();
-        pieFrag.updateDateFilters();
+        pieFrag.updateDateRange();
         pieFrag.updateCurrency();
         pieFrag.setPieChartTotalAmt(((HomeFragment) ((MainActivity) getActivity()).getFragment(Constants.HOME)).getSummaryAmt());
         if (getNumFragments() > 1) {
             ChartsChildFragmentGraph graphFrag = getChildFragmentGraph();
-            graphFrag.updateDateFilters();
+            graphFrag.updateDateRange();
             graphFrag.updateCurrency();
         }
     }
@@ -263,20 +256,15 @@ public class ChartsFragment extends Fragment {
     }
     public void setSummaryData(String summaryDateText, float summaryAmt, boolean update) {
         summaryDate.setText(summaryDateText);
-        ChartsChildFragmentPie pieChartFrag = (ChartsChildFragmentPie) getChildFragmentPie();
+        ChartsChildFragmentPie pieChartFrag = getChildFragmentPie();
         pieChartFrag.setPieChartTotalAmt(summaryAmt);
         if (!update)
             return;
-        long tic = System.currentTimeMillis();
-        pieChartFrag.updateDateFilters();
-        long tic1 = System.currentTimeMillis();
+        pieChartFrag.updateDateRange();
         if (getChildFragmentManager().getFragments().size() > 1) {
-            ChartsChildFragmentGraph lineChartFrag = (ChartsChildFragmentGraph) getChildFragmentGraph();
-            lineChartFrag.updateDateFilters();
+            ChartsChildFragmentGraph lineChartFrag = getChildFragmentGraph();
+            lineChartFrag.updateDateRange();
         }
-        long toc = System.currentTimeMillis();
-//        Log.e(TAG,"pieUpdate="+(tic1-tic));
-//        Log.e(TAG,"lineUpdate="+(toc-tic1));
     }
 
 }

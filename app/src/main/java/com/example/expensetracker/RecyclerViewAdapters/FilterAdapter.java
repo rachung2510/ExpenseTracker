@@ -18,7 +18,6 @@ import com.example.expensetracker.Category;
 import com.example.expensetracker.ChartsPage.ChartsChildFragmentGraph;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.Constants;
-import com.example.expensetracker.HomePage.HomeFragment;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 
@@ -85,6 +84,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
             holder.delFilterItem.setForegroundTintList(tagOrange);
         }
 
+//        MainActivity.logFilters(TAG, filteredCategories, "cats");
         int finalPos = position;
         holder.delFilterItem.setOnClickListener((l) -> {
             if (sectionType == Constants.SECTION_ACCOUNT) {
@@ -94,14 +94,9 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
                 filteredCategories.remove(finalPos);
                 ((MainActivity) context).updateCatFilters(filteredCategories);
             }
-            if (((MainActivity) context).getCurrentFragment() instanceof HomeFragment) {
-                ((MainActivity) context).updateHomeData(); // update summary & expense list
-                return;
-            }
             if (((MainActivity) context).getCurrentFragment() instanceof ChartsFragment) {
-                ChartsChildFragmentGraph frag = (ChartsChildFragmentGraph) ((ChartsFragment) ((MainActivity) context).getCurrentFragment()).getChildFragmentGraph();
+                ChartsChildFragmentGraph frag = ((ChartsFragment) ((MainActivity) context).getCurrentFragment()).getChildFragmentGraph();
                 frag.applyFilters(true);
-                frag.updateExpenseList();
             }
         });
     }

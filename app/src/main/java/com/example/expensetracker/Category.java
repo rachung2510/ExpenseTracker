@@ -42,6 +42,15 @@ public class Category extends Section {
                 && this.getIconName().equals(cat.getIconName())
                 && this.getColorName().equals(cat.getColorName());
     }
+    @SuppressWarnings("unchecked")
+    @Override
+    public Category copy() {
+        return new Category(context, id, name, icon, color, position);
+    }
+
+    /**
+     * GETTERS/SETTERS
+     */
     public void setAmount(Float amount) {
         this.amount = amount;
     }

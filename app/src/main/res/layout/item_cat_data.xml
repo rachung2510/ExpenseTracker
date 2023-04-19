@@ -40,12 +40,14 @@
                 android:text="@string/example_cat"/>
 
             <LinearLayout
+                android:id="@+id/catDataExpenses"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center|start"
                 android:layout_marginBottom="27dp"
                 app:layout_constraintStart_toStartOf="@id/catDataLabel"
-                app:layout_constraintBottom_toBottomOf="parent">
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:foreground="?selectableItemBackgroundBorderless">
 
                 <ImageView
                     android:layout_width="15dp"

@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,10 +16,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.ChartsPage.ChartsChildFragmentPie;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
+import com.example.expensetracker.Constants;
+import com.example.expensetracker.HomePage.HomeFragment;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -64,6 +68,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         TextView catDataLabel, catDataNumExpenses, catDataAmt, catDataCurr;
         ImageButton catDataIconBg;
         ImageView catDataIcon;
+        LinearLayout catDataExpenses;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -74,6 +79,7 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             catDataCurr = itemView.findViewById(R.id.catDataCurr);
             catDataIconBg = itemView.findViewById(R.id.catDataIconBg);
             catDataIcon = itemView.findViewById(R.id.catDataIcon);
+            catDataExpenses = itemView.findViewById(R.id.catDataExpenses);
         }
     }
     public void populateCategories(ViewHolder holder, Category cat) {
@@ -92,6 +98,15 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             return;
         }
 
+        holder.catDataExpenses.setOnClickListener(view -> {
+            ArrayList<Category> catFilter = new ArrayList<>(Collections.singletonList(cat));
+            HomeFragment homeFrag = (HomeFragment) ((MainActivity) context).getFragment(Constants.HOME);
+            ChartsFragment chartsFrag = (ChartsFragment) ((MainActivity) context).getFragment(Constants.CHARTS);
+            homeFrag.setSelCatFilters(MainActivity.clone(catFilter));
+            homeFrag.setDateRange(chartsFrag.getDateRange(), chartsFrag.getSelDatePos(), chartsFrag.getSelDateState());
+            ((MainActivity) context).updateHomeData();
+            ((MainActivity) context).goToFragment(Constants.HOME);
+        });
         holder.itemView.setOnClickListener(view -> {
             ChartsChildFragmentPie fragment = ((ChartsFragment) ((MainActivity) context).getCurrentFragment()).getChildFragmentPie();
             if (fragment.isPieHighlighted(cat.getName()))
@@ -99,5 +114,6 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             else
                 fragment.highlightPieValue(cat.getName());
         });
+
     }
 }

@@ -12,14 +12,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-<!--        <ProgressBar-->
-<!--            android:id="@+id/progressBar"-->
-<!--            android:layout_width="40dp"-->
-<!--            android:layout_height="40dp"-->
-<!--            android:layout_centerHorizontal="true"-->
-<!--            android:layout_marginTop="150dp"-->
-<!--            android:indeterminate="true"/>-->
-
         <RelativeLayout
             android:id="@+id/lineChartBlk"
             android:layout_width="match_parent"
@@ -256,18 +248,38 @@
                 android:overScrollMode="never"
                 android:paddingLeft="15dp"
                 android:paddingRight="15dp"
-                tools:listitem="@layout/item_expense"/>
+                tools:listitem="@layout/item_expense" />
 
             <TextView
                 android:id="@+id/placeholder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:translationY="30dp"
                 android:gravity="center"
+                android:text="No expenses"
                 android:textColor="@color/text_light_gray"
                 android:textSize="16sp"
-                android:text="No expenses"/>
+                android:translationY="30dp" />
+
+            <TextView
+                android:id="@+id/link"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/shape_fully_rounded_rectangle"
+                android:backgroundTint="@color/tag_bg_gray"
+                android:foreground="@drawable/selector_fully_rounded_rectangle"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:gravity="center"
+                android:text="@string/view_expenses"
+                android:fontFamily="@font/roboto_medium"
+                android:textSize="14sp"
+                android:textColor="@color/tag_text_gray"
+                android:translationY="30dp" />
 
         </RelativeLayout>
 

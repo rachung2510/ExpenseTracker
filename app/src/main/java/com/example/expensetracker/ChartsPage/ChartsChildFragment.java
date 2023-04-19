@@ -37,7 +37,7 @@ public class ChartsChildFragment extends Fragment {
     /**
      * Common update functions
      */
-    public void updateDateFilters() {
+    public void updateDateRange() {
     }
     public void invalidateMenu() {
     }

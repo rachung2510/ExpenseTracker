@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -42,7 +43,6 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     private static final String TAG = "ChartsChildFragmentPie";
 
     private float totalAmt = 0;
-    HashMap<Category, Float> catAmtMap;
     ArrayList<Category> categories;
 
     private PieChart pieChart;
@@ -89,7 +89,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         toolbar.getMenu().clear();
     }
     @Override
-    public void updateDateFilters() {
+    public void updateDateRange() {
         Calendar from = Calendar.getInstance();
         Calendar to = Calendar.getInstance();
         if (getParentFragment() != null) {
@@ -126,7 +126,6 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         pieCategories = new ArrayList<>();
         ArrayList<Integer> colors = new ArrayList<>();
         int count = 0;
-        long tic1 = System.currentTimeMillis();
         if (fromCal == null)
             categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmt();
         else
@@ -140,7 +139,6 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
             pieCategoriesMap.put(cat.getName(), count);
             count++;
         }
-        long tic2 = System.currentTimeMillis();
 
         PieDataSet dataSet = new PieDataSet(pieEntries, "data");
         dataSet.setColors(colors);
@@ -169,7 +167,6 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
 
         pieChart.setData(pieData);
         pieChart.invalidate();
-//        Log.e(TAG,"getConvertedTotalAmt="+(tic1-tic));
     }
     public void setupPieChart() {
         pieChart.setRenderer(new CustomPieChartRenderer(pieChart, 10f, pieChart.getAnimator(), pieChart.getViewPortHandler()));

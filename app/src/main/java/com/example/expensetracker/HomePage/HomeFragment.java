@@ -21,7 +21,6 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
-import com.example.expensetracker.Currency;
 import com.example.expensetracker.Expense;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
@@ -52,6 +51,7 @@ public class HomeFragment extends Fragment {
 
     // Filter components
     private DateGridAdapter filterDateAdapter;
+
     private Calendar fromDate, toDate;
     private int selDatePos, selDateState;
     private ArrayList<Account> selAccFilters = new ArrayList<>();
@@ -87,7 +87,7 @@ public class HomeFragment extends Fragment {
 
         // apply filters
         filterList = view.findViewById(R.id.sectionFilters);
-        applyFilters();
+        applyFiltersViewItems();
 
         // floating action button
         FloatingActionButton fab = view.findViewById(R.id.floatingActionButton);
@@ -112,7 +112,7 @@ public class HomeFragment extends Fragment {
     public void createOptionsMenu(Toolbar toolbar) {
         toolbar.inflateMenu(R.menu.home_menu);
         clearFilters = toolbar.getMenu().findItem(R.id.clearFilters);
-        updateClearFiltersItem();
+        updateClearFiltersMenuItem();
         toolbar.setOnMenuItemClickListener(menuItemClickListener);
         setHasOptionsMenu(true);
     }
@@ -141,8 +141,8 @@ public class HomeFragment extends Fragment {
         if (id == R.id.clearFilters) {
             selAccFilters.clear();
             selCatFilters.clear();
-            applyFilters();
-            updateClearFiltersItem();
+            applyFiltersViewItems();
+            updateClearFiltersMenuItem();
             updateData(); // update summary & expense list
             return true;
         }
@@ -232,7 +232,7 @@ public class HomeFragment extends Fragment {
         }
         updateData(); // update summary & expense list
     }
-    public void applyFilters() {
+    public void applyFiltersViewItems() {
         FilterAdapter filterAdapter = new FilterAdapter(getActivity(), selAccFilters, selCatFilters);
         FlexboxLayoutManager manager = new FlexboxLayoutManager(getActivity());
         manager.setFlexDirection(FlexDirection.ROW);
@@ -254,13 +254,7 @@ public class HomeFragment extends Fragment {
         ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText(getString(R.string.filter_dialog_title,getResources().getString(R.string.ACC)));
         dialogBuilder.setView(expOptSectionView);
 
-        dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> {
-            selAccFilters = adapter.getAllSelected();
-            applyFilters();
-            updateClearFiltersItem();
-            if (!selAccFilters.isEmpty() || !selCatFilters.isEmpty())
-                updateData(); // update summary & expense list
-        }));
+        dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> setSelAccFilters(adapter.getAllSelected())));
         dialogBuilder.setNeutralButton(android.R.string.no, (((dialog, i) -> dialog.cancel())));
 
         dialogBuilder.show();
@@ -273,18 +267,12 @@ public class HomeFragment extends Fragment {
         ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText(getString(R.string.filter_dialog_title,getResources().getString(R.string.CAT)));
         dialogBuilder.setView(expOptSectionView);
 
-        dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> {
-            selCatFilters = adapter.getAllSelected();
-            applyFilters();
-            updateClearFiltersItem();
-            if (!selAccFilters.isEmpty() || !selCatFilters.isEmpty())
-                ((MainActivity) getActivity()).updateHomeData(); // update summary & expense list
-        }));
+        dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> setSelCatFilters(adapter.getAllSelected())));
         dialogBuilder.setNeutralButton(android.R.string.no, (((dialog, i) -> dialog.cancel())));
 
         dialogBuilder.show();
     }
-    public void updateClearFiltersItem() {
+    public void updateClearFiltersMenuItem() {
         clearFilters.setVisible(!selAccFilters.isEmpty() || !selCatFilters.isEmpty());
     }
     public void updateDateRange() {
@@ -310,9 +298,6 @@ public class HomeFragment extends Fragment {
         return selCatFilters;
     }
     public String getSummaryAmt() { return summaryAmt.getText().toString(); }
-    public boolean hasNoFilters() {
-        return selAccFilters.isEmpty() && selCatFilters.isEmpty();
-    }
 
     public void updateData() {
         updateData(false);
@@ -326,9 +311,8 @@ public class HomeFragment extends Fragment {
             View v = linearLayoutManager.getChildAt(0);
             top = (v == null) ? 0 : (v.getTop() - linearLayoutManager.getPaddingTop());
         }
-
-        ArrayList<Expense> expenses = ((MainActivity) getActivity()).getExpenseList();
-        expenses = ((MainActivity) getActivity()).insertExpDateHeaders(expenses);
+        ArrayList<Expense> expenses = getExpenseList();
+        expenses = MainActivity.insertExpDateHeaders(expenses);
         ExpenseAdapter expAdapter = new ExpenseAdapter(getActivity(), expenses);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -338,8 +322,17 @@ public class HomeFragment extends Fragment {
         expenseList.setAdapter(expAdapter);
         if (expAdapter.getItemCount() > 0) placeholder.setVisibility(View.GONE);
         else placeholder.setVisibility(View.VISIBLE);
-
         ((MainActivity) getActivity()).updateSummaryData(Constants.HOME);
+    }
+    public ArrayList<Expense> getExpenseList() {
+        ArrayList<Expense> expenses;
+        Calendar from = getDateRange()[0];
+        Calendar to = getDateRange()[1];
+        if (getSelDateState() == DateGridAdapter.ALL)
+            expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpenses(getSelAccFilters(), getSelCatFilters(), Constants.DESCENDING);
+        else
+            expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(getSelAccFilters(), getSelCatFilters(), from, to, Constants.DESCENDING);
+        return expenses;
     }
     public void setSummaryData(String summaryDateText, float summaryAmtText) {
         summaryDate.setText(summaryDateText);
@@ -349,9 +342,22 @@ public class HomeFragment extends Fragment {
         summaryCurr.setText(currency);
     }
     public void setSelAccFilters(ArrayList<Account> selAccFilters) {
-        this.selAccFilters = selAccFilters;
+        setSelFilters(selAccFilters, null);
     }
     public void setSelCatFilters(ArrayList<Category> selCatFilters) {
-        this.selCatFilters = selCatFilters;
+        setSelFilters(null, selCatFilters);
+    }
+    public void setSelFilters(ArrayList<Account> selAccFilters, ArrayList<Category> selCatFilters) {
+        if (selAccFilters != null) this.selAccFilters = selAccFilters;
+        if (selCatFilters != null) this.selCatFilters = selCatFilters;
+        applyFiltersViewItems();
+        updateClearFiltersMenuItem();
+        updateData();
+    }
+    public void setDateRange(Calendar[] range, int selDatePos, int selDateState) {
+        this.fromDate = range[0];
+        this.toDate = range[1];
+        this.selDatePos = selDatePos;
+        this.selDateState = selDateState;
     }
 }

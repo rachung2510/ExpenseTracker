@@ -59,6 +59,7 @@
     <string name="filter_dialog_title">FILTER BY %1$s</string>
     <string name="full_date">%1$s, %2$s</string>
     <string name="date_range">%1$s - %2$s</string>
+    <string name="view_expenses">VIEW EXPENSES</string>
 
 <!--    SectionAdapter-->
     <string name="new_acc_placeholder">Add account</string>

@@ -212,8 +212,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         sideMenuItemExportCsv.setOnClickListener(view -> exportToCsv());
         sideMenuItemXrate.setOnClickListener(view2 -> {
             final View view1 = getLayoutInflater().inflate(R.layout.dialog_xrate, null);
-            Spinner spinner = (Spinner) view1.findViewById(R.id.spinnerCurrencies);
-            EditText editText = (EditText) view1.findViewById(R.id.xrate);
+            Spinner spinner = view1.findViewById(R.id.spinnerCurrencies);
+            EditText editText = view1.findViewById(R.id.xrate);
             ArrayList<String> spinnerArray = new ArrayList<>();
             for (Currency c : db.getAllCurrencies())
                 if (!c.getName().equals("USD")) spinnerArray.add(c.getName());
@@ -286,9 +286,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         break;
                 }
                 if (updateFragments) {
-                    ((HomeFragment) adapter.createFragment(Constants.HOME)).updateData();
-                    ((ChartsFragment) adapter.createFragment(Constants.CHARTS)).updateData();
-                    ((ManageFragment) adapter.createFragment(Constants.MANAGE)).updateData();
+                    ((HomeFragment) getFragment(Constants.HOME)).updateData();
+                    ((ChartsFragment) getFragment(Constants.CHARTS)).updateData();
+                    ((ManageFragment) getFragment(Constants.MANAGE)).updateData();
                     setUpdateFragments(false);
                 }
             }
@@ -312,6 +312,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public Fragment getFragment(int page) {
         return adapter.createFragment(page);
+    }
+    public void goToFragment(int page) {
+        viewPager.setCurrentItem(page);
     }
     public void setUpdateFragments(boolean enable) {
         updateFragments = enable;
@@ -488,7 +491,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
      * Update functions
      */
     public void updateHomeData() {
-        ((HomeFragment) adapter.createFragment(Constants.HOME)).updateData(true);
+        ((HomeFragment) getFragment(Constants.HOME)).updateData(true);
     }
     public void updateSummaryData(int page) {
         Calendar from, to;
@@ -496,7 +499,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         ArrayList<Account> accFilters = null;
         ArrayList<Category> catFilters = null;
         int state;
-        fragment = adapter.createFragment(page);
+        fragment = getFragment(page);
         if (page == Constants.HOME) {
             from = ((HomeFragment) fragment).getDateRange()[0];
             to = ((HomeFragment) fragment).getDateRange()[1];
@@ -543,13 +546,10 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         }
 
         // set summary data
-        long tic = System.currentTimeMillis();
         if (page == Constants.HOME)
-            ((HomeFragment) adapter.createFragment(Constants.HOME)).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
+            ((HomeFragment) getFragment(Constants.HOME)).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         else if (page == Constants.CHARTS)
-            ((ChartsFragment) adapter.createFragment(Constants.CHARTS)).setSummaryData(summaryDateText.toUpperCase(), totalAmt, true);
-        long toc = System.currentTimeMillis();
-//        Log.e(TAG, "setSummaryData=" + (toc-tic));
+            ((ChartsFragment) getFragment(Constants.CHARTS)).setSummaryData(summaryDateText.toUpperCase(), totalAmt, true);
     }
     @SuppressWarnings("unchecked")
     public void updateAccountData() {
@@ -575,69 +575,28 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         if (getCurrentFragment() instanceof HomeFragment) {
             HomeFragment fragment = (HomeFragment) getCurrentFragment();
             fragment.setSelAccFilters(filters);
-            fragment.applyFilters();
-            fragment.updateClearFiltersItem();
             return;
         }
         if (getCurrentFragment() instanceof ChartsFragment) {
-            ChartsChildFragmentGraph graphFrag = (ChartsChildFragmentGraph) ((ChartsFragment) getCurrentFragment()).getChildFragmentGraph();
-            graphFrag.setAccFilters(filters);
-            graphFrag.applyFilters(true);
+            ChartsChildFragmentGraph graphFrag = ((ChartsFragment) getCurrentFragment()).getChildFragmentGraph();
+            graphFrag.setAccFilters(filters, true);
         }
     }
     public void updateCatFilters(ArrayList<Category> filters) {
         if (getCurrentFragment() instanceof HomeFragment) {
             HomeFragment fragment = (HomeFragment) getCurrentFragment();
             fragment.setSelCatFilters(filters);
-            fragment.applyFilters();
-            fragment.updateClearFiltersItem();
             return;
         }
         if (getCurrentFragment() instanceof ChartsFragment) {
-            ChartsChildFragmentGraph graphFrag = (ChartsChildFragmentGraph) ((ChartsFragment) getCurrentFragment()).getChildFragmentGraph();
-            graphFrag.setCatFilters(filters);
-            graphFrag.applyFilters(true);
+            ChartsChildFragmentGraph graphFrag = ((ChartsFragment) getCurrentFragment()).getChildFragmentGraph();
+            graphFrag.setCatFilters(filters, true);
         }
     }
 
     /**
      * Getters
      */
-    // Expenses
-    public ArrayList<Expense> getExpenseList() {
-        ArrayList<Expense> expenses = new ArrayList<>();
-        if (getCurrentFragment() instanceof HomeFragment) {
-            HomeFragment fragment = (HomeFragment) getCurrentFragment();
-            Calendar from = fragment.getDateRange()[0];
-            Calendar to = fragment.getDateRange()[1];
-            if (fragment.getSelDateState() == DateGridAdapter.ALL)
-                expenses = db.getSortedFilteredExpenses(fragment.getSelAccFilters(), fragment.getSelCatFilters(), Constants.DESCENDING);
-            else
-                expenses = db.getSortedFilteredExpensesInDateRange(fragment.getSelAccFilters(), fragment.getSelCatFilters(), from, to, Constants.DESCENDING);
-        } else if (getCurrentFragment() instanceof ChartsFragment) {
-            ChartsFragment fragment = (ChartsFragment) getCurrentFragment();
-            Calendar from = fragment.getDateRange()[0];
-            Calendar to = fragment.getDateRange()[1];
-            if (fragment.getSelDateState() == DateGridAdapter.ALL)
-                expenses =  db.getSortedAllExpenses(Constants.DESCENDING);
-            else
-                expenses = db.getSortedExpensesByDateRange(from, to, Constants.DESCENDING);
-        }
-        return expenses;
-    }
-    public static ArrayList<Expense> insertExpDateHeaders(ArrayList<Expense> expenses) {
-        int day = -1;
-        ArrayList<Expense> newLst = new ArrayList<>();
-        for (Expense exp : expenses) {
-            if (exp.getDatetime().get(Calendar.DAY_OF_YEAR) != day) {
-                newLst.add(new Expense(exp.getDatetime())); // add date header
-                day = exp.getDatetime().get(Calendar.DAY_OF_YEAR);
-            }
-            newLst.add(exp); // add actual expense item
-        }
-        return newLst;
-    }
-
     // Sections
     public <T extends Section> ArrayList<T> sortSections(ArrayList<T> sections) {
         sections.sort((s1, s2) -> {
@@ -1010,6 +969,12 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     /**
      * Helper functions
      */
+    public static <T extends Section> ArrayList<T> clone(ArrayList<T> arrayList) {
+        ArrayList<T> newList = new ArrayList<>(arrayList.size());
+        for (T t : arrayList)
+            newList.add(t.copy());
+        return newList;
+    }
     public float convertExpenseAmt(Expense exp) {
         if (exp.getId() == -1) return 0f;
         Currency defaultCurr = db.getCurrency(getDefaultCurrency());
@@ -1040,6 +1005,18 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public int getNewPosAcc() { return db.getNewPosAccount(); }
     public int getNewPosCat() {
         return db.getNewPosCategory();
+    }
+    public static ArrayList<Expense> insertExpDateHeaders(ArrayList<Expense> expenses) {
+        int day = -1;
+        ArrayList<Expense> newLst = new ArrayList<>();
+        for (Expense exp : expenses) {
+            if (exp.getDatetime().get(Calendar.DAY_OF_YEAR) != day) {
+                newLst.add(new Expense(exp.getDatetime())); // add date header
+                day = exp.getDatetime().get(Calendar.DAY_OF_YEAR);
+            }
+            newLst.add(exp); // add actual expense item
+        }
+        return newLst;
     }
     public void setEditSectionOptions(String iconName, String colorName) {
         Drawable icon = MainActivity.getIconFromName(this, iconName);
@@ -1358,12 +1335,12 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             msg.append(e.getDescription().isEmpty() ? "date" : e.getDescription()).append(", ");
         return msg.toString();
     }
-    public static <T extends Section> void logFilters(ArrayList<T> arrayList, String arrayName) {
+    public static <T extends Section> void logFilters(String pageTag, ArrayList<T> arrayList, String arrayName) {
         StringBuilder msg = new StringBuilder();
         for (T t : arrayList) {
             if (msg.length() > 0) msg.append(", ");
             msg.append(t.getName());
         }
-        Log.e(TAG, arrayName + "={ " + msg + " }");
+        Log.e(pageTag, arrayName + "={ " + msg + " }");
     }
 }

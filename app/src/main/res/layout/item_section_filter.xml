@@ -15,7 +15,7 @@
         android:orientation="horizontal"
         android:gravity="center"
         android:background="@drawable/shape_fully_rounded_rectangle"
-        android:backgroundTint="#ebebeb">
+        android:backgroundTint="@color/tag_bg_gray">
 
         <ImageView
             android:id="@+id/filterItemIcon"

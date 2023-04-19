@@ -87,4 +87,7 @@ public class Section {
         this.name = name;
     }
     public void setPosition(int pos) { this.position = pos; }
+    public <T extends Section> T copy() {
+        return null;
+    }
 }

@@ -52,6 +52,11 @@ public class Account extends Section {
                 && this.getIconName().equals(acc.getIconName())
                 && this.getColorName().equals(acc.getColorName());
     }
+    @SuppressWarnings("unchecked")
+    @Override
+    public Account copy() {
+        return new Account(context, id, name, icon, color, position, currency);
+    }
 
     /**
      * GETTERS/SETTERS
