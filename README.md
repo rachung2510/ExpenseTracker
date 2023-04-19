@@ -9,7 +9,6 @@ A simple expense tracker for android which has three pages.
 ## Todo
 - Search expense function
 - Favourites shortcut
-- Remove expense list in CHARTS>Graph, redirect to HOME
 
 ## Potential features
 - Load on scroll
@@ -17,4 +16,4 @@ A simple expense tracker for android which has three pages.
 - Quick photo with image recognition for amount
 
 ## Bug fixes
-- CatDataAdaptor transparency not updating properly
+- Fix xtick granularity for CHARTS>Graph for multiple years
