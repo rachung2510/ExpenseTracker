@@ -89,14 +89,8 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         holder.catDataCurr.setText(currencySymbol);
         holder.catDataAmt.setText(String.format(MainActivity.locale, "%.2f", cat.getAmount()));
         holder.catDataNumExpenses.setText(String.valueOf(cat.getNumExpenses()));
-
         holder.border.setBackgroundColor(cat.getColor());
         holder.catDataIconBg.setBackgroundTintList(MainActivity.getColorStateListFromHex(cat.getColorHex()));
-
-        if (cat.getAmount() == 0f) {
-            holder.itemView.setAlpha(0.3f);
-            return;
-        }
 
         holder.catDataExpenses.setOnClickListener(view -> {
             ArrayList<Category> catFilter = new ArrayList<>(Collections.singletonList(cat));
@@ -114,6 +108,5 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             else
                 fragment.highlightPieValue(cat.getName());
         });
-
     }
 }
