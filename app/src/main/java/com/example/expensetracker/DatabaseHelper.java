@@ -248,7 +248,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return expenses;
     }
     public String getQueryFromFilters(String select, ArrayList<Account> accs, ArrayList<Category> cats, String order) {
-        return getQueryFromFiltersInDateRange(select, accs, cats, null, null, order, null);
+        return getQueryFromFiltersInDateRange(select, accs, cats, null, null, order, "");
     }
     public String getQueryFromFiltersInDateRange(String select, ArrayList<Account> accs, ArrayList<Category> cats, Calendar from, Calendar to, String order, String group) {
 
