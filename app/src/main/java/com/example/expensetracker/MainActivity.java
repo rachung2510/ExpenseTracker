@@ -159,8 +159,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         editor.putString(getString(R.string.key_default_currency), adapter.getSelected());
                         editor.apply();
                         sideMenuValueCurr.setText(getDefaultCurrency());
+                        db.updateAllCurrencyRates(getDefaultCurrency());
                         if (getCurrentFragment() instanceof HomeFragment) {
-                            ((HomeFragment) getCurrentFragment()).setSummaryCurr(new Currency(this).getSymbol());
+                            ((HomeFragment) getCurrentFragment()).setSummaryCurr(getDefaultCurrencySymbol());
                             updateSummaryData(Constants.HOME);
                         }
                         setUpdateFragments(true);
@@ -216,16 +217,17 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             EditText editText = view1.findViewById(R.id.xrate);
             ArrayList<String> spinnerArray = new ArrayList<>();
             for (Currency c : db.getAllCurrencies())
-                if (!c.getName().equals("USD")) spinnerArray.add(c.getName());
+                if (!c.getName().equals(getDefaultCurrency())) spinnerArray.add(c.getName());
             ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     this, android.R.layout.simple_spinner_item, spinnerArray);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinner.setAdapter(adapter);
-            spinner.setSelection(Constants.currencies.indexOf(db.getCurrency(getDefaultCurrency())));
+//            spinner.setSelection(0);
+//            spinner.setSelection(Constants.currencies.indexOf(db.getCurrency(getDefaultCurrency())));
             spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    Float xrate = db.getCurrency(spinner.getSelectedItem().toString()).getRate();
+                    Float xrate = 1 / db.getCurrency(spinner.getSelectedItem().toString()).getRate();
                     editText.setText(String.format(MainActivity.locale, "%.3f", xrate));
                 }
 
@@ -236,12 +238,13 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             });
 
             dialogBuilder = new AlertDialog.Builder(this);
-            dialogBuilder.setTitle(getString(R.string.set_xrate_title))
+            dialogBuilder.setTitle(getString(R.string.set_xrate_title, getDefaultCurrency()))
                     .setView(view1)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                         Currency currency = db.getCurrency(spinner.getSelectedItem().toString());
                         try {
-                            currency.setRate(Float.parseFloat(editText.getText().toString()));
+                            float newRate = 1 / Float.parseFloat(editText.getText().toString());
+                            currency.setRate(newRate);
                             db.updateCurrency(currency);
                             Toast.makeText(this, "Conversion rate for " + currency.getName() + " updated.", Toast.LENGTH_SHORT).show();
                             updateSummaryData(Constants.HOME);
@@ -977,20 +980,18 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public float convertExpenseAmt(Expense exp) {
         if (exp.getId() == -1) return 0f;
-        Currency defaultCurr = db.getCurrency(getDefaultCurrency());
         Currency thisCurr = db.getCurrency(exp.getAccount().getCurrencyName());
-        if (thisCurr.equals(defaultCurr))
+        if (thisCurr.getName().equals(getDefaultCurrency()))
             return exp.getAmount();
         else
-            return exp.getAmount() * thisCurr.getRate() / defaultCurr.getRate();
+            return exp.getAmount() * thisCurr.getRate();
     }
     public float convertAmt(Float amt, Account acc) {
-        Currency defaultCurr = db.getCurrency(getDefaultCurrency());
         Currency thisCurr = db.getCurrency(acc.getCurrencyName());
-        if (thisCurr.equals(defaultCurr))
+        if (thisCurr.getName().equals(getDefaultCurrency()))
             return amt;
         else
-            return amt * thisCurr.getRate() / defaultCurr.getRate();
+            return amt * thisCurr.getRate();
     }
     public static float convertDpToPx(Context context, float dp) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,

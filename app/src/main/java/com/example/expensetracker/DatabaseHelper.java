@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -376,7 +377,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String desc = c.getString(c.getColumnIndexOrThrow(KEY_DESC));
             String symbol = c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY));
             float xrate = c.getFloat(c.getColumnIndexOrThrow(KEY_XRATE));
-            currencies.add(new Currency(name, desc, xrate, symbol));
+            currencies.add(new Currency(name, symbol, xrate, desc));
         }
         c.close();
         return currencies;
@@ -409,6 +410,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = createCurrencyValues(currency);
         db.update(TABLE_CURRENCY, values, KEY_NAME + " = ?",
                 new String[] { currency.getName() });
+    }
+    public void updateAllCurrencyRates(String defaultCurrencyName) {
+        Currency defaultCurrency = getCurrency(defaultCurrencyName);
+        for (Currency c : getAllCurrencies()) {
+            float newRate = (c.equals(defaultCurrency)) ? 1f : c.getRate() / defaultCurrency.getRate();
+            c.setRate(newRate);
+            updateCurrency(c);
+        }
     }
     public int moveExpenses(Section section, String key_id, String section_name) {
         SQLiteDatabase db = this.getWritableDatabase();

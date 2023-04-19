@@ -3,6 +3,8 @@ package com.example.expensetracker;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.example.expensetracker.Widget.WidgetDialogActivity;
 
 public class Currency {
@@ -63,5 +65,10 @@ public class Currency {
             return this.getName().equals(((Currency) o).getName());
         else
             return false;
+    }
+    @NonNull
+    @Override
+    public String toString() {
+        return name + " (" + symbol + "): [" + xrate + "] " + description;
     }
 }
