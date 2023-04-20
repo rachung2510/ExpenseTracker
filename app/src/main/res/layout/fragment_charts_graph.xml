@@ -237,7 +237,7 @@
                 android:layout_marginLeft="15dp"
                 android:layout_marginTop="70dp"
                 android:layout_marginRight="15dp"
-                tools:listitem="@layout/item_section_filter"/>
+                tools:listitem="@layout/item_section_filter" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/expenseList"
@@ -265,20 +265,20 @@
                 android:id="@+id/link"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
                 android:background="@drawable/shape_fully_rounded_rectangle"
                 android:backgroundTint="@color/tag_bg_gray"
-                android:foreground="@drawable/selector_fully_rounded_rectangle"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:gravity="center"
-                android:text="@string/view_expenses"
                 android:fontFamily="@font/roboto_medium"
-                android:textSize="14sp"
+                android:foreground="@drawable/selector_fully_rounded_rectangle"
+                android:gravity="center"
+                android:paddingLeft="20dp"
+                android:paddingTop="10dp"
+                android:paddingRight="20dp"
+                android:paddingBottom="10dp"
+                android:text="@string/view_expenses"
                 android:textColor="@color/tag_text_gray"
+                android:textSize="14sp"
                 android:translationY="30dp" />
 
         </RelativeLayout>
