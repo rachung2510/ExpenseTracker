@@ -8,6 +8,7 @@
     <color name="orange_500">#f9aa33</color>
     <color name="orange_700">#ff793f</color>
     <color name="black">#FF000000</color>
+    <color name="alpha_black">#80000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="red">#f24238</color>
     <color name="red_500">#fe5f55</color>

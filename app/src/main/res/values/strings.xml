@@ -67,4 +67,9 @@
 <!--    MainActivity-->
     <string name="new_acc_title">New account</string>
     <string name="new_cat_title">New category</string>
+
+<!--    Searchable-->
+    <string name="search_hint">Search expense</string>
+    <string name="no_expenses">No expenses</string>
+
 </resources>

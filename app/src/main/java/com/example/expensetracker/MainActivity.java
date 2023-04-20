@@ -256,6 +256,19 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     .show();
         });
     }
+    @Override
+    public void onBackPressed() {
+        HomeFragment homeFragment = (HomeFragment) getFragment(Constants.HOME);
+        if (homeFragment.isSearchOpen()) {
+            homeFragment.closeSearch();
+        } else {
+            super.onBackPressed();
+        }
+    }
+    public void enableBottomNavView(boolean show) {
+        bottomNavView.setVisibility((show) ? View.VISIBLE : View.GONE);
+
+    }
 
     /**
      * Fragments
@@ -519,7 +532,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         float totalAmt;
         if (state == DateGridAdapter.ALL) {
             summaryDateText = "All time";
-            totalAmt = (page == Constants.HOME) ? db.getConvertedFilteredTotalAmt(accFilters, catFilters) : db.getConvertedTotalAmt();
+            totalAmt = (page == Constants.HOME) ? db.getConvertedFilteredTotalAmt(accFilters, catFilters, ((HomeFragment) fragment).getSearchQuery()) : db.getConvertedTotalAmt("");
         } else {
             String dtf;
             switch (state) {
@@ -543,7 +556,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             } else {
                 summaryDateText = getDatetimeStr(from, dtf) + " - " + getDatetimeStr(to, dtf);
             }
-            totalAmt = (page == Constants.HOME) ? db.getConvertedFilteredTotalAmtInDateRange(accFilters, catFilters, from, to) : db.getConvertedTotalAmtInDateRange(from, to);
+            totalAmt = (page == Constants.HOME) ? db.getConvertedFilteredTotalAmtInDateRange(accFilters, catFilters, from, to, ((HomeFragment) fragment).getSearchQuery()) : db.getConvertedTotalAmtInDateRange(from, to, "");
         }
 
         // set summary data
@@ -1226,20 +1239,20 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     /**
      * Keyboard helper functions
      */
-    public static void showKeyboard(Context context, EditText view) {
+    public static void showKeyboard(Context context, View view) {
         view.postDelayed(() -> {
             InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
             imm.showSoftInput(view, 0);
         }, 270);
     }
-    public static void hideKeyboard(Context context, EditText view) {
+    public static void hideKeyboard(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
-    public void showKeyboard(EditText view) {
+    public void showKeyboard(View view) {
         showKeyboard(this, view);
     }
-    public void hideKeyboard(EditText view) {
+    public void hideKeyboard(View view) {
         hideKeyboard(this, view);
     }
 
@@ -1293,8 +1306,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public void exportToCsv() {
         // content
         StringBuilder data = new StringBuilder("Date,Account,Category,Description,Amount,Currency,Amount (" + getDefaultCurrency() + ")\n");
-        ArrayList<Expense> expenses = db.getSortedAllExpenses(Constants.DESCENDING);
-//        ArrayList<Expense> expenses = sortExpenses(db.getAllExpenses(), Constants.DESCENDING);
+        ArrayList<Expense> expenses = db.getSortedAllExpenses(Constants.DESCENDING, "");
         for (Expense e : expenses) {
             data.append(e.getDatetimeStr()).append(",");
             data.append(e.getAccount().getName()).append(",");
@@ -1343,4 +1355,5 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         }
         Log.e(pageTag, arrayName + "={ " + msg + " }");
     }
+
 }

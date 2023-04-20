@@ -516,7 +516,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         }
         expenseList.setVisibility(View.VISIBLE);
         link.setVisibility(View.GONE);
-        expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(accFilters, catFilters, fromCal, toCal, Constants.DESCENDING);
+        expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(accFilters, catFilters, fromCal, toCal, Constants.DESCENDING, "");
         expenses = MainActivity.insertExpDateHeaders(expenses);
         expenseList.setAdapter(new ExpenseAdapter(getActivity(), expenses, true));
         if (expenses.size() > 0) placeholder.setVisibility(View.GONE);

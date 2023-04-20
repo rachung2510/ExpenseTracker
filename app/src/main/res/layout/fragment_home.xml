@@ -6,16 +6,38 @@
     android:layout_height="match_parent"
     tools:context=".HomePage.HomeFragment">
 
+    <View
+        android:id="@+id/dummy"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <include layout="@layout/summary"
         android:id="@+id/included"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="2dp"
+        android:layout_margin="10dp"
+        app:queryHint="Search expense"
+        app:iconifiedByDefault="false"
+        app:layout_constraintTop_toBottomOf="@id/included"
+        />
+
     <LinearLayout
         android:id="@+id/homeFragLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/included"
+        app:layout_constraintTop_toBottomOf="@id/searchView"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="@dimen/bottom_nav_height"
         android:gravity="center|top"
@@ -51,17 +73,43 @@
             android:gravity="center"
             android:textSize="18sp"
             android:textColor="@color/text_light_gray"
-            android:text="No expenses"/>
+            android:text="@string/no_expenses"/>
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/searchBg"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/alpha_black"
+        app:layout_constraintTop_toBottomOf="@id/included"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="vertical">
+    </LinearLayout>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floatingActionButton"
+        android:id="@+id/searchBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="100dp"
+        android:clickable="true"
+        android:backgroundTint="@color/tag_text_gray"
+        app:borderWidth="0dp"
+        app:tint="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/homeFragLinearLayout"
+        app:layout_constraintEnd_toEndOf="@id/homeFragLinearLayout"
+        app:srcCompat="@drawable/ic_baseline_search_24" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addExpBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="24dp"
         android:clickable="true"
+        app:borderWidth="0dp"
         app:tint="@color/white"
         app:layout_constraintBottom_toBottomOf="@id/homeFragLinearLayout"
         app:layout_constraintEnd_toEndOf="@id/homeFragLinearLayout"

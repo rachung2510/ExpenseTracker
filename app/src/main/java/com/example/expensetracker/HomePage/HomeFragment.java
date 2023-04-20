@@ -7,10 +7,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -48,6 +50,10 @@ public class HomeFragment extends Fragment {
     private ImageButton prevDate, nextDate;
     private RecyclerView filterList;
     private MenuItem clearFilters;
+    private LinearLayout searchBg;
+    private SearchView searchView;
+    private FloatingActionButton addExpBtn, searchBtn;
+    private View dummyView;
 
     // Filter components
     private DateGridAdapter filterDateAdapter;
@@ -56,6 +62,7 @@ public class HomeFragment extends Fragment {
     private int selDatePos, selDateState;
     private ArrayList<Account> selAccFilters = new ArrayList<>();
     private ArrayList<Category> selCatFilters = new ArrayList<>();
+    private String searchQuery = "";
 
     /**
      * Main
@@ -89,9 +96,51 @@ public class HomeFragment extends Fragment {
         filterList = view.findViewById(R.id.sectionFilters);
         applyFiltersViewItems();
 
-        // floating action button
-        FloatingActionButton fab = view.findViewById(R.id.floatingActionButton);
-        fab.setOnClickListener(view1 -> ((MainActivity) getActivity()).addExpense());
+        // search
+        dummyView = view.findViewById(R.id.dummy);
+        searchBg = view.findViewById(R.id.searchBg);
+        searchView = view.findViewById(R.id.searchView);
+        searchView.setOnQueryTextFocusChangeListener((view14, b) -> {
+            if (!b) return;
+            searchBg.setVisibility(View.VISIBLE);
+            ((MainActivity) getActivity()).enableBottomNavView(false);
+            enableFloatingBtns(false);
+        });
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searchQuery = query;
+                updateData();
+                searchBtn.setImageDrawable(MainActivity.getIconFromId(getActivity(), R.drawable.ic_baseline_search_off_24));
+                closeSearch();
+                dummyView.requestFocus();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+        searchBg.setOnClickListener(view12 -> closeSearch());
+
+        // floating action buttons
+        addExpBtn = view.findViewById(R.id.addExpBtn);
+        addExpBtn.setOnClickListener(view1 -> ((MainActivity) getActivity()).addExpense());
+        searchBtn = view.findViewById(R.id.searchBtn);
+        searchBtn.setOnClickListener(view13 -> {
+            if (searchView.getVisibility() == View.VISIBLE) {
+                searchView.setQuery("", false);
+                closeSearch();
+            } else {
+                searchBg.setVisibility(View.VISIBLE);
+                searchView.setVisibility(View.VISIBLE);
+                searchView.setIconified(false); // focus search edit
+                searchView.setQuery(searchQuery, false);
+                ((MainActivity) getActivity()).enableBottomNavView(false);
+                enableFloatingBtns(false);
+            }
+        });
 
         // toolbar
         createOptionsMenu(view.findViewById(R.id.toolbar));
@@ -148,6 +197,29 @@ public class HomeFragment extends Fragment {
         }
         return false;
     };
+
+    /**
+     * Search
+     */
+    public boolean isSearchOpen() {
+        return (searchBg.getVisibility() == View.VISIBLE);
+    }
+    public void closeSearch() {
+        searchBg.setVisibility(View.GONE);
+        if (searchQuery.isEmpty() || searchView.getQuery().toString().isEmpty()) {
+            if (!searchQuery.isEmpty()) {
+                searchQuery = "";
+                updateData();
+            }
+            searchView.setVisibility(View.GONE);
+        } else {
+            searchView.setQuery(searchQuery, false);
+            MainActivity.hideKeyboard(getContext(), searchView);
+        }
+        if (searchQuery.isEmpty()) searchBtn.setImageDrawable(MainActivity.getIconFromId(getActivity(), R.drawable.ic_baseline_search_24));
+        ((MainActivity) getActivity()).enableBottomNavView(true);
+        enableFloatingBtns(true);
+    }
 
     /**
      * Functions
@@ -297,6 +369,9 @@ public class HomeFragment extends Fragment {
     public ArrayList<Category> getSelCatFilters() {
         return selCatFilters;
     }
+    public String getSearchQuery() {
+        return searchQuery;
+    }
     public String getSummaryAmt() { return summaryAmt.getText().toString(); }
 
     public void updateData() {
@@ -329,9 +404,9 @@ public class HomeFragment extends Fragment {
         Calendar from = getDateRange()[0];
         Calendar to = getDateRange()[1];
         if (getSelDateState() == DateGridAdapter.ALL)
-            expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpenses(getSelAccFilters(), getSelCatFilters(), Constants.DESCENDING);
+            expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpenses(getSelAccFilters(), getSelCatFilters(), Constants.DESCENDING, searchQuery);
         else
-            expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(getSelAccFilters(), getSelCatFilters(), from, to, Constants.DESCENDING);
+            expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(getSelAccFilters(), getSelCatFilters(), from, to, Constants.DESCENDING, searchQuery);
         return expenses;
     }
     public void setSummaryData(String summaryDateText, float summaryAmtText) {
@@ -359,5 +434,14 @@ public class HomeFragment extends Fragment {
         this.toDate = range[1];
         this.selDatePos = selDatePos;
         this.selDateState = selDateState;
+    }
+
+    /**
+     * Others
+     */
+    public void enableFloatingBtns(boolean show) {
+        int visibility = (show) ? View.VISIBLE : View.GONE;
+        addExpBtn.setVisibility(visibility);
+        searchBtn.setVisibility(visibility);
     }
 }
