@@ -222,8 +222,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     this, android.R.layout.simple_spinner_item, spinnerArray);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinner.setAdapter(adapter);
-//            spinner.setSelection(0);
-//            spinner.setSelection(Constants.currencies.indexOf(db.getCurrency(getDefaultCurrency())));
             spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -367,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     /**
      * Dialog templates
      */
-    public AlertDialog expenseDialog() {
+    public AlertDialog expenseDialog(boolean focusKeyboard) {
         // dialog
         final View expView = getLayoutInflater().inflate(R.layout.dialog_expense, null);
         dialogBuilder = new AlertDialog.Builder(this);
@@ -382,8 +380,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         // get components by id
         expAmt = expView.findViewById(R.id.newExpAmt);
         expAmt.setFilters(new InputFilter[] { new MoneyValueFilter() });
-        expAmt.requestFocus(); // focus on amt and open keyboard
-        showKeyboard(expAmt);
+        expAmt.requestFocus(); // focus on amt
+        if (focusKeyboard) showKeyboard(expAmt);
         expDesc = expView.findViewById(R.id.newExpDesc);
         expAccName = expView.findViewById(R.id.newExpAccName); // name
         expCatName = expView.findViewById(R.id.newExpCatName);
@@ -628,7 +626,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
      * Add/edit functions
      */
     public void addExpense() {
-        AlertDialog expDialog = expenseDialog();
+        AlertDialog expDialog = expenseDialog(true);
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
         Calendar cal = Calendar.getInstance(locale);
         expDate.setText(getString(R.string.full_date,"Today",getDatetimeStr(cal,"dd MMMM yyyy")).toUpperCase());
@@ -686,7 +684,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         });
     }
     public void editExpense(int id) {
-        AlertDialog expDialog = expenseDialog();
+        AlertDialog expDialog = expenseDialog(false);
         Expense exp = db.getExpense(id);
 
         // set values
@@ -774,10 +772,11 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         AlertDialog addAccDialog = sectionDialog();
         sectionDelBtn.setVisibility(LinearLayout.GONE);
 
-        // set values of selected category
+        // set values of new account
         sectionName.setText("");
         sectionType.setText(getString(R.string.new_acc_title));
         setEditAccOptions(iconMap.get(R.drawable.acc_cash), colorMap.get(R.color.cat_bleu_de_france));
+        sectionCurr.setText(getDefaultCurrency());
 
         // actions
         sectionCurrRow.setOnClickListener(view1 -> {
@@ -822,7 +821,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public void editAccount(Account acc) {
         AlertDialog dialog = sectionDialog();
 
-        // set values of selected category
+        // set values of selected account
         sectionName.setText(acc.getName());
         sectionType.setText(getString(R.string.Acc));
         sectionCurr.setText(acc.getCurrencyName());
@@ -890,7 +889,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         sectionCurrRow.setVisibility(LinearLayout.GONE);
         sectionDelBtn.setVisibility(LinearLayout.GONE);
 
-        // set values of selected category
+        // set values of new category
         sectionName.setText("");
         sectionType.setText(getString(R.string.new_cat_title));
         setEditCatOptions(iconMap.get(R.drawable.cat_others), colorMap.get(R.color.cat_fiery_fuchsia));

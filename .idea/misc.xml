@@ -144,6 +144,7 @@
         <entry key="app/src/main/res/drawable/shape_tab_indicator.xml" value="0.197" />
         <entry key="app/src/main/res/layout/dialog_expense_opt_section.xml" value="0.24682971014492755" />
         <entry key="app/src/main/res/layout/dialog_recyclerview.xml" value="0.2391304347826087" />
+        <entry key="app/src/main/res/layout/dialog_section.xml" value="0.21510416666666668" />
         <entry key="app/src/main/res/layout/dialog_xrate.xml" value="0.25" />
         <entry key="app/src/main/res/layout/drawer_menu.xml" value="0.33" />
         <entry key="app/src/main/res/layout/fragment_charts_graph.xml" value="0.20606884057971014" />
