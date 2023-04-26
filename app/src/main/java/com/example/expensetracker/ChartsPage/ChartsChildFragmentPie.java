@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -50,9 +49,12 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     TextView pieLabel, pieAmt;
     RecyclerView catDataGrid;
     CatDataAdapter catDataAdapter;
+    GridLayoutManager gridLayoutManager;
+
     ArrayList<Category> pieCategories = new ArrayList<>();
     HashMap<String,Integer> pieCategoriesMap = new HashMap<>();
     private Calendar fromCal, toCal;
+    boolean scrollToCat = true;
 
     public ChartsChildFragmentPie() {
         super();
@@ -191,10 +193,13 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
                 if (e == null) return;
                 pieAmt.setText(String.format(MainActivity.locale,"%.2f",e.getY()));
                 pieIcon.setVisibility(ImageButton.VISIBLE);
-                Category cat =  pieCategories.get((int) h.getX());
+                int pos = (int) h.getX();
+                Category cat =  pieCategories.get(pos);
                 pieIcon.setForeground(MainActivity.getIconFromId(getActivity(), cat.getIconId()));
                 pieLabel.setText(cat.getName());
                 pieLabel.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.roboto_regular));
+                if (scrollToCat) gridLayoutManager.scrollToPosition(pos);
+                scrollToCat = true;
             }
 
             @Override
@@ -210,7 +215,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         if (getActivity() == null)
             return;
         catDataAdapter = new CatDataAdapter(getActivity(), categories);
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
+        gridLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
         catDataGrid.setLayoutManager(gridLayoutManager);
         catDataGrid.setAdapter(catDataAdapter);
     }
@@ -232,6 +237,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     }
     public void highlightPieValue(String name) {
         float x = (float) pieCategoriesMap.get(name);
+        scrollToCat = false; // don't scroll when highlighted from clicking on CatData
         pieChart.highlightValue(x,0);
     }
     public void clearPieHighlights() {

@@ -64,6 +64,8 @@
             android:layout_marginTop="12dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
+            android:paddingBottom="5dp"
+            android:clipToPadding="false"
             tools:listitem="@layout/item_expense"/>
 
         <TextView
@@ -93,12 +95,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="20dp"
         android:clickable="true"
         android:backgroundTint="@color/tag_text_gray"
         app:borderWidth="0dp"
         app:tint="@color/white"
-        app:layout_constraintBottom_toBottomOf="@id/homeFragLinearLayout"
+        app:layout_constraintBottom_toTopOf="@id/addExpBtn"
         app:layout_constraintEnd_toEndOf="@id/homeFragLinearLayout"
         app:srcCompat="@drawable/ic_baseline_search_24" />
 
@@ -107,7 +109,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="20dp"
         android:clickable="true"
         app:borderWidth="0dp"
         app:tint="@color/white"

@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:overScrollMode="never"
         android:paddingBottom="10dp"
+        android:clipToPadding="false"
         android:gravity="center"
         tools:listitem="@layout/item_section_list"/>
 

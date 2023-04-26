@@ -561,30 +561,46 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
             @Override
             public String getAxisLabel(float value, AxisBase axis) {
                 if (value < 0 || value >= numUnits) return "";
+
                 int x = (int) value;
                 Calendar cal = MainActivity.getCalFromString(getDtf(), dates.get(x));
-                if (selDateState == DateGridAdapter.YEAR)
-                    return MainActivity.getDatetimeStr(cal, "MMM").toUpperCase();
+
                 if (selDateState <= DateGridAdapter.WEEK)
                     return MainActivity.getDatetimeStr(cal, "EEE").toUpperCase();
-//                Log.e(TAG, "numUnits=" + numUnits + ", gran=" + granularityRef);
-                float granularity;
-                if (granularityRef < 1) granularity = 1;
-                else if (granularityRef < 2.2) granularity = 2;
-                else if (granularityRef < 5) granularity = 5;
-                else granularity = 10;
-                String d = MainActivity.getDatetimeStr(cal, "d");
-                int dd = Integer.parseInt(d);
-//                        Log.e(TAG, "d=" + d + ", cal=" + MainActivity.getDatetimeStr(cal, getDtf()));
-                if (d.equals("1") && value != 0f)
-                    return MainActivity.getDatetimeStr(cal, "MMM").toUpperCase();
-                if (value == 0f || value == (numUnits -1))
-                    return d;
-                if ((granularity>2 && value== numUnits -2) || (numUnits >27 && dd>=30))
+
+                else {
+                    float granularity;
+                    if (granularityRef < 1) granularity = 1;
+                    else if (granularityRef < 2.2) granularity = 2;
+                    else if (granularityRef < 5) granularity = 5;
+                    else granularity = 10;
+
+                    if (selDateState == DateGridAdapter.MONTH) {
+                        int day = cal.get(Calendar.DAY_OF_MONTH);
+                        if (day == 1 && value != 0f)
+                            return MainActivity.getDatetimeStr(cal, "MMM-YY").toUpperCase();
+                        if (value == 0f || value == (numUnits -1))
+                            return String.valueOf(day);
+                        if ((granularity > 2 && value == numUnits -2) || (numUnits > 27 && day >= 30))
+                            return "";
+                        if (day % granularity == 0)
+                            return String.valueOf(day);
+                        return "";
+                    } else if (selDateState == DateGridAdapter.YEAR) {
+                        int mm = cal.get(Calendar.MONTH);
+                        String month = MainActivity.getDatetimeStr(cal, "MMM").toUpperCase();
+                        if (mm == 0 && value != 0f)
+                            return MainActivity.getDatetimeStr(cal, "MMM-YY").toUpperCase();
+                        if (value == 0f || value == (numUnits -1))
+                            return month;
+                        if (granularity > 2 && value == numUnits -2)
+                            return "";
+                        if (mm % granularity == 0)
+                            return month;
+                        return "";
+                    }
                     return "";
-                if (dd%granularity == 0)
-                    return d;
-                return "";
+                }
             }
         });
     }

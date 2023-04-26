@@ -50,7 +50,7 @@ public class HomeFragment extends Fragment {
     private ImageButton prevDate, nextDate;
     private RecyclerView filterList;
     private MenuItem clearFilters;
-    private LinearLayout searchBg;
+    private LinearLayout expenseListLayout, searchBg;
     private SearchView searchView;
     private FloatingActionButton addExpBtn, searchBtn;
     private View dummyView;
@@ -80,6 +80,7 @@ public class HomeFragment extends Fragment {
         summaryCurr = view.findViewById(R.id.summaryCurrency);
         summaryAmt = view.findViewById(R.id.summaryAmt);
         expenseList = view.findViewById(R.id.expenseList);
+        expenseListLayout = view.findViewById(R.id.homeFragLinearLayout);
         ((SimpleItemAnimator) Objects.requireNonNull(expenseList.getItemAnimator())).setSupportsChangeAnimations(false);
         placeholder = view.findViewById(R.id.placeholder);
 
@@ -219,6 +220,12 @@ public class HomeFragment extends Fragment {
         if (searchQuery.isEmpty()) searchBtn.setImageDrawable(MainActivity.getIconFromId(getActivity(), R.drawable.ic_baseline_search_24));
         ((MainActivity) getActivity()).enableBottomNavView(true);
         enableFloatingBtns(true);
+    }
+    public void expandExpenseListLayout(boolean show) {
+        int bottom = (show) ? (int) getResources().getDimension(R.dimen.bottom_nav_height) : 0;
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) expenseListLayout.getLayoutParams();
+        params.setMargins(params.leftMargin, params.topMargin, params.rightMargin, bottom);
+        expenseListLayout.setLayoutParams(params);
     }
 
     /**

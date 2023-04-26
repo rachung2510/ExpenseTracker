@@ -267,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public void enableBottomNavView(boolean show) {
         bottomNavView.setVisibility((show) ? View.VISIBLE : View.GONE);
-
+        ((HomeFragment) getFragment(Constants.HOME)).expandExpenseListLayout(show);
     }
 
     /**
