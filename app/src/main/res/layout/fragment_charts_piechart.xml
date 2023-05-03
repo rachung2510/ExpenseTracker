@@ -116,7 +116,9 @@
                 android:paddingRight="10dp"
                 android:paddingBottom="15dp"
                 android:clipToPadding="false"
-                tools:listitem="@layout/item_cat_data"/>
+                tools:listitem="@layout/item_cat_data"
+                tools:layoutManager="GridLayoutManager"
+                tools:spanCount="2"/>
 
         </LinearLayout>
 
