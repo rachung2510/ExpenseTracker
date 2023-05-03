@@ -32,6 +32,8 @@
                     android:layout_width="fill_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
                     android:background="@color/cat_pure_apple"
                     android:foreground="?selectableItemBackground"
                     android:orientation="vertical"
@@ -203,12 +205,13 @@
 
             <ImageButton
                 android:id="@+id/scanReceiptBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_marginEnd="20dp"
-                android:background="@color/white"
+                android:layout_marginEnd="15dp"
+                android:background="@drawable/shape_circle"
+                android:backgroundTint="@color/white"
                 android:foreground="@drawable/selector_circle_widget"
                 android:src="@drawable/ic_baseline_camera_alt_24"
                 tools:ignore="ContentDescription" />

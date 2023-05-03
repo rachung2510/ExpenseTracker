@@ -2,7 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
         android:layout_width="360dp"
@@ -27,18 +28,19 @@
                 android:weightSum="2">
 
                 <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:layout_weight="1">
+                        android:layout_width="fill_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:layout_weight="1">
 
-                        <ImageView
+                        <ImageButton
                             android:id="@+id/newExpAccBox"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
+                            android:background="@drawable/shape_rounded_top_left_rectangle"
+                            android:backgroundTint="@null"
                             android:src="@drawable/shape_rounded_top_left_rectangle"
-                            android:scaleType="fitCenter"
-                            tools:ignore="ContentDescription" />
+                            android:foreground="@drawable/selector_rounded_top_left_rectangle" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -69,8 +71,7 @@
 
                         </LinearLayout>
 
-
-                </LinearLayout>
+                    </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="fill_parent"
@@ -78,13 +79,14 @@
                     android:layout_weight="1"
                     android:orientation="vertical">
 
-                    <ImageView
+                    <ImageButton
                         android:id="@+id/newExpCatBox"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:background="@drawable/shape_rounded_top_right_rectangle"
+                        android:backgroundTint="@null"
                         android:src="@drawable/shape_rounded_top_right_rectangle"
-                        android:scaleType="fitCenter"
-                        tools:ignore="ContentDescription" />
+                        android:foreground="@drawable/selector_rounded_top_right_rectangle" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -243,12 +245,13 @@
 
             <ImageButton
                 android:id="@+id/scanReceiptBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_marginEnd="15dp"
-                android:background="@color/white"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/shape_circle"
+                android:backgroundTint="@color/white"
                 android:foreground="@drawable/selector_circle_widget"
                 android:src="@drawable/ic_baseline_camera_alt_24"
                 tools:ignore="ContentDescription" />
