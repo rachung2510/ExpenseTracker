@@ -6,18 +6,17 @@ IMG_PATH = "tmp/"
 
 app = Flask(__name__)
 
-@app.route("/", methods=['GET','POST'])
+@app.route("/upload-receipt", methods=['GET','POST'])
 def home():
 	return render_template("upload.html")
 
-@app.route('/scan', methods = ['GET','POST'])
+@app.route('/scan-receipt', methods = ['GET','POST'])
 def upload_file():
 	if request.method == 'POST':
 		f = request.files['file']
 		img = IMG_PATH + f.filename
 		f.save(img)
-		items, _, text = scan_receipt(img)
-		print(text)
+		items = scan_receipt(img)
 		return(json.dumps(items))		
 
 if __name__ == "__main__":
