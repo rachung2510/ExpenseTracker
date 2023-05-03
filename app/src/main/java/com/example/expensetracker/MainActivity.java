@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.util.Log;
+import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -45,6 +46,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -56,8 +58,8 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.expensetracker.ChartsPage.ChartsChildFragmentGraph;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
+import com.example.expensetracker.HelperClasses.FileUtils;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
-import com.example.expensetracker.HelperClasses.RequestBodyUtil;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CurrencyAdapter;
@@ -79,7 +81,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -92,6 +94,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -123,13 +127,16 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     private TextView expAccName, expCatName, expDate, sectionType, expCurr, sectionCurr;
     private ImageButton expAccIcon, expCatIcon, scanReceiptBtn, sectionIcon, receiptCatIcon;
     private LinearLayout expAccBox, expCatBox, expDelBtn, expDateBtn, expSaveBtn, sectionBanner, sectionCurrRow, sectionDelBtn, sectionSaveBtn;
-    private ReceiptItemAdapter receiptItemAdapter = null;
 
     // Fragments
     private BottomNavigationView bottomNavView;
     private ViewPager2 viewPager;
     private ViewPagerAdapter adapter;
     private boolean updateFragments = false;
+
+    // Others
+    private static Uri imageUri;
+    private ReceiptItemAdapter receiptItemAdapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -275,7 +282,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                             updateSummaryData(Constants.HOME);
                             setUpdateFragments(true);
                         } catch (Exception e) {
-                            Log.e(TAG, e.toString());
                             Toast.makeText(this, "Something went wrong. Conversion rate for " + currency.getName() + " not updated.", Toast.LENGTH_SHORT).show();
                         }
                     })
@@ -660,7 +666,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     /**
      * Getters
      */
-    // Sections
     public <T extends Section> ArrayList<T> sortSections(ArrayList<T> sections) {
         sections.sort((s1, s2) -> {
             if (s1.getId() == -1) return 1; // new appears last
@@ -762,21 +767,29 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 LinearLayout cameraOpt, galleryOpt;
                 cameraOpt = dialogView.findViewById(R.id.cameraOpt);
                 galleryOpt = dialogView.findViewById(R.id.galleryOpt);
-                cameraOpt.setOnClickListener(view1 -> {
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    accessPhoneFeatures(intent, cameraLauncher);
-                });
-                galleryOpt.setOnClickListener(view12 -> {
-                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.setType("image/*");
-                    accessPhoneFeatures(intent, galleryLauncher);
-                });
                 dialogBuilder.setView(dialogView)
                         .setTitle(R.string.photo_dialog_title)
                         .setPositiveButton(android.R.string.no, (dialogInterface, i) -> {
 
-                        })
-                        .show();
+                        });
+                AlertDialog dialog = dialogBuilder.show();
+                cameraOpt.setOnClickListener(view1 -> {
+                    dialog.dismiss();
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    File photoFile = FileUtils.createImageFile(this);
+                    if (photoFile == null) return;
+                    imageUri = FileProvider.getUriForFile(this,
+                            BuildConfig.APPLICATION_ID + ".provider",
+                            photoFile);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                    accessPhoneFeatures(intent, cameraLauncher);
+                });
+                galleryOpt.setOnClickListener(view12 -> {
+                    dialog.dismiss();
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("image/*");
+                    accessPhoneFeatures(intent, galleryLauncher);
+                });
             } else {
                 chooseReceiptItems(receiptItemAdapter.getReceiptItems());
             }
@@ -1324,26 +1337,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * Keyboard helper functions
-     */
-    public static void showKeyboard(Context context, View view) {
-        view.postDelayed(() -> {
-            InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-            imm.showSoftInput(view, 0);
-        }, 270);
-    }
-    public static void hideKeyboard(Context context, View view) {
-        InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
-    public void showKeyboard(View view) {
-        showKeyboard(this, view);
-    }
-    public void hideKeyboard(View view) {
-        hideKeyboard(this, view);
-    }
-
-    /**
      * Import/export helper functions
      */
     public static void accessPhoneFeatures(Context context, Intent intent, ActivityResultLauncher<Intent> launcher) {
@@ -1398,7 +1391,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             output.close();
             Toast.makeText(this, "Database exported to Downloads" , Toast.LENGTH_LONG).show();
         } catch (IOException e) {
-            Log.e(TAG, String.valueOf(e));
             Toast.makeText(this, "Export failed", Toast.LENGTH_SHORT).show();
         }
     }
@@ -1439,15 +1431,23 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         return ((AppCompatActivity) context).registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    if (result.getResultCode() != RESULT_OK) return;
+                    if (result.getResultCode() != RESULT_OK) {
+                        if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
+                        return;
+                    }
                     Intent data = result.getData();
-                    if (data == null) return;
+                    if (data == null) {
+                        if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
+                        return;
+                    }
                     Uri uri = data.getData();
                     try {
-                        InputStream input = context.getContentResolver().openInputStream(uri);
+                        ByteArrayInputStream input = FileUtils.getInputStreamFromUri(context, uri);
                         postRequestImage(context, input);
                     } catch (IOException e) {
+                        Log.e(TAG, e.toString());
                         e.printStackTrace();
+                        if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
                     }
                 });
     }
@@ -1455,28 +1455,26 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         return ((AppCompatActivity) context).registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    if (result.getResultCode() != RESULT_OK) return;
-                    Intent data = result.getData();
-                    if (data == null) return;
-                    Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
-                    byte[] bitmapData = bytes.toByteArray();
-                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapData);
+                    if (result.getResultCode() != RESULT_OK) {
+                        if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
+                        return;
+                    }
                     try {
-                        postRequestImage(context, bs);
+                        ByteArrayInputStream input = FileUtils.getInputStreamFromUri(context, imageUri);
+                        postRequestImage(context, input);
                     } catch (IOException e) {
+                        Log.e(TAG, e.toString());
                         e.printStackTrace();
+                        if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
                     }
                 });
     }
-    private final ActivityResultLauncher<Intent> cameraLauncher = createCameraLauncher(this);
-    private final ActivityResultLauncher<Intent> galleryLauncher = createGalleryLauncher(this);
 
     /**
      * Scan receipt
      */
-    public static final MediaType MEDIA_TYPE_JPEG = MediaType.parse("image/jpeg");
+    public final ActivityResultLauncher<Intent> cameraLauncher = createCameraLauncher(this);
+    public final ActivityResultLauncher<Intent> galleryLauncher = createGalleryLauncher(this);
     public static void postRequestImage(Context context, InputStream inputStream) throws IOException {
         Consumer<Boolean> showOverlay = (show) -> {
             if (context instanceof MainActivity) {
@@ -1493,15 +1491,25 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             }
         };
 
-        String webserverUrl = "http://139.162.49.140:5000/scan-receipt";
-        RequestBody req = new MultipartBody.Builder().setType(MultipartBody.FORM)
+        String url = "https://api.ocr.space/parse/image"; // OCR API Endpoints
+//        String url = "http://139.162.49.140:5000/scan-receipt";
+        String apiKey = "K85073676188957";
+
+        // http request
+        MediaType MEDIA_TYPE_JPEG = MediaType.parse("image/jpeg");
+        RequestBody body = new MultipartBody.Builder().setType(MultipartBody.FORM)
                 .addFormDataPart("file", "receipt.jpg",
-                        RequestBodyUtil.create(MEDIA_TYPE_JPEG, inputStream)
+                        FileUtils.createRequestBody(MEDIA_TYPE_JPEG, inputStream)
                 )
+                .addFormDataPart("apikey", apiKey)
+                .addFormDataPart("language", "eng")
+                .addFormDataPart("isOverlayRequired", "false")
+                .addFormDataPart("scale", "true")
+                .addFormDataPart("OCREngine", Integer.toString(2))
                 .build();
         Request request = new Request.Builder()
-                .url(webserverUrl)
-                .post(req)
+                .url(url)
+                .post(body)
                 .build();
         showOverlay.accept(true);
         OkHttpClient client = new OkHttpClient();
@@ -1517,29 +1525,32 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     @Override
                     public void onResponse(@NonNull Call call, @NonNull final Response response) throws IOException {
                         String res = response.body().string();
-                        if (res.isEmpty() || res.equals("\"\"")) {
-                            ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "OCR failed. Try taking another photo.", Toast.LENGTH_SHORT).show());
+//                        Log.e(TAG, res);
+                        JSONObject results = null;
+                        try {
+                            results = new JSONObject(res);
+                            if (results.has("ErrorMessage")) {
+                                String errorMessage = results.getJSONArray("ErrorMessage").getString(0);
+                                ((Activity) context).runOnUiThread(() -> Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show());
+                                showOverlay.accept(false);
+                                if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
+                                return;
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        ArrayList<ReceiptItem> receiptItems = parseJSON(results);
+                        if (receiptItems.isEmpty()) {
+                            ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "OCR failed. Try taking another photo", Toast.LENGTH_LONG).show());
                             showOverlay.accept(false);
                             if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
                             return;
-                        }
-                        try {
-                            JSONObject obj = new JSONObject(res);
-                            JSONArray itemsArr = obj.getJSONArray("item");
-                            JSONArray priceArr = obj.getJSONArray("price");
-                            ArrayList<ReceiptItem> receiptItems = new ArrayList<>();
-                            for (int i = 0; i < itemsArr.length(); i++) {
-                                String description = itemsArr.getString(i);
-                                float amount = Float.parseFloat(priceArr.getString(i));
-                                receiptItems.add(new ReceiptItem(description, amount));
-                            }
+                        } else {
                             ((Activity) context).runOnUiThread(() -> {
                                 if (context instanceof MainActivity) ((MainActivity) context).chooseReceiptItems(receiptItems);
                                 if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).chooseReceiptItems(receiptItems);
                                 if (context instanceof WidgetDialogActivity) ((WidgetDialogActivity) context).chooseReceiptItems(receiptItems);
                             });
-                        } catch (JSONException e) {
-                            e.printStackTrace();
                         }
                         showOverlay.accept(false);
                     }
@@ -1577,11 +1588,92 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         dialog.setOnShowListener(d -> dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM));
         dialog.show();
     }
+    public static ArrayList<ReceiptItem> parseJSON(JSONObject res) {
+        ArrayList<ReceiptItem> receiptItems = new ArrayList<>();
+        try {
+            JSONArray lines = res.getJSONArray("ParsedResults")
+                    .getJSONObject(0)
+                    .getJSONObject("TextOverlay")
+                    .getJSONArray("Lines");
+
+            // Save items and amounts
+            Pattern pattern = Pattern.compile("([0-9]+[\\.,][0-9]+)", Pattern.CASE_INSENSITIVE);
+            ArrayList<Pair<String,Float>> itemDist = new ArrayList<>();
+            ArrayList<Pair<Float,Float>> amtDist = new ArrayList<>();
+            float delta = 0f;
+            float prevDist = 0f;
+            for (int i = 0; i < lines.length(); i++) {
+                JSONObject obj = lines.getJSONObject(i);
+                String line = obj.getString("LineText");
+                float dist = Float.parseFloat(obj.getString("MinTop"));
+                Matcher matcher = pattern.matcher(line);
+                Log.e(TAG, "line=" + line + ", dist=" + dist);
+                if (matcher.find()) { // amount
+                    float amount = Float.parseFloat(matcher.group(1));
+                    if (line.charAt(0) == '-') amount = -amount;
+                    amtDist.add(new Pair<>(amount, dist));
+                    if (prevDist != 0f) {
+                        float diff = Math.abs(dist - prevDist);
+                        delta = Math.max(diff, delta);
+                    }
+                    prevDist = dist;
+                } else { // string
+                    itemDist.add(new Pair<>(line, dist));
+                }
+            }
+
+            // Match amount to item based on height
+            delta /= 4;
+            Log.e(TAG, "delta=" + delta);
+            for (Pair<Float,Float> amtPair : amtDist) {
+                boolean matched = false;
+                for (Pair<String, Float> itemPair : itemDist) {
+                    if (amtPair.second < (itemPair.second - delta) || amtPair.second > (itemPair.second + delta))
+                        continue;
+                    Log.e(TAG, String.format("item=%s (%.0f), amt=%.2f (%.0f)", itemPair.first, itemPair.second, amtPair.first, amtPair.second));
+                    receiptItems.add(new ReceiptItem(itemPair.first, amtPair.first));
+                    matched = true;
+                    break;
+                }
+                if (!matched) receiptItems.add(new ReceiptItem("", amtPair.first));
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+            e.printStackTrace();
+            return receiptItems;
+        }
+        return receiptItems;
+    }
+    public static void setImageUri(Uri uri) {
+        imageUri = uri;
+    }
+
+    /**
+     * Others
+     */
+    public static void showKeyboard(Context context, View view) {
+        view.postDelayed(() -> {
+            InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+            imm.showSoftInput(view, 0);
+        }, 270);
+    }
+    public static void hideKeyboard(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+    public void showKeyboard(View view) {
+        showKeyboard(this, view);
+    }
+    public void hideKeyboard(View view) {
+        hideKeyboard(this, view);
+    }
     public void showProgressOverlay() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.FullscreenAlertDialog);
         builder.setView(R.layout.progress_overlay)
                 .setCancelable(false);
-        progressDialog = builder.show();
+        progressDialog = builder.create();
+        progressDialog.setCancelable(false);
+        progressDialog.show();
     }
     public void hideProgressOverlay() {
         progressDialog.dismiss();

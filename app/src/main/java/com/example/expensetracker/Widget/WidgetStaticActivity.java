@@ -5,10 +5,10 @@ import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputFilter;
@@ -27,15 +27,18 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Account;
+import com.example.expensetracker.BuildConfig;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.Expense;
+import com.example.expensetracker.HelperClasses.FileUtils;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
@@ -48,6 +51,7 @@ import com.example.expensetracker.Section;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -69,7 +73,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
 
     private AlertDialog progressDialog;
     private ReceiptItemAdapter receiptItemAdapter;
-    ImageButton receiptCatIcon;
+    private ImageButton receiptCatIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -261,20 +265,29 @@ public class WidgetStaticActivity extends AppCompatActivity {
             LinearLayout cameraOpt, galleryOpt;
             cameraOpt = dialogView.findViewById(R.id.cameraOpt);
             galleryOpt = dialogView.findViewById(R.id.galleryOpt);
-            cameraOpt.setOnClickListener(view1 -> {
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                MainActivity.accessPhoneFeatures(this, intent, cameraLauncher);
-            });
-            galleryOpt.setOnClickListener(view12 -> {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/*");
-                MainActivity.accessPhoneFeatures(this, intent, galleryLauncher);
-            });
             builder.setView(dialogView)
                     .setTitle(R.string.photo_dialog_title)
                     .setPositiveButton(android.R.string.no, (dialogInterface, i) -> finish());
             AlertDialog dialog = builder.create();
             dialog.setOnCancelListener(dialogInterface -> finish());
+            cameraOpt.setOnClickListener(view1 -> {
+                dialog.dismiss();
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                File photoFile = FileUtils.createImageFile(this);
+                if (photoFile == null) return;
+                Uri uri = FileProvider.getUriForFile(this,
+                        BuildConfig.APPLICATION_ID + ".provider",
+                        photoFile);
+                MainActivity.setImageUri(uri);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                MainActivity.accessPhoneFeatures(this, intent, cameraLauncher);
+            });
+            galleryOpt.setOnClickListener(view12 -> {
+                dialog.dismiss();
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/*");
+                MainActivity.accessPhoneFeatures(this, intent, galleryLauncher);
+            });
             dialog.show();
         } else {
             chooseReceiptItems(adapter.getReceiptItems());
@@ -455,8 +468,6 @@ public class WidgetStaticActivity extends AppCompatActivity {
     /**
      * Scan receipt
      */
-    private final ActivityResultLauncher<Intent> cameraLauncher = MainActivity.createCameraLauncher(this);
-    private final ActivityResultLauncher<Intent> galleryLauncher = MainActivity.createGalleryLauncher(this);
     public void chooseReceiptItems(ArrayList<ReceiptItem> receiptItems) {
         RemoteViews views = getRemoteViews();
         String accName = getStringValue(KEY_ACC);
@@ -492,11 +503,15 @@ public class WidgetStaticActivity extends AppCompatActivity {
         dialog.setOnShowListener(d -> dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM));
         dialog.show();
     }
+    public final ActivityResultLauncher<Intent> cameraLauncher = MainActivity.createCameraLauncher(this);
+    public final ActivityResultLauncher<Intent> galleryLauncher = MainActivity.createGalleryLauncher(this);
     public void showProgressOverlay() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.FullscreenAlertDialog);
         builder.setView(R.layout.progress_overlay)
                 .setCancelable(false);
-        progressDialog = builder.show();
+        progressDialog = builder.create();
+        progressDialog.setCancelable(false);
+        progressDialog.show();
     }
     public void hideProgressOverlay() {
         progressDialog.dismiss();

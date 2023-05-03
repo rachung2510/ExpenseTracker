@@ -1,8 +1,8 @@
 package com.example.expensetracker.Widget;
 
-import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputFilter;
@@ -29,9 +30,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.expensetracker.Account;
+import com.example.expensetracker.BuildConfig;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.Expense;
+import com.example.expensetracker.HelperClasses.FileUtils;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
@@ -42,6 +45,7 @@ import com.example.expensetracker.RecyclerViewAdapters.ReceiptItemAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
 import com.example.expensetracker.Section;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -150,21 +154,29 @@ public class WidgetDialogActivity extends AppCompatActivity {
                 LinearLayout cameraOpt, galleryOpt;
                 cameraOpt = dialogView.findViewById(R.id.cameraOpt);
                 galleryOpt = dialogView.findViewById(R.id.galleryOpt);
-                cameraOpt.setOnClickListener(view1 -> {
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    MainActivity.accessPhoneFeatures(this, intent, cameraLauncher);
-                });
-                galleryOpt.setOnClickListener(view12 -> {
-                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.setType("image/*");
-                    MainActivity.accessPhoneFeatures(this, intent, galleryLauncher);
-                });
                 dialogBuilder.setView(dialogView)
                         .setTitle(R.string.photo_dialog_title)
                         .setPositiveButton(android.R.string.no, (dialogInterface, i) -> {
-
-                        })
-                        .show();
+                        });
+                AlertDialog dialog = dialogBuilder.show();
+                cameraOpt.setOnClickListener(view1 -> {
+                    dialog.dismiss();
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    File photoFile = FileUtils.createImageFile(this);
+                    if (photoFile == null) return;
+                    Uri uri = FileProvider.getUriForFile(this,
+                            BuildConfig.APPLICATION_ID + ".provider",
+                            photoFile);
+                    MainActivity.setImageUri(uri);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                    MainActivity.accessPhoneFeatures(this, intent, MainActivity.createCameraLauncher(this));
+                });
+                galleryOpt.setOnClickListener(view12 -> {
+                    dialog.dismiss();
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("image/*");
+                    MainActivity.accessPhoneFeatures(this, intent, MainActivity.createGalleryLauncher(this));
+                });
             } else {
                 chooseReceiptItems(receiptItemAdapter.getReceiptItems());
             }
@@ -345,8 +357,6 @@ public class WidgetDialogActivity extends AppCompatActivity {
     public void hideKeyboard(EditText view) {
         MainActivity.hideKeyboard(this, view);
     }
-    private final ActivityResultLauncher<Intent> cameraLauncher = MainActivity.createCameraLauncher(this);
-    private final ActivityResultLauncher<Intent> galleryLauncher = MainActivity.createGalleryLauncher(this);
     public void chooseReceiptItems(ArrayList<ReceiptItem> receiptItems) {
         String accName = expAccName.getText().toString();
         String accCurr = db.getAccount(accName).getCurrencySymbol();
@@ -383,7 +393,9 @@ public class WidgetDialogActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.FullscreenAlertDialog);
         builder.setView(R.layout.progress_overlay)
                 .setCancelable(false);
-        progressDialog = builder.show();
+        progressDialog = builder.create();
+        progressDialog.setCancelable(false);
+        progressDialog.show();
     }
     public void hideProgressOverlay() {
         progressDialog.dismiss();
