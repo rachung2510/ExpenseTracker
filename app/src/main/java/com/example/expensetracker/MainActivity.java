@@ -4,6 +4,7 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -25,6 +26,7 @@ import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -55,19 +57,29 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.example.expensetracker.ChartsPage.ChartsChildFragmentGraph;
 import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
+import com.example.expensetracker.HelperClasses.RequestBodyUtil;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CurrencyAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;
+import com.example.expensetracker.RecyclerViewAdapters.ReceiptItemAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
 import com.example.expensetracker.HomePage.HomeFragment;
 import com.example.expensetracker.ManagePage.ManageChildFragment;
 import com.example.expensetracker.ManagePage.ManageFragment;
 import com.example.expensetracker.ManagePage.SectionOptDialogFragment;
 import com.example.expensetracker.RecyclerViewAdapters.ViewPagerAdapter;
+import com.example.expensetracker.Widget.WidgetDialogActivity;
+import com.example.expensetracker.Widget.WidgetStaticActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -77,7 +89,18 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {
 
@@ -95,10 +118,12 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
     // Dialog components
     private AlertDialog.Builder dialogBuilder;
+    private AlertDialog progressDialog;
     private EditText expAmt, expDesc, sectionName;
     private TextView expAccName, expCatName, expDate, sectionType, expCurr, sectionCurr;
-    private ImageButton expAccIcon, expCatIcon, sectionIcon;
+    private ImageButton expAccIcon, expCatIcon, scanReceiptBtn, sectionIcon, receiptCatIcon;
     private LinearLayout expAccBox, expCatBox, expDelBtn, expDateBtn, expSaveBtn, sectionBanner, sectionCurrRow, sectionDelBtn, sectionSaveBtn;
+    private ReceiptItemAdapter receiptItemAdapter = null;
 
     // Fragments
     private BottomNavigationView bottomNavView;
@@ -194,11 +219,13 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     .show();
         });
         sideMenuItemImport.setOnClickListener(view -> {
-            if (permissionsGranted()) showFileChooser();
-            else requestPermissions();
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("*/*");
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            accessPhoneFeatures(intent, importLauncher);
         });
         sideMenuItemExport.setOnClickListener(view -> {
-            if (!permissionsGranted()) {
+            if (permissionsNotGranted()) {
                 Toast.makeText(this, "Permissions not granted", Toast.LENGTH_SHORT).show();
                 requestPermissions();
                 return;
@@ -383,7 +410,10 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         final View expView = getLayoutInflater().inflate(R.layout.dialog_expense, null);
         dialogBuilder = new AlertDialog.Builder(this);
         dialogBuilder.setView(expView)
-                .setOnDismissListener(dialogInterface -> hideKeyboard(expAmt));
+                .setOnDismissListener(dialogInterface -> {
+                    hideKeyboard(expAmt);
+                    receiptItemAdapter = null;
+                });
         AlertDialog expDialog = dialogBuilder.create();
         expDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT)); // set transparent dialog bg
         expDialog.show();
@@ -411,6 +441,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             else expDesc.setBackground(new ColorDrawable(android.R.attr.selectableItemBackground));
         });
         expCurr = expView.findViewById(R.id.newExpCurrency);
+        scanReceiptBtn = expView.findViewById(R.id.scanReceiptBtn);
 
         return expDialog;
     }
@@ -432,9 +463,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         TextView title = view.findViewById(R.id.expOptSectionTitle);
         title.setText(R.string.CAT);
         if (adapter.getSelectedPos().isEmpty()) {
-            if (exp.getId() == -1) {
+            if (exp.getId() == -1)
                 adapter.setSelected(0);
-            } else {
+            else {
                 Category cat = exp.getCategory();
                 adapter.setSelected(adapter.getList().indexOf(cat));
             }
@@ -499,6 +530,24 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         sectionSaveBtn = editCatView.findViewById(R.id.catSaveBtn);
 
         return sectionDialog;
+    }
+    public void receiptCatDialog() {
+        @SuppressLint("InflateParams") final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        CategoryAdapter catAdapter = getCategoryData();
+        AlertDialog dialog = expenseSectionDialog(catAdapter, view).create();
+        catAdapter.setDialog(dialog);
+        TextView title = view.findViewById(R.id.expOptSectionTitle);
+        title.setText(R.string.CAT);
+        catAdapter.setSelected(receiptItemAdapter.getReceiptCat().getName());
+
+        dialog.setOnCancelListener(dialog1 -> {
+            Category selectedCat = catAdapter.getSelected();
+            receiptCatIcon.setForeground(selectedCat.getIcon());
+            receiptCatIcon.setBackgroundTintList(getColorStateListFromHex(selectedCat.getColorHex()));
+            receiptItemAdapter.setReceiptCat(selectedCat);
+        });
+
+        dialog.show();
     }
 
     /**
@@ -679,21 +728,59 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     .show();
         });
         expSaveBtn.setOnClickListener(v -> {
-            if (!expAmt.getText().toString().isEmpty()) {
-                float amt = Float.parseFloat(expAmt.getText().toString());
+            if (expAmt.getText().toString().isEmpty())
+                Toast.makeText(MainActivity.this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
+            else {
                 String desc = expDesc.getText().toString();
                 Account acc1 = db.getAccount(expAccName.getText().toString());
-                Category cat1 = db.getCategory(expCatName.getText().toString());
                 String datetime = getDatetimeStr(cal, "");
-                Expense expense = new Expense(amt, desc, acc1, cat1, datetime);
-                db.createExpense(expense);
+                if (receiptItemAdapter == null || receiptItemAdapter.getTotalAmt() == 0f ) {
+                    float amt = Float.parseFloat(expAmt.getText().toString());
+                    Category cat1 = db.getCategory(expCatName.getText().toString());
+                    Expense expense = new Expense(amt, desc, acc1, cat1, datetime);
+                    db.createExpense(expense);
+                } else {
+                    ArrayList<Expense> expenses = new ArrayList<>();
+                    HashMap<String,Float> receiptCatAmts = receiptItemAdapter.getReceiptCatAmts();
+                    for (Map.Entry<String,Float> set : receiptCatAmts.entrySet()) {
+                        Category cat1 = db.getCategory(set.getKey());
+                        expenses.add(new Expense(set.getValue(), desc, acc1, cat1, datetime));
+                    }
+                    db.createExpenses(expenses);
+                }
                 updateHomeData(); // update summary & expense list
                 setUpdateFragments(true);
-            } else {
-                Toast.makeText(MainActivity.this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
             }
             hideKeyboard(expAmt);
             expDialog.dismiss();
+            receiptItemAdapter = null;
+        });
+        scanReceiptBtn.setOnClickListener(view -> {
+            if (receiptItemAdapter == null) {
+                dialogBuilder = new AlertDialog.Builder(this);
+                View dialogView = getLayoutInflater().inflate(R.layout.dialog_camera, null);
+                LinearLayout cameraOpt, galleryOpt;
+                cameraOpt = dialogView.findViewById(R.id.cameraOpt);
+                galleryOpt = dialogView.findViewById(R.id.galleryOpt);
+                cameraOpt.setOnClickListener(view1 -> {
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    accessPhoneFeatures(intent, cameraLauncher);
+                });
+                galleryOpt.setOnClickListener(view12 -> {
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("image/*");
+                    accessPhoneFeatures(intent, galleryLauncher);
+                });
+                dialogBuilder.setView(dialogView)
+                        .setTitle(R.string.photo_dialog_title)
+                        .setPositiveButton(android.R.string.no, (dialogInterface, i) -> {
+
+                        })
+                        .show();
+            } else {
+                chooseReceiptItems(receiptItemAdapter.getReceiptItems());
+            }
+            hideKeyboard(expAmt);
         });
     }
     public void editExpense(int id) {
@@ -1259,49 +1346,30 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     /**
      * Import/export helper functions
      */
-    private void showFileChooser() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
+    public static void accessPhoneFeatures(Context context, Intent intent, ActivityResultLauncher<Intent> launcher) {
+        if (permissionsNotGranted(context)) {
+            requestPermissions((Activity) context);
+            return;
+        }
         launcher.launch(intent);
     }
-    ActivityResultLauncher<Intent> launcher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK) {
-                    Intent data = result.getData();
-                    if (data == null)
-                        return;
-                    Uri uri = data.getData();
-                    dialogBuilder = new AlertDialog.Builder(this, R.style.ConfirmDelDialog);
-                    dialogBuilder.setTitle("Import database")
-                            .setMessage("Are you sure you want to import? This will overwrite all current data.")
-                            .setPositiveButton("Overwrite", (dialogInterface, i) -> {
-                                try {
-                                    InputStream input = getContentResolver().openInputStream(uri);
-                                    db.importDatabase(input);
-                                    Toast.makeText(this, "Import successful", Toast.LENGTH_SHORT).show();
-                                    updateHomeData();
-                                    setUpdateFragments(true);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    Toast.makeText(this, "Import failed", Toast.LENGTH_SHORT).show();
-                                }
-                            })
-                            .setNeutralButton(android.R.string.no, (dialog, which) -> {
-                                dialog.cancel(); // close dialog
-                            })
-                            .show();
-                }
-            });
-    public boolean permissionsGranted() {
-        return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED &&
-                checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED;
+    public void accessPhoneFeatures(Intent intent, ActivityResultLauncher<Intent> launcher) {
+        accessPhoneFeatures(this, intent, launcher);
     }
-    public void requestPermissions() {
-        ActivityCompat.requestPermissions(this,
+    public static boolean permissionsNotGranted(Context context) {
+        return context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PERMISSION_GRANTED ||
+                context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PERMISSION_GRANTED;
+    }
+    public boolean permissionsNotGranted() {
+        return permissionsNotGranted(this);
+    }
+    public static void requestPermissions(Activity activity) {
+        ActivityCompat.requestPermissions(activity,
                 new String[] { Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE },
                 0);
+    }
+    public void requestPermissions() {
+        requestPermissions(this);
     }
     public void exportToCsv() {
         // content
@@ -1333,6 +1401,190 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             Log.e(TAG, String.valueOf(e));
             Toast.makeText(this, "Export failed", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Intent launchers
+     */
+    private final ActivityResultLauncher<Intent> importLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() != RESULT_OK)
+                    return;
+                Intent data = result.getData();
+                if (data == null)
+                    return;
+                Uri uri = data.getData();
+                dialogBuilder = new AlertDialog.Builder(this, R.style.ConfirmDelDialog);
+                dialogBuilder.setTitle("Import database")
+                        .setMessage("Are you sure you want to import? This will overwrite all current data.")
+                        .setPositiveButton("Overwrite", (dialogInterface, i) -> {
+                            try {
+                                InputStream input = getContentResolver().openInputStream(uri);
+                                db.importDatabase(input);
+                                Toast.makeText(this, "Import successful", Toast.LENGTH_SHORT).show();
+                                updateHomeData();
+                                setUpdateFragments(true);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Toast.makeText(this, "Import failed", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .setNeutralButton(android.R.string.no, (dialog, which) -> {
+                            dialog.cancel(); // close dialog
+                        })
+                        .show();
+            });
+    public static ActivityResultLauncher<Intent> createGalleryLauncher(Context context) {
+        return ((AppCompatActivity) context).registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() != RESULT_OK) return;
+                    Intent data = result.getData();
+                    if (data == null) return;
+                    Uri uri = data.getData();
+                    try {
+                        InputStream input = context.getContentResolver().openInputStream(uri);
+                        postRequestImage(context, input);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
+    public static ActivityResultLauncher<Intent> createCameraLauncher(Context context) {
+        return ((AppCompatActivity) context).registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() != RESULT_OK) return;
+                    Intent data = result.getData();
+                    if (data == null) return;
+                    Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+                    byte[] bitmapData = bytes.toByteArray();
+                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapData);
+                    try {
+                        postRequestImage(context, bs);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+    }
+    private final ActivityResultLauncher<Intent> cameraLauncher = createCameraLauncher(this);
+    private final ActivityResultLauncher<Intent> galleryLauncher = createGalleryLauncher(this);
+
+    /**
+     * Scan receipt
+     */
+    public static final MediaType MEDIA_TYPE_JPEG = MediaType.parse("image/jpeg");
+    public static void postRequestImage(Context context, InputStream inputStream) throws IOException {
+        Consumer<Boolean> showOverlay = (show) -> {
+            if (context instanceof MainActivity) {
+                if (show) ((MainActivity) context).showProgressOverlay();
+                else ((MainActivity) context).hideProgressOverlay();
+            }
+            if (context instanceof WidgetStaticActivity) {
+                if (show) ((WidgetStaticActivity) context).showProgressOverlay();
+                else ((WidgetStaticActivity) context).hideProgressOverlay();
+            }
+            if (context instanceof WidgetDialogActivity) {
+                if (show) ((WidgetDialogActivity) context).showProgressOverlay();
+                else ((WidgetDialogActivity) context).hideProgressOverlay();
+            }
+        };
+
+        String webserverUrl = "http://139.162.49.140:5000/scan-receipt";
+        RequestBody req = new MultipartBody.Builder().setType(MultipartBody.FORM)
+                .addFormDataPart("file", "receipt.jpg",
+                        RequestBodyUtil.create(MEDIA_TYPE_JPEG, inputStream)
+                )
+                .build();
+        Request request = new Request.Builder()
+                .url(webserverUrl)
+                .post(req)
+                .build();
+        showOverlay.accept(true);
+        OkHttpClient client = new OkHttpClient();
+        client.newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "HTTP request failed.", Toast.LENGTH_SHORT).show());
+                        showOverlay.accept(false);
+                        if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
+                    }
+
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull final Response response) throws IOException {
+                        String res = response.body().string();
+                        if (res.isEmpty() || res.equals("\"\"")) {
+                            ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "OCR failed. Try taking another photo.", Toast.LENGTH_SHORT).show());
+                            showOverlay.accept(false);
+                            if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
+                            return;
+                        }
+                        try {
+                            JSONObject obj = new JSONObject(res);
+                            JSONArray itemsArr = obj.getJSONArray("item");
+                            JSONArray priceArr = obj.getJSONArray("price");
+                            ArrayList<ReceiptItem> receiptItems = new ArrayList<>();
+                            for (int i = 0; i < itemsArr.length(); i++) {
+                                String description = itemsArr.getString(i);
+                                float amount = Float.parseFloat(priceArr.getString(i));
+                                receiptItems.add(new ReceiptItem(description, amount));
+                            }
+                            ((Activity) context).runOnUiThread(() -> {
+                                if (context instanceof MainActivity) ((MainActivity) context).chooseReceiptItems(receiptItems);
+                                if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).chooseReceiptItems(receiptItems);
+                                if (context instanceof WidgetDialogActivity) ((WidgetDialogActivity) context).chooseReceiptItems(receiptItems);
+                            });
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        showOverlay.accept(false);
+                    }
+                });
+    }
+    public void chooseReceiptItems(ArrayList<ReceiptItem> receiptItems) {
+        String accName = expAccName.getText().toString();
+        String accCurr = db.getAccount(accName).getCurrencySymbol();
+        receiptItemAdapter = new ReceiptItemAdapter(this, receiptItems, accCurr);
+        final View view = getLayoutInflater().inflate(R.layout.dialog_receipt, null);
+        RecyclerView receiptItemList = view.findViewById(R.id.recyclerView);
+        receiptItemList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        receiptItemList.setAdapter(receiptItemAdapter);
+
+        receiptCatIcon = view.findViewById(R.id.selectCat);
+        receiptCatIcon.setOnClickListener(view1 -> receiptCatDialog());
+
+        dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setTitle("Receipt items")
+                .setView(view)
+                .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+                    expAmt.setText(String.format(MainActivity.locale, "%.2f", receiptItemAdapter.getTotalAmt()));
+                    expAmt.setSelection(expAmt.getText().length()); // set cursor to end of text
+                    scanReceiptBtn.setBackground(getIconFromId(MainActivity.this, R.drawable.ic_baseline_edit_24));
+                    expCatIcon.setForeground(getIconFromId(MainActivity.this, R.drawable.cat_multi));
+                    expCatName.setText(R.string.multiple);
+                })
+                .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {
+                    if (expAmt.getText().toString().isEmpty()) // only nullify adapter if cancelled on first dialog opening
+                        receiptItemAdapter = null;
+                });
+        AlertDialog dialog = dialogBuilder.create();
+        dialog.setCancelable(false);
+        // solves problem with keyboard not showing up
+        dialog.setOnShowListener(d -> dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM));
+        dialog.show();
+    }
+    public void showProgressOverlay() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.FullscreenAlertDialog);
+        builder.setView(R.layout.progress_overlay)
+                .setCancelable(false);
+        progressDialog = builder.show();
+    }
+    public void hideProgressOverlay() {
+        progressDialog.dismiss();
     }
 
     /**

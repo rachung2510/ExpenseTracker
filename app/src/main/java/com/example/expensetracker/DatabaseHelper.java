@@ -145,6 +145,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String toast = (res == -1) ? "Error: Failed to create expense" : "Expense created";
         Toast.makeText(context, toast, Toast.LENGTH_SHORT).show();
     }
+    public void createExpenses(ArrayList<Expense> expenses) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int numFailed = 0;
+        for (Expense e : expenses) {
+            ContentValues values = createExpenseValues(e);
+            long res = db.insert(TABLE_EXPENSE, null, values);
+            if (res == -1) numFailed++;
+        }
+        String toast = (numFailed == 0) ? expenses.size() + " expenses created" :
+                String.format(MainActivity.locale,"Error: Failed to create %d/%d expenses", numFailed, expenses.size());
+        Toast.makeText(context, toast, Toast.LENGTH_SHORT).show();
+    }
     public void createAccount(Account account, boolean notify) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = createSectionValues(account);

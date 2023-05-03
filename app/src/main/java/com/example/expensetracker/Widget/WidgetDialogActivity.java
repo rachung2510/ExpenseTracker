@@ -1,15 +1,20 @@
 package com.example.expensetracker.Widget;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.view.Gravity;
 import android.view.View;
@@ -25,19 +30,22 @@ import android.widget.Toast;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
-import com.example.expensetracker.Currency;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.Expense;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
+import com.example.expensetracker.ReceiptItem;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
+import com.example.expensetracker.RecyclerViewAdapters.ReceiptItemAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
 import com.example.expensetracker.Section;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class WidgetDialogActivity extends AppCompatActivity {
 
@@ -45,10 +53,12 @@ public class WidgetDialogActivity extends AppCompatActivity {
 
     // Dialog components
     private AlertDialog.Builder dialogBuilder;
+    private AlertDialog progressDialog;
     private EditText expAmt, expDesc;
     private TextView expAccName, expCatName, expDate, expCurr;
-    private ImageButton expAccIcon, expCatIcon;
+    private ImageButton expAccIcon, expCatIcon, scanReceiptBtn, receiptCatIcon;
     private LinearLayout expAccBox, expCatBox, expDelBtn, expDateBtn, expSave;
+    private ReceiptItemAdapter receiptItemAdapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +82,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         AlertDialog expDialog = expenseDialog();
         expDelBtn.setVisibility(LinearLayout.INVISIBLE);
         Calendar cal = Calendar.getInstance(MainActivity.locale);
-        expDate.setText(("Today, " + MainActivity.getDatetimeStr(cal, "dd MMMM yyyy")).toUpperCase());
+        expDate.setText(getString(R.string.full_date,"Today", MainActivity.getDatetimeStr(cal,"dd MMMM yyyy")).toUpperCase());
         Account acc = db.getAccount(getDefaultAccName());
         Category cat = db.getCategory(getDefaultCatName());
         expAccName.setText(acc.getName()); // set name
@@ -102,30 +112,68 @@ public class WidgetDialogActivity extends AppCompatActivity {
             changeDate.setView(datePicker)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                 cal.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-                expDate.setText((MainActivity.getRelativePrefix(cal) + ", " + MainActivity.getDatetimeStr(cal, "dd MMMM yyyy")).toUpperCase());
+                        expDate.setText(getString(R.string.full_date, MainActivity.getRelativePrefix(cal), MainActivity.getDatetimeStr(cal,"dd MMM yyyy")).toUpperCase());
             })
                     .setNeutralButton(android.R.string.no, (dialog, which) -> dialog.cancel())
                     .show();
         });
         expSave.setOnClickListener(v -> {
             if (expAmt.getText().toString().isEmpty())
-                Toast.makeText(this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
+                Toast.makeText(WidgetDialogActivity.this, "Amount cannot be 0. No expense created", Toast.LENGTH_SHORT).show();
             else {
-                float amt = Float.parseFloat(expAmt.getText().toString());
                 String desc = expDesc.getText().toString();
                 Account acc1 = db.getAccount(expAccName.getText().toString());
-                Category cat1 = db.getCategory(expCatName.getText().toString());
-                String datetime = MainActivity.getDatetimeStr(cal, Expense.DATETIME_FORMAT);
-                Expense expense = new Expense(amt, desc, acc1, cat1, datetime);
-                db.createExpense(expense);
+                String datetime = MainActivity.getDatetimeStr(cal, "");
+                if (receiptItemAdapter == null || receiptItemAdapter.getTotalAmt() == 0f ) {
+                    float amt = Float.parseFloat(expAmt.getText().toString());
+                    Category cat1 = db.getCategory(expCatName.getText().toString());
+                    Expense expense = new Expense(amt, desc, acc1, cat1, datetime);
+                    db.createExpense(expense);
+                } else {
+                    ArrayList<Expense> expenses = new ArrayList<>();
+                    HashMap<String,Float> receiptCatAmts = receiptItemAdapter.getReceiptCatAmts();
+                    for (Map.Entry<String,Float> set : receiptCatAmts.entrySet()) {
+                        Category cat1 = db.getCategory(set.getKey());
+                        expenses.add(new Expense(set.getValue(), desc, acc1, cat1, datetime));
+                    }
+                    db.createExpenses(expenses);
+                }
             }
             hideKeyboard(expAmt);
             expDialog.dismiss();
+            receiptItemAdapter = null;
+        });
+        scanReceiptBtn.setOnClickListener(view -> {
+            if (receiptItemAdapter == null) {
+                dialogBuilder = new AlertDialog.Builder(this);
+                View dialogView = getLayoutInflater().inflate(R.layout.dialog_camera, null);
+                LinearLayout cameraOpt, galleryOpt;
+                cameraOpt = dialogView.findViewById(R.id.cameraOpt);
+                galleryOpt = dialogView.findViewById(R.id.galleryOpt);
+                cameraOpt.setOnClickListener(view1 -> {
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    MainActivity.accessPhoneFeatures(this, intent, cameraLauncher);
+                });
+                galleryOpt.setOnClickListener(view12 -> {
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("image/*");
+                    MainActivity.accessPhoneFeatures(this, intent, galleryLauncher);
+                });
+                dialogBuilder.setView(dialogView)
+                        .setTitle(R.string.photo_dialog_title)
+                        .setPositiveButton(android.R.string.no, (dialogInterface, i) -> {
+
+                        })
+                        .show();
+            } else {
+                chooseReceiptItems(receiptItemAdapter.getReceiptItems());
+            }
+            hideKeyboard(expAmt);
         });
     }
 
     /**
-     * DIALOGS
+     * Dialogs
      */
     public AlertDialog expenseDialog() {
         // dialog
@@ -163,6 +211,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
             else expDesc.setBackground(new ColorDrawable(android.R.attr.selectableItemBackground));
         });
         expCurr = expView.findViewById(R.id.newExpCurrency);
+        scanReceiptBtn = expView.findViewById(R.id.scanReceiptBtn);
 
         return expDialog;
     }
@@ -176,7 +225,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         return dialogBuilder;
     }
     public void expenseAccDialog(AccountAdapter adapter, Expense exp) {
-        final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        @SuppressLint("InflateParams") final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog dialog = expenseSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
 
@@ -207,7 +256,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         dialog.show();
     }
     public void expenseCatDialog(CategoryAdapter adapter, Expense exp) {
-        final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        @SuppressLint("InflateParams") final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog dialog = expenseSectionDialog(adapter, expOptSectionView).create();
         adapter.setDialog(dialog);
 
@@ -236,9 +285,27 @@ public class WidgetDialogActivity extends AppCompatActivity {
 
         dialog.show();
     }
+    public void receiptCatDialog() {
+        @SuppressLint("InflateParams") final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        CategoryAdapter catAdapter = getCategoryData();
+        AlertDialog dialog = expenseSectionDialog(catAdapter, view).create();
+        catAdapter.setDialog(dialog);
+        TextView title = view.findViewById(R.id.expOptSectionTitle);
+        title.setText(R.string.CAT);
+        catAdapter.setSelected(receiptItemAdapter.getReceiptCat().getName());
+
+        dialog.setOnCancelListener(dialog1 -> {
+            Category selectedCat = catAdapter.getSelected();
+            receiptCatIcon.setForeground(selectedCat.getIcon());
+            receiptCatIcon.setBackgroundTintList(MainActivity.getColorStateListFromHex(selectedCat.getColorHex()));
+            receiptItemAdapter.setReceiptCat(selectedCat);
+        });
+
+        dialog.show();
+    }
 
     /**
-     * GETTERS & SETTERS
+     * Getters & Setters
      */
     public <T extends Section> ArrayList<T> sortSections(ArrayList<T> sections) {
         sections.sort((s1, s2) -> {
@@ -270,13 +337,56 @@ public class WidgetDialogActivity extends AppCompatActivity {
     }
 
     /**
-     * HELPER FUNCTIONS
+     * Helper Functions
      */
     public void showKeyboard(EditText view) {
         MainActivity.showKeyboard(this, view);
     }
     public void hideKeyboard(EditText view) {
         MainActivity.hideKeyboard(this, view);
+    }
+    private final ActivityResultLauncher<Intent> cameraLauncher = MainActivity.createCameraLauncher(this);
+    private final ActivityResultLauncher<Intent> galleryLauncher = MainActivity.createGalleryLauncher(this);
+    public void chooseReceiptItems(ArrayList<ReceiptItem> receiptItems) {
+        String accName = expAccName.getText().toString();
+        String accCurr = db.getAccount(accName).getCurrencySymbol();
+        receiptItemAdapter = new ReceiptItemAdapter(this, receiptItems, accCurr);
+        final View view = getLayoutInflater().inflate(R.layout.dialog_receipt, null);
+        RecyclerView receiptItemList = view.findViewById(R.id.recyclerView);
+        receiptItemList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        receiptItemList.setAdapter(receiptItemAdapter);
+
+        receiptCatIcon = view.findViewById(R.id.selectCat);
+        receiptCatIcon.setOnClickListener(view1 -> receiptCatDialog());
+
+        dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setTitle("Receipt items")
+                .setView(view)
+                .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+                    expAmt.setText(String.format(MainActivity.locale, "%.2f", receiptItemAdapter.getTotalAmt()));
+                    expAmt.setSelection(expAmt.getText().length()); // set cursor to end of text
+                    scanReceiptBtn.setBackground(MainActivity.getIconFromId(WidgetDialogActivity.this, R.drawable.ic_baseline_edit_24));
+                    expCatIcon.setForeground(MainActivity.getIconFromId(WidgetDialogActivity.this, R.drawable.cat_multi));
+                    expCatName.setText(R.string.multiple);
+                })
+                .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {
+                    if (expAmt.getText().toString().isEmpty()) // only nullify adapter if cancelled on first dialog opening
+                        receiptItemAdapter = null;
+                });
+        AlertDialog dialog = dialogBuilder.create();
+        dialog.setCancelable(false);
+        // solves problem with keyboard not showing up
+        dialog.setOnShowListener(d -> dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM));
+        dialog.show();
+    }
+    public void showProgressOverlay() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.FullscreenAlertDialog);
+        builder.setView(R.layout.progress_overlay)
+                .setCancelable(false);
+        progressDialog = builder.show();
+    }
+    public void hideProgressOverlay() {
+        progressDialog.dismiss();
     }
 
 }

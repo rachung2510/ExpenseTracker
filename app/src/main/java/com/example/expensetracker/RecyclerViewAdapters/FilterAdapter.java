@@ -34,7 +34,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
     public final ColorStateList tagGray, tagOrange;
 
     /**
-     * CONSTRUCTOR
+     * Constructor
      */
     public FilterAdapter(Context context, ArrayList<Account> filteredAccounts, ArrayList<Category> filteredCategories) {
         this.filteredAccounts = filteredAccounts;
@@ -46,7 +46,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
     }
 
     /**
-     * INITIALISE ADAPTER
+     * Initialise adapter
      */
     @NonNull
     @Override
@@ -107,7 +107,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
     }
 
     /**
-     * VIEWHOLDER CLASS
+     * Viewholder class
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         LinearLayout filterItem;

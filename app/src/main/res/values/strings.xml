@@ -39,8 +39,10 @@
     <string name="example_cat">Food</string>
     <string name="example_acc">Cash</string>
     <string name="example_date">10 JAN 2022</string>
+    <string name="example_date_full">YESTERDAY, 10 JAN 2022</string>
     <string name="example_amt">135.00</string>
     <string name="example_no">15</string>
+    <string name="example_receipt_item">JS THAI GREEN &amp; RICE</string>
 
     <string name="charts_frag_cat">Categories</string>
     <string name="charts_frag_time">Monthly</string>
@@ -67,6 +69,10 @@
 <!--    MainActivity-->
     <string name="new_acc_title">New account</string>
     <string name="new_cat_title">New category</string>
+    <string name="multiple">Multiple</string>
+    <string name="photo_dialog_title">Select photo</string>
+    <string name="camera_opt">Take\nphoto</string>
+    <string name="gallery_opt">Choose\nimage</string>
 
 <!--    Searchable-->
     <string name="search_hint">Search expense</string>

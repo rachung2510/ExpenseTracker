@@ -109,7 +109,8 @@
                         android:backgroundTint="@color/white"
                         android:clickable="false"
                         android:foreground="@drawable/acc_cash"
-                        android:foregroundTint="@color/cat_june_bud" />
+                        android:foregroundTint="@color/cat_june_bud"
+                        tools:ignore="ContentDescription" />
 
                 </LinearLayout>
 
@@ -128,7 +129,8 @@
                         android:backgroundTint="@color/white"
                         android:clickable="false"
                         android:foreground="@drawable/cat_food"
-                        android:foregroundTint="@color/cat_pastel_red" />
+                        android:foregroundTint="@color/cat_pastel_red"
+                        tools:ignore="ContentDescription" />
 
                 </LinearLayout>
 
@@ -137,63 +139,81 @@
         </RelativeLayout>
 
 <!--    amount-->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:layout_marginStart="-1dp"
-            android:layout_marginEnd="-1dp"
-            android:layout_marginTop="-1dp"
-            android:layout_marginBottom="-.7dp"
-            android:background="@drawable/shape_rectangle_border">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="15dp"
-                android:text="@string/Exp"
-                android:fontFamily="sans-serif"
-                android:textColor="@color/text_mid_gray"
-                android:textSize="14sp" />
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center|bottom"
-                android:orientation="horizontal">
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_marginStart="-1dp"
+                android:layout_marginEnd="-1dp"
+                android:layout_marginTop="-1dp"
+                android:layout_marginBottom="-.7dp"
+                android:background="@drawable/shape_rectangle_border">
 
                 <TextView
-                    android:id="@+id/newExpCurrency"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:layout_marginEnd="5dp"
-                    android:textColor="@color/text_light_gray"
+                    android:paddingTop="15dp"
+                    android:text="@string/Exp"
                     android:fontFamily="sans-serif"
-                    android:textFontWeight="600"
-                    android:textSize="12sp"
-                    android:text="@string/default_currency" />
+                    android:textColor="@color/text_mid_gray"
+                    android:textSize="14sp" />
 
-                <EditText
-                    android:id="@+id/newExpAmt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="start"
-                    android:clickable="false"
-                    android:background="@null"
-                    android:textColor="@color/text_dark_gray"
-                    android:hint="@string/hint_amt"
-                    android:inputType="numberDecimal"
-                    android:paddingBottom="10dp"
-                    android:importantForAutofill="no"
-                    android:textSize="40sp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center|bottom"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/newExpCurrency"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:layout_marginEnd="5dp"
+                            android:textColor="@color/text_light_gray"
+                            android:fontFamily="sans-serif"
+                            android:textFontWeight="600"
+                            android:textSize="12sp"
+                            android:text="@string/default_currency" />
+
+                        <EditText
+                            android:id="@+id/newExpAmt"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="start"
+                            android:clickable="false"
+                            android:background="@null"
+                            android:textColor="@color/text_dark_gray"
+                            android:hint="@string/hint_amt"
+                            android:inputType="numberDecimal"
+                            android:paddingBottom="10dp"
+                            android:importantForAutofill="no"
+                            android:textSize="40sp" />
+
+                    </LinearLayout>
 
             </LinearLayout>
 
-        </LinearLayout>
+            <ImageButton
+                android:id="@+id/scanReceiptBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="20dp"
+                android:background="@color/white"
+                android:foreground="@drawable/selector_circle_widget"
+                android:src="@drawable/ic_baseline_camera_alt_24"
+                tools:ignore="ContentDescription" />
+
+        </RelativeLayout>
 
 <!--    description-->
         <LinearLayout
@@ -217,6 +237,7 @@
                 android:background="?selectableItemBackground"
                 android:textColor="@color/generic_icon_gray"
                 android:hint="@string/hint_description"
+                android:inputType="text"
                 android:importantForAutofill="no"
                 android:paddingTop="12dp"
                 android:paddingBottom="12dp" />
@@ -240,7 +261,7 @@
                 android:textColor="@color/text_light_gray"
                 android:fontFamily="sans-serif-medium"
                 android:textFontWeight="600"
-                android:text="YESTERDAY, 09 JAN 2022" />
+                android:text="@string/example_date_full" />
         </LinearLayout>
 
 <!--    action buttons-->
@@ -274,7 +295,7 @@
                     android:foregroundTint="@color/red"
                     android:scaleType="fitCenter"
                     android:src="@drawable/selector_circle"
-                    tools:ignore="SpeakableTextPresentCheck" />
+                    tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -303,7 +324,8 @@
                     android:background="@drawable/shape_circle"
                     android:backgroundTint="#dadada"
                     android:foreground="@drawable/action_date"
-                    android:foregroundTint="#757575" />
+                    android:foregroundTint="#757575"
+                    tools:ignore="ContentDescription" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -331,7 +353,8 @@
                     android:background="@drawable/shape_circle"
                     android:backgroundTint="#cfd3eb"
                     android:foreground="@drawable/action_check"
-                    android:foregroundTint="#4f54a7" />
+                    android:foregroundTint="#4f54a7"
+                    tools:ignore="ContentDescription" />
 
                 <TextView
                     android:layout_width="wrap_content"

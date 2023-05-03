@@ -12,7 +12,6 @@ A simple expense tracker for android which has three pages.
 ## Potential features
 - Load on scroll
 - Calendar section in CHARTS page
-- Quick photo with image recognition for amount
 
 ## Bug fixes
 

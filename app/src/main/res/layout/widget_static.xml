@@ -10,7 +10,8 @@
         android:gravity="center"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
 
         <!--    choose account & cat-->
         <RelativeLayout
@@ -180,7 +181,11 @@
         </RelativeLayout>
 
         <!--    amount-->
-        <LinearLayout
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -191,50 +196,64 @@
             android:layout_marginBottom="-.7dp"
             android:background="@drawable/shape_rectangle_border">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="@dimen/widgetTextSize"
-                android:text="@string/Exp"
-                android:fontFamily="sans-serif"
-                android:textColor="@color/text_mid_gray"
-                android:textSize="@dimen/widgetTextSize" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center|bottom"
-                android:orientation="horizontal">
-
                 <TextView
-                    android:id="@+id/newExpCurrency"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:layout_marginEnd="5dp"
-                    android:textColor="@color/text_light_gray"
+                    android:paddingTop="@dimen/widgetTextSize"
+                    android:text="@string/Exp"
                     android:fontFamily="sans-serif"
-                    android:textFontWeight="600"
-                    android:textSize="10sp"
-                    android:text="@string/default_currency" />
+                    android:textColor="@color/text_mid_gray"
+                    android:textSize="@dimen/widgetTextSize" />
 
-                <TextView
-                    android:id="@+id/newExpAmt"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="start"
-                    android:clickable="true"
-                    android:background="@null"
-                    android:textColor="@color/text_dark_gray"
-                    android:hint="@string/hint_amt"
-                    android:paddingBottom="6dp"
-                    android:textSize="36sp" />
+                    android:gravity="center|bottom"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/newExpCurrency"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:layout_marginEnd="5dp"
+                        android:textColor="@color/text_light_gray"
+                        android:fontFamily="sans-serif"
+                        android:textFontWeight="600"
+                        android:textSize="10sp"
+                        android:text="@string/default_currency" />
+
+                    <TextView
+                        android:id="@+id/newExpAmt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="start"
+                        android:clickable="true"
+                        android:background="@null"
+                        android:textColor="@color/text_dark_gray"
+                        android:hint="@string/hint_amt"
+                        android:paddingBottom="6dp"
+                        android:textSize="36sp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
-        </LinearLayout>
+            <ImageButton
+                android:id="@+id/scanReceiptBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="15dp"
+                android:background="@color/white"
+                android:foreground="@drawable/selector_circle_widget"
+                android:src="@drawable/ic_baseline_camera_alt_24"
+                tools:ignore="ContentDescription" />
+
+        </RelativeLayout>
 
         <!--    description-->
         <LinearLayout

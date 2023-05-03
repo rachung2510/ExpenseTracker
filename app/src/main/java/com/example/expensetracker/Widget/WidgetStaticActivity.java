@@ -5,10 +5,12 @@ import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.View;
@@ -16,13 +18,17 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Account;
@@ -33,13 +39,20 @@ import com.example.expensetracker.Expense;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
+import com.example.expensetracker.ReceiptItem;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
+import com.example.expensetracker.RecyclerViewAdapters.ReceiptItemAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
 import com.example.expensetracker.Section;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class WidgetStaticActivity extends AppCompatActivity {
     private static final String TAG = "WidgetStaticActivity";
@@ -50,6 +63,13 @@ public class WidgetStaticActivity extends AppCompatActivity {
     public static final String KEY_ACC = "expense_account";
     public static final String KEY_CAT = "expense_category";
     public static final String KEY_DATE = "expense_date";
+    public static final String KEY_ADAPTER_LIST = "adapter_list";
+    public static final String KEY_ADAPTER_CURR = "adapter_curr";
+    private static final Type adapterListType = new TypeToken<ArrayList<ReceiptItem>>(){}.getType();
+
+    private AlertDialog progressDialog;
+    private ReceiptItemAdapter receiptItemAdapter;
+    ImageButton receiptCatIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +107,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
                 saveExpense();
                 break;
 
+            case WidgetStaticProvider.SCAN_RECEIPT:
+                scanReceipt();
+                break;
+
             default:
                 break;
         }
@@ -100,7 +124,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
     }
 
     /**
-     * MAIN FUNCTIONS
+     * Main Functions
      */
     public void editAmount() {
         View view = getLayoutInflater().inflate(R.layout.dialog_input, null);
@@ -206,40 +230,59 @@ public class WidgetStaticActivity extends AppCompatActivity {
         else {
             String desc = getStringValue(KEY_DESC);
             String accName = getStringValue(KEY_ACC);
-            String catName = getStringValue(KEY_CAT);
             String dateValue = getStringValue(KEY_DATE);
             Account acc = (accName.isEmpty()) ? db.getAccount(db.getDefaultAccName()) : db.getAccount(accName);
-            Category cat = (catName.isEmpty()) ? db.getCategory(db.getDefaultCatName()) : db.getCategory(catName);
             Calendar cal = Calendar.getInstance(MainActivity.locale);
             String datetime = (dateValue.isEmpty()) ? MainActivity.getDatetimeStr(cal, Expense.DATETIME_FORMAT) : dateValue;
-            Expense expense = new Expense(amt, desc, acc, cat, datetime);
-            db.createExpense(expense);
+            ReceiptItemAdapter adapter = getReceiptItemAdapter();
+            if (adapter == null || adapter.getTotalAmt() == 0f ) {
+                String catName = getStringValue(KEY_CAT);
+                Category cat = (catName.isEmpty()) ? db.getCategory(db.getDefaultCatName()) : db.getCategory(catName);
+                Expense expense = new Expense(amt, desc, acc, cat, datetime);
+                db.createExpense(expense);
+            } else {
+                ArrayList<Expense> expenses = new ArrayList<>();
+                HashMap<String,Float> receiptCatAmts = adapter.getReceiptCatAmts();
+                for (Map.Entry<String,Float> set : receiptCatAmts.entrySet()) {
+                    Category cat = db.getCategory(set.getKey());
+                    expenses.add(new Expense(set.getValue(), desc, acc, cat, datetime));
+                }
+                db.createExpenses(expenses);
+            }
             sendBroadcast(new Intent(this, WidgetStaticProvider.class));
         }
         finish();
     }
+    public void scanReceipt() {
+        ReceiptItemAdapter adapter = getReceiptItemAdapter();
+        if (adapter == null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View dialogView = getLayoutInflater().inflate(R.layout.dialog_camera, null);
+            LinearLayout cameraOpt, galleryOpt;
+            cameraOpt = dialogView.findViewById(R.id.cameraOpt);
+            galleryOpt = dialogView.findViewById(R.id.galleryOpt);
+            cameraOpt.setOnClickListener(view1 -> {
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                MainActivity.accessPhoneFeatures(this, intent, cameraLauncher);
+            });
+            galleryOpt.setOnClickListener(view12 -> {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/*");
+                MainActivity.accessPhoneFeatures(this, intent, galleryLauncher);
+            });
+            builder.setView(dialogView)
+                    .setTitle(R.string.photo_dialog_title)
+                    .setPositiveButton(android.R.string.no, (dialogInterface, i) -> finish());
+            AlertDialog dialog = builder.create();
+            dialog.setOnCancelListener(dialogInterface -> finish());
+            dialog.show();
+        } else {
+            chooseReceiptItems(adapter.getReceiptItems());
+        }
+    }
 
     /**
-     * HELPER FUNCTIONS
-     */
-    public void showKeyboard(EditText view) {
-        MainActivity.showKeyboard(this, view);
-    }
-    public void hideKeyboard(EditText view) {
-        MainActivity.hideKeyboard(this, view);
-    }
-    public RemoteViews getRemoteViews() {
-        return new RemoteViews(this.getPackageName(), R.layout.widget_static);
-    }
-    public void updateView(RemoteViews views) {
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-        ComponentName thisWidget = new ComponentName(this, WidgetStaticProvider.class);
-        int[] appWidgetId = appWidgetManager.getAppWidgetIds(thisWidget);
-        appWidgetManager.updateAppWidget(appWidgetId, views);
-    }
-
-    /**
-     * DIALOGS
+     * Dialogs
      */
     public <T extends SectionAdapter<? extends Section>> AlertDialog.Builder expenseSectionDialog(T adapter, View expOptSectionView) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -304,9 +347,27 @@ public class WidgetStaticActivity extends AppCompatActivity {
 
         dialog.show();
     }
+    public void receiptCatDialog() {
+        @SuppressLint("InflateParams") final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        CategoryAdapter catAdapter = getCategoryData();
+        AlertDialog dialog = expenseSectionDialog(catAdapter, view).create();
+        catAdapter.setDialog(dialog);
+        TextView title = view.findViewById(R.id.expOptSectionTitle);
+        title.setText(R.string.CAT);
+        catAdapter.setSelected(receiptItemAdapter.getReceiptCat().getName());
+
+        dialog.setOnCancelListener(dialog1 -> {
+            Category selectedCat = catAdapter.getSelected();
+            receiptCatIcon.setForeground(selectedCat.getIcon());
+            receiptCatIcon.setBackgroundTintList(MainActivity.getColorStateListFromHex(selectedCat.getColorHex()));
+            receiptItemAdapter.setReceiptCat(selectedCat);
+        });
+
+        dialog.show();
+    }
 
     /**
-     * GETTERS & SETTERS
+     * Getters & Setters
      */
     public <T extends Section> ArrayList<T> sortSections(ArrayList<T> sections) {
         sections.sort((s1, s2) -> {
@@ -334,6 +395,24 @@ public class WidgetStaticActivity extends AppCompatActivity {
         return db.getCategory(1).getName();
     }
 
+    /**
+     * Helper Functions
+     */
+    public void showKeyboard(EditText view) {
+        MainActivity.showKeyboard(this, view);
+    }
+    public void hideKeyboard(EditText view) {
+        MainActivity.hideKeyboard(this, view);
+    }
+    public RemoteViews getRemoteViews() {
+        return new RemoteViews(this.getPackageName(), R.layout.widget_static);
+    }
+    public void updateView(RemoteViews views) {
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+        ComponentName thisWidget = new ComponentName(this, WidgetStaticProvider.class);
+        int[] appWidgetId = appWidgetManager.getAppWidgetIds(thisWidget);
+        appWidgetManager.updateAppWidget(appWidgetId, views);
+    }
     public float getFloatValue(String key) {
         SharedPreferences pref = getSharedPreferences(Constants.TMP, Context.MODE_PRIVATE);
         return pref.getFloat(key, -1f);
@@ -354,5 +433,72 @@ public class WidgetStaticActivity extends AppCompatActivity {
         editor.putString(key, value);
         editor.apply();
     }
+    public ReceiptItemAdapter getReceiptItemAdapter() {
+        SharedPreferences pref = getSharedPreferences(Constants.TMP, Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String listJson = pref.getString(KEY_ADAPTER_LIST, "");
+        String receiptCurr = pref.getString(KEY_ADAPTER_CURR, "");
+        if (listJson.isEmpty() || receiptCurr.isEmpty()) return null;
+        ArrayList<ReceiptItem> receiptItems = gson.fromJson(listJson, adapterListType);
+        return new ReceiptItemAdapter(this, receiptItems, receiptCurr);
+    }
+    public void storeReceiptItemAdapter(ReceiptItemAdapter adapter) {
+        Gson gson = new Gson();
+        String listJson = gson.toJson(adapter.getReceiptItems(), adapterListType);
+        SharedPreferences pref = getSharedPreferences(Constants.TMP, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString(KEY_ADAPTER_LIST, listJson);
+        editor.putString(KEY_ADAPTER_CURR, adapter.getReceiptCurr());
+        editor.apply();
+    }
 
+    /**
+     * Scan receipt
+     */
+    private final ActivityResultLauncher<Intent> cameraLauncher = MainActivity.createCameraLauncher(this);
+    private final ActivityResultLauncher<Intent> galleryLauncher = MainActivity.createGalleryLauncher(this);
+    public void chooseReceiptItems(ArrayList<ReceiptItem> receiptItems) {
+        RemoteViews views = getRemoteViews();
+        String accName = getStringValue(KEY_ACC);
+        Account acc = (accName.isEmpty()) ? db.getAccount(db.getDefaultAccName()) : db.getAccount(accName);
+        receiptItemAdapter = new ReceiptItemAdapter(this, receiptItems, acc.getCurrencySymbol());
+        final View view = getLayoutInflater().inflate(R.layout.dialog_receipt, null);
+        RecyclerView receiptItemList = view.findViewById(R.id.recyclerView);
+        receiptItemList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        receiptItemList.setAdapter(receiptItemAdapter);
+
+        receiptCatIcon = view.findViewById(R.id.selectCat);
+        receiptCatIcon.setOnClickListener(view1 -> receiptCatDialog());
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Receipt items")
+                .setView(view)
+                .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+                    float amt = receiptItemAdapter.getTotalAmt();
+                    views.setTextViewText(R.id.newExpAmt, String.format(MainActivity.locale, "%.2f", amt));
+                    views.setImageViewBitmap(R.id.scanReceiptBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(this, R.drawable.ic_baseline_edit_24)));
+                    views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(this, R.drawable.cat_multi)));
+                    views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
+                    views.setTextViewText(R.id.newExpCatName, getString(R.string.multiple));
+                    storeValue(KEY_AMT, amt);
+                    storeReceiptItemAdapter(receiptItemAdapter);
+                    updateView(views);
+                    finish();
+                })
+                .setNeutralButton(android.R.string.no, (dialogInterface, i) -> finish());
+        AlertDialog dialog = builder.create();
+        dialog.setCancelable(false);
+        // solves problem with keyboard not showing up
+        dialog.setOnShowListener(d -> dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE|WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM));
+        dialog.show();
+    }
+    public void showProgressOverlay() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.FullscreenAlertDialog);
+        builder.setView(R.layout.progress_overlay)
+                .setCancelable(false);
+        progressDialog = builder.show();
+    }
+    public void hideProgressOverlay() {
+        progressDialog.dismiss();
+    }
 }

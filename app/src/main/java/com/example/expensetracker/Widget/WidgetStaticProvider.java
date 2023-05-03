@@ -1,7 +1,5 @@
 package com.example.expensetracker.Widget;
 
-import static android.os.Build.VERSION_CODES.JELLY_BEAN;
-
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -9,17 +7,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
-
-import androidx.core.content.ContextCompat;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
@@ -28,8 +17,6 @@ import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Calendar;
 
 public class WidgetStaticProvider extends AppWidgetProvider {
@@ -44,6 +31,7 @@ public class WidgetStaticProvider extends AppWidgetProvider {
     public static final int EDIT_DATE = 5;
     public static final int SAVE = 6;
     public static final int UPDATE = 7;
+    public static final int SCAN_RECEIPT = 8;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         // clear stored values
@@ -54,6 +42,8 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         editor.remove(WidgetStaticActivity.KEY_ACC);
         editor.remove(WidgetStaticActivity.KEY_CAT);
         editor.remove(WidgetStaticActivity.KEY_DATE);
+        editor.remove(WidgetStaticActivity.KEY_ADAPTER_LIST);
+        editor.remove(WidgetStaticActivity.KEY_ADAPTER_CURR);
         editor.apply();
 
         // set interactions
@@ -65,6 +55,7 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.newExpDate, getPendingIntent(context, EDIT_DATE));
         views.setOnClickPendingIntent(R.id.newExpSave, getPendingIntent(context, SAVE));
         views.setOnClickPendingIntent(R.id.update, getPendingSelfIntent(context));
+        views.setOnClickPendingIntent(R.id.scanReceiptBtn, getPendingIntent(context, SCAN_RECEIPT));
 
         // configure default values
         DatabaseHelper db = new DatabaseHelper(context);
@@ -85,6 +76,7 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
         views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(cat.getIcon()));
         views.setInt(R.id.newExpCatIcon,"setColorFilter", cat.getColor());
+        views.setImageViewBitmap(R.id.scanReceiptBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.ic_baseline_camera_alt_24)));
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
@@ -125,7 +117,5 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
         onUpdate(context, appWidgetManager, appWidgetIds);
     }
-
-
 
 }

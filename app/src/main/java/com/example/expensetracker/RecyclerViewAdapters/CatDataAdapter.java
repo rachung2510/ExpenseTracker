@@ -31,6 +31,9 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private final Context context;
     private final LayoutInflater inflater;
 
+    /**
+     * Constructor
+     */
     public CatDataAdapter(Context context, ArrayList<Category> categories) {
         this.context = context;
         inflater = LayoutInflater.from(context);

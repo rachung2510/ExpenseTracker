@@ -137,17 +137,32 @@
         <entry key="app/src/main/res/drawable/cat_home.xml" value="0.2945" />
         <entry key="app/src/main/res/drawable/cat_shopping.xml" value="0.2945" />
         <entry key="app/src/main/res/drawable/ic_baseline_add_24.xml" value="0.2535" />
+        <entry key="app/src/main/res/drawable/ic_baseline_camera_alt_24.xml" value="0.2535" />
+        <entry key="app/src/main/res/drawable/ic_baseline_edit_24.xml" value="0.166" />
         <entry key="app/src/main/res/drawable/ic_export.xml" value="0.314" />
+        <entry key="app/src/main/res/drawable/selector_circle.xml" value="0.166" />
+        <entry key="app/src/main/res/drawable/selector_circle_widget.xml" value="0.166" />
         <entry key="app/src/main/res/drawable/selector_fully_rounded_rectangle.xml" value="0.197" />
         <entry key="app/src/main/res/drawable/selector_rounded_square.xml" value="0.197" />
+        <entry key="app/src/main/res/drawable/selector_rounded_top_left_rectangle.xml" value="0.166" />
+        <entry key="app/src/main/res/drawable/shape_circle_border.xml" value="0.252" />
+        <entry key="app/src/main/res/drawable/shape_circle_border_transparent.xml" value="0.252" />
         <entry key="app/src/main/res/drawable/shape_fully_rounded_rectangle.xml" value="0.197" />
         <entry key="app/src/main/res/drawable/shape_rounded_square.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/shape_rounded_top_left_rectangle.xml" value="0.197" />
         <entry key="app/src/main/res/drawable/shape_tab_bg.xml" value="0.197" />
         <entry key="app/src/main/res/drawable/shape_tab_indicator.xml" value="0.197" />
+        <entry key="app/src/main/res/layout/custom_dialog.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/dialog_camera.xml" value="0.378125" />
+        <entry key="app/src/main/res/layout/dialog_date_grid.xml" value="0.37916666666666665" />
+        <entry key="app/src/main/res/layout/dialog_date_select.xml" value="0.37916666666666665" />
+        <entry key="app/src/main/res/layout/dialog_expense.xml" value="0.3333333333333333" />
         <entry key="app/src/main/res/layout/dialog_expense_opt_section.xml" value="0.24682971014492755" />
+        <entry key="app/src/main/res/layout/dialog_input.xml" value="0.32971014492753625" />
+        <entry key="app/src/main/res/layout/dialog_receipt.xml" value="0.5" />
         <entry key="app/src/main/res/layout/dialog_recyclerview.xml" value="0.2391304347826087" />
         <entry key="app/src/main/res/layout/dialog_section.xml" value="0.21510416666666668" />
+        <entry key="app/src/main/res/layout/dialog_section_opt.xml" value="0.37916666666666665" />
         <entry key="app/src/main/res/layout/dialog_xrate.xml" value="0.25" />
         <entry key="app/src/main/res/layout/drawer_menu.xml" value="0.33" />
         <entry key="app/src/main/res/layout/dummy_nav_bar.xml" value="0.33242753623188404" />
@@ -161,13 +176,19 @@
         <entry key="app/src/main/res/layout/fragment_manage_cat.xml" value="0.33242753623188404" />
         <entry key="app/src/main/res/layout/item_cat_data.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_category_data.xml" value="0.3770833333333333" />
-        <entry key="app/src/main/res/layout/item_currency.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/item_currency.xml" value="0.33" />
         <entry key="app/src/main/res/layout/item_expense.xml" value="0.31354166666666666" />
+        <entry key="app/src/main/res/layout/item_icon_grid.xml" value="0.37916666666666665" />
+        <entry key="app/src/main/res/layout/item_receipt.xml" value="0.5" />
         <entry key="app/src/main/res/layout/item_section_filter.xml" value="0.31354166666666666" />
         <entry key="app/src/main/res/layout/item_section_grid.xml" value="0.24682971014492755" />
         <entry key="app/src/main/res/layout/item_section_list.xml" value="0.31354166666666666" />
+        <entry key="app/src/main/res/layout/progress_overlay.xml" value="0.378125" />
         <entry key="app/src/main/res/layout/summary.xml" value="0.19635416666666666" />
+        <entry key="app/src/main/res/layout/widget_squircle.xml" value="0.21510416666666668" />
+        <entry key="app/src/main/res/layout/widget_static.xml" value="0.33" />
         <entry key="app/src/main/res/menu/home_menu.xml" value="0.2453125" />
+        <entry key="app/src/main/res/xml/network_security_config.xml" value="0.2109375" />
         <entry key="app/src/main/res/xml/searchable.xml" value="0.33242753623188404" />
       </map>
     </option>
