@@ -118,6 +118,10 @@ public class Expense {
         Expense expense = (Expense) o;
         return id == expense.id;
     }
+    @Override
+    public String toString() {
+        return String.format("Expense %s: %.2f at %s (%s,%s)", description, amount, getDatetimeStr(), account.getName(), category.getName());
+    }
 
 
 }

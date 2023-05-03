@@ -47,6 +47,10 @@ public class Category extends Section {
     public Category copy() {
         return new Category(context, id, name, icon, color, position);
     }
+    @Override
+    public String toString() {
+        return String.format("Category %d: %s (%s,%s)", id, name, icon, color);
+    }
 
     /**
      * GETTERS/SETTERS
