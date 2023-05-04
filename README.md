@@ -15,7 +15,6 @@ A simple expense tracker for android which has three pages.
 - Favourites shortcut
 
 ## Potential features
-- Load on scroll
 - Calendar section in CHARTS page
 
 ## Bug fixes
