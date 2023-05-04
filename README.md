@@ -6,6 +6,11 @@ A simple expense tracker for android which has three pages.
 
 <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-home.png?raw=true" alt="Home Page" width="180"/> <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-expense.png?raw=true" alt="Add expense" width="180"/> <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-piechart.png?raw=true" alt="Piechart" width="180"/> <img src="https://github.com/rachung2510/ExpenseTracker/blob/master/screenshots/screenshot-graph.png?raw=true" alt="Graph of expenses over time" width="180"/>
 
+## Features
+- Widget
+- Receipt OCR
+- Multiple currencies
+
 ## Todo
 - Favourites shortcut
 
