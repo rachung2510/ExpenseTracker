@@ -205,7 +205,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public ArrayList<Expense> getSortedFilteredExpenses(ArrayList<Account> accs, ArrayList<Category> cats, int direction, String search) {
         ArrayList<Expense> expenses = new ArrayList<>();
         String KEY_DIRECTION = (direction == Constants.ASCENDING) ? "ASC" : "DESC";
-        String query = getQueryFromFilters("*", accs, cats, KEY_DATETIME + " " + KEY_DIRECTION, search);
+        String query = getQueryFromFilters("*", accs, cats, KEY_DATETIME + " " + KEY_DIRECTION, "", search);
         Cursor c = getCursorFromQueryOrNull(query, "");
         if (c == null)
             return expenses;
@@ -620,8 +620,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (c.moveToFirst()) name = c.getString(0);
         return name;
     }
-    public String getQueryFromFilters(String select, ArrayList<Account> accs, ArrayList<Category> cats, String order, String search) {
-        return getQueryFromFiltersInDateRange(select, accs, cats, null, null, order, "", search);
+    public String getQueryFromFilters(String select, ArrayList<Account> accs, ArrayList<Category> cats, String order, String group, String search) {
+        return getQueryFromFiltersInDateRange(select, accs, cats, null, null, order, group, search);
     }
     public String getQueryFromFiltersInDateRange(String select, ArrayList<Account> accs, ArrayList<Category> cats, Calendar from, Calendar to, String order, String group, String search) {
 
@@ -930,9 +930,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     public float getConvertedTotalAmt(String search) {
         float totalAmt = 0;
-        String query = getQueryFromFiltersInDateRange(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")",
+        String query = getQueryFromFilters(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")",
                 new ArrayList<>(), new ArrayList<>(),
-                null, null, KEY_ACC_ID, "", search);
+                "", KEY_ACC_ID, search);
         Cursor c = getCursorFromQueryOrNull(query,"");
         if (c == null)
             return totalAmt;
@@ -948,7 +948,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         float totalAmt = 0;
         String query = getQueryFromFiltersInDateRange(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")",
                 new ArrayList<>(), new ArrayList<>(),
-                from, to, KEY_ACC_ID, "", search);
+                from, to, "", KEY_ACC_ID, search);
+        Log.e(TAG, query);
         Cursor c = getCursorFromQueryOrNull(query,"");
         if (c == null)
             return totalAmt;
@@ -964,7 +965,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (accs.isEmpty() && cats.isEmpty()) // no filters
             return getConvertedTotalAmt(search);
         float totalAmt = 0;
-        String query = getQueryFromFiltersInDateRange(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")", accs, cats, null, null, KEY_ACC_ID, "", search);
+        String query = getQueryFromFilters(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")",
+                accs, cats, "", KEY_ACC_ID, search);
         Cursor c = getCursorFromQueryOrNull(query, "");
         if (c == null)
             return totalAmt;
@@ -980,7 +982,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (accs.isEmpty() && cats.isEmpty()) // no filters
             return getConvertedTotalAmtInDateRange(from, to, search);
         float totalAmt = 0;
-        String query = getQueryFromFiltersInDateRange(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")", accs, cats, from, to, KEY_ACC_ID, "", search);
+        String query = getQueryFromFiltersInDateRange(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")", accs, cats, from, to, "", KEY_ACC_ID, search);
         Cursor c = getCursorFromQueryOrNull(query, "");
         if (c == null)
             return totalAmt;
@@ -1022,8 +1024,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         HashMap<String, Float> dateAmtMap = new HashMap<>();
         String query = getQueryFromFiltersInDateRange(
                 KEY_ACC_ID + ", strftime('" + dateFormat + "', " + KEY_DATETIME + "), SUM(" + KEY_AMOUNT + ")",
-                accs, cats, from, to, KEY_ACC_ID,
+                accs, cats, from, to,
                 "strftime('" + dateFormat + "', " + KEY_DATETIME + "), " + KEY_ACC_ID,
+                KEY_ACC_ID,
                 "");
         Cursor c = getCursorFromQueryOrNull(query, "");
         if (c == null)
