@@ -58,7 +58,6 @@ def smooth_contour_points(contour, delta=10):
     return c
 
 def get_four_points(coords, delta=50):
-
     def filter_corners(coords, points, delta):
         (left,right,top,bottom) = points
         corners = []
