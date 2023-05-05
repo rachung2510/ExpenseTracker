@@ -53,7 +53,10 @@
             android:layout_marginTop="10dp"
             android:layout_marginBottom="-5dp"
             android:layout_gravity="start"
-            tools:listitem="@layout/item_section_filter"/>
+            tools:listitem="@layout/item_section_filter"
+            app:layoutManager="com.google.android.flexbox.FlexboxLayoutManager"
+            tools:orientation="horizontal"
+            tools:itemCount="6"/>
 
 <!--    expense list-->
         <androidx.recyclerview.widget.RecyclerView

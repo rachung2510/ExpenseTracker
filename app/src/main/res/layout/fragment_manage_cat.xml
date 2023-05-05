@@ -16,6 +16,8 @@
         android:layout_marginRight="15dp"
         android:paddingBottom="15dp"
         android:clipToPadding="false"
-        tools:listitem="@layout/item_section_grid"/>
+        tools:listitem="@layout/item_section_grid"
+        tools:layoutManager="GridLayoutManager"
+        tools:spanCount="3"/>
 
 </FrameLayout>

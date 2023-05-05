@@ -156,7 +156,10 @@
         <entry key="app/src/main/res/drawable/shape_rounded_top_left_rectangle.xml" value="0.197" />
         <entry key="app/src/main/res/drawable/shape_tab_bg.xml" value="0.197" />
         <entry key="app/src/main/res/drawable/shape_tab_indicator.xml" value="0.197" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.37916666666666665" />
+        <entry key="app/src/main/res/layout/content_main.xml" value="0.37916666666666665" />
         <entry key="app/src/main/res/layout/custom_dialog.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/custom_marker_view_layout.xml" value="0.37916666666666665" />
         <entry key="app/src/main/res/layout/dialog_camera.xml" value="0.378125" />
         <entry key="app/src/main/res/layout/dialog_date_grid.xml" value="0.37916666666666665" />
         <entry key="app/src/main/res/layout/dialog_date_select.xml" value="0.37916666666666665" />
@@ -168,6 +171,7 @@
         <entry key="app/src/main/res/layout/dialog_section.xml" value="0.21510416666666668" />
         <entry key="app/src/main/res/layout/dialog_section_opt.xml" value="0.37916666666666665" />
         <entry key="app/src/main/res/layout/dialog_xrate.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/drawer_header.xml" value="0.37916666666666665" />
         <entry key="app/src/main/res/layout/drawer_menu.xml" value="0.33" />
         <entry key="app/src/main/res/layout/dummy_nav_bar.xml" value="0.33242753623188404" />
         <entry key="app/src/main/res/layout/empty_view.xml" value="0.33242753623188404" />
@@ -178,6 +182,7 @@
         <entry key="app/src/main/res/layout/fragment_manage.xml" value="0.33242753623188404" />
         <entry key="app/src/main/res/layout/fragment_manage_acc.xml" value="0.31145833333333334" />
         <entry key="app/src/main/res/layout/fragment_manage_cat.xml" value="0.33242753623188404" />
+        <entry key="app/src/main/res/layout/fragment_manage_icon_grid.xml" value="0.37916666666666665" />
         <entry key="app/src/main/res/layout/item_cat_data.xml" value="0.1" />
         <entry key="app/src/main/res/layout/item_category_data.xml" value="0.3770833333333333" />
         <entry key="app/src/main/res/layout/item_currency.xml" value="0.33" />

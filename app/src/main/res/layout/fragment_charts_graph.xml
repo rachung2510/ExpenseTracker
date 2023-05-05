@@ -237,7 +237,10 @@
                 android:layout_marginLeft="15dp"
                 android:layout_marginTop="70dp"
                 android:layout_marginRight="15dp"
-                tools:listitem="@layout/item_section_filter" />
+                tools:listitem="@layout/item_section_filter"
+                app:layoutManager="com.google.android.flexbox.FlexboxLayoutManager"
+                tools:orientation="horizontal"
+                tools:itemCount="6"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/expenseList"

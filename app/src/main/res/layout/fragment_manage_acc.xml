@@ -14,6 +14,7 @@
         android:paddingBottom="10dp"
         android:clipToPadding="false"
         android:gravity="center"
-        tools:listitem="@layout/item_section_list"/>
+        tools:listitem="@layout/item_section_list"
+        tools:itemCount="5"/>
 
 </FrameLayout>
