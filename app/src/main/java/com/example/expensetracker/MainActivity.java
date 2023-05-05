@@ -1504,20 +1504,26 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 .addFormDataPart("apikey", apiKey)
                 .addFormDataPart("language", "eng")
                 .addFormDataPart("isOverlayRequired", "false")
+                .addFormDataPart("detectOrientation", "true")
                 .addFormDataPart("scale", "true")
-                .addFormDataPart("OCREngine", Integer.toString(2))
+                .addFormDataPart("isTable", "true")
+                .addFormDataPart("OCREngine", "2")
                 .build();
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
                 .build();
         showOverlay.accept(true);
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build();
         client.newCall(request)
                 .enqueue(new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "HTTP request failed.", Toast.LENGTH_SHORT).show());
+                        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "Error: " + e, Toast.LENGTH_SHORT).show());
                         showOverlay.accept(false);
                         if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
                     }
@@ -1591,56 +1597,24 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public static ArrayList<ReceiptItem> parseJSON(JSONObject res) {
         ArrayList<ReceiptItem> receiptItems = new ArrayList<>();
         try {
-            JSONArray lines = res.getJSONArray("ParsedResults")
+            String[] lines = res.getJSONArray("ParsedResults")
                     .getJSONObject(0)
-                    .getJSONObject("TextOverlay")
-                    .getJSONArray("Lines");
-
-            // Save items and amounts
-            Pattern pattern = Pattern.compile("([0-9]+[\\.,][0-9]+)", Pattern.CASE_INSENSITIVE);
-            ArrayList<Pair<String,Float>> itemDist = new ArrayList<>();
-            ArrayList<Pair<Float,Float>> amtDist = new ArrayList<>();
-            float delta = 0f;
-            float prevDist = 0f;
-            for (int i = 0; i < lines.length(); i++) {
-                JSONObject obj = lines.getJSONObject(i);
-                String line = obj.getString("LineText");
-                float dist = Float.parseFloat(obj.getString("MinTop"));
-                Matcher matcher = pattern.matcher(line);
-                Log.e(TAG, "line=" + line + ", dist=" + dist);
-                if (matcher.find()) { // amount
-                    float amount = Float.parseFloat(matcher.group(1));
-                    if (line.charAt(0) == '-') amount = -amount;
-                    amtDist.add(new Pair<>(amount, dist));
-                    if (prevDist != 0f) {
-                        float diff = Math.abs(dist - prevDist);
-                        delta = Math.max(diff, delta);
-                    }
-                    prevDist = dist;
-                } else { // string
-                    itemDist.add(new Pair<>(line, dist));
-                }
-            }
-
-            // Match amount to item based on height
-            delta /= 4;
-            Log.e(TAG, "delta=" + delta);
-            for (Pair<Float,Float> amtPair : amtDist) {
-                boolean matched = false;
-                for (Pair<String, Float> itemPair : itemDist) {
-                    if (amtPair.second < (itemPair.second - delta) || amtPair.second > (itemPair.second + delta))
-                        continue;
-                    Log.e(TAG, String.format("item=%s (%.0f), amt=%.2f (%.0f)", itemPair.first, itemPair.second, amtPair.first, amtPair.second));
-                    receiptItems.add(new ReceiptItem(itemPair.first, amtPair.first));
-                    matched = true;
-                    break;
-                }
-                if (!matched) receiptItems.add(new ReceiptItem("", amtPair.first));
+                    .getString("ParsedText")
+                    .split("\r\n");
+            Pattern pattern = Pattern.compile("([0-9]+[\\.,][0-9]+)");
+            for (String line : lines) {
+                String[] components = line.split("\t");
+                if (components.length < 2) continue;
+                Matcher matcher = pattern.matcher(components[1]);
+                if (!matcher.find()) continue;
+                String item = components[0];
+                float amount = Float.parseFloat(matcher.group());
+                if (components[1].charAt(0) == '-') amount = -amount;
+                receiptItems.add(new ReceiptItem(item, amount));
             }
         } catch (JSONException e) {
             Log.e(TAG, e.toString());
             e.printStackTrace();
-            return receiptItems;
         }
         return receiptItems;
     }
