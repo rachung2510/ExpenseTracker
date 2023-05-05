@@ -12,7 +12,6 @@ A simple expense tracker for android which has three pages.
 - Multiple currencies
 
 ## Todo
-- Favourites shortcut
 
 ## Potential features
 - Calendar section in CHARTS page
