@@ -22,6 +22,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -34,6 +36,7 @@ import com.example.expensetracker.BuildConfig;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.Expense;
+import com.example.expensetracker.Favourite;
 import com.example.expensetracker.HelperClasses.FileUtils;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.MainActivity;
@@ -58,9 +61,10 @@ public class WidgetDialogActivity extends AppCompatActivity {
     // Dialog components
     private AlertDialog.Builder dialogBuilder;
     private AlertDialog progressDialog;
-    private EditText expAmt, expDesc;
+    private EditText expAmt;
+    private AutoCompleteTextView expDesc;
     private TextView expAccName, expCatName, expDate, expCurr;
-    private ImageButton expAccIcon, expCatIcon, scanReceiptBtn, receiptCatIcon;
+    private ImageButton expAccIcon, expCatIcon, scanReceiptBtn, favouritesBtn, receiptCatIcon;
     private LinearLayout expAccBox, expCatBox, expDelBtn, expDateBtn, expSave;
     private ReceiptItemAdapter receiptItemAdapter = null;
 
@@ -98,8 +102,37 @@ public class WidgetDialogActivity extends AppCompatActivity {
         expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex())); // set bg color
         expCatBox.setBackgroundColor(Color.parseColor("#" + cat.getColorHex()));
         expCurr.setText(acc.getCurrencySymbol());
+        String[] favourites = MainActivity.getAllFavourites(this);
+        if (favourites.length > 0) {
+            ArrayAdapter<String> favAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favourites);
+            expDesc.setAdapter(favAdapter);
+            expDesc.setOnItemClickListener((parent, view, position, id) -> {
+                String selected = (String) parent.getItemAtPosition(position);
+                Favourite action = MainActivity.getFavourite(this, selected);
+                if (action == null) return;
+                setFavouriteViews(action);
+            });
+        }
 
         // actions
+        favouritesBtn.setOnClickListener(view -> {
+            if (receiptItemAdapter != null) return;
+            String desc = expDesc.getText().toString();
+            if (desc.isEmpty()) {
+                Toast.makeText(this, "Description cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (isFavourite()) {
+                MainActivity.removeFavourite(this, desc);
+                toggleFavouritesBtn(false);
+            } else {
+                MainActivity.setFavourite(this, desc, new Favourite(
+                        expAccName.getText().toString(),
+                        expCatName.getText().toString(),
+                        expAmt.getText().toString()));
+                toggleFavouritesBtn(true);
+            }
+        });
         expAccBox.setOnClickListener(view -> {
             AccountAdapter accAdapter = getAccountData();
             accAdapter.setSelected(expAccName.getText().toString());
@@ -224,6 +257,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         });
         expCurr = expView.findViewById(R.id.newExpCurrency);
         scanReceiptBtn = expView.findViewById(R.id.scanReceiptBtn);
+        favouritesBtn = expView.findViewById(R.id.favouritesBtn);
 
         return expDialog;
     }
@@ -349,6 +383,49 @@ public class WidgetDialogActivity extends AppCompatActivity {
     }
 
     /**
+     * Favourites
+     */
+    private boolean isFavourite() {
+        return MainActivity.isFavourite(this, expDesc.getText().toString());
+    }
+    private void setFavouriteViews(Favourite favourite) {
+        toggleFavouritesBtn(true);
+
+        String accName = favourite.getAccName();
+        if (!accName.isEmpty()) {
+            Account acc = db.getAccount(accName);
+            if (acc.getId() != -1) {
+                expAccName.setText(acc.getName());
+                expAccIcon.setForeground(acc.getIcon());
+                expAccIcon.setForegroundTintList(MainActivity.getColorStateListFromName(this, acc.getColorName()));
+                expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex()));
+                expCurr.setText(acc.getCurrencySymbol());
+            }
+        }
+
+        if (receiptItemAdapter != null) return;
+
+        String catName = favourite.getCatName();
+        if (!catName.isEmpty() && receiptItemAdapter == null) {
+            Category cat = db.getCategory(catName);
+            if (cat.getId() != -1) {
+                expCatName.setText(cat.getName());
+                expCatIcon.setForeground(cat.getIcon());
+                expCatIcon.setForegroundTintList(MainActivity.getColorStateListFromHex(cat.getColorHex()));
+                expCatBox.setBackgroundColor(cat.getColor());
+            }
+        }
+
+        String amount = favourite.getAmount();
+        if (amount.isEmpty()) return;
+        expAmt.setText(amount);
+    }
+    private void toggleFavouritesBtn(boolean show) {
+        int id = (show) ? R.drawable.ic_baseline_star_24 : R.drawable.ic_baseline_star_outline_24;
+        favouritesBtn.setImageResource(id);
+    }
+
+    /**
      * Helper Functions
      */
     public void showKeyboard(EditText view) {
@@ -375,7 +452,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                     expAmt.setText(String.format(MainActivity.locale, "%.2f", receiptItemAdapter.getTotalAmt()));
                     expAmt.setSelection(expAmt.getText().length()); // set cursor to end of text
-                    scanReceiptBtn.setBackground(MainActivity.getIconFromId(WidgetDialogActivity.this, R.drawable.ic_baseline_edit_24));
+                    scanReceiptBtn.setImageResource(R.drawable.ic_baseline_edit_24);
                     expCatIcon.setForeground(MainActivity.getIconFromId(WidgetDialogActivity.this, R.drawable.cat_multi));
                     expCatName.setText(R.string.multiple);
                 })

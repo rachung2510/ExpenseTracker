@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.util.Log;
-import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -31,6 +30,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -75,8 +75,8 @@ import com.example.expensetracker.Widget.WidgetDialogActivity;
 import com.example.expensetracker.Widget.WidgetStaticActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.gson.Gson;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -93,6 +93,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -110,11 +112,13 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
     public static String TAG = "MainActivity";
 
-    // Main components
+    // Components
     public DatabaseHelper db = new DatabaseHelper(this);
     public static Locale locale = Locale.getDefault();
     private HashMap<Integer, String> iconMap = new HashMap<>();
     private HashMap<Integer, String> colorMap = new HashMap<>();
+    private static Uri imageUri;
+    private ReceiptItemAdapter receiptItemAdapter = null;
 
     // Side menu
     private TextView sideMenuValueCurr, sideMenuValueFirst;
@@ -123,9 +127,10 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     // Dialog components
     private AlertDialog.Builder dialogBuilder;
     private AlertDialog progressDialog;
-    private EditText expAmt, expDesc, sectionName;
+    private EditText expAmt, sectionName;
+    private AutoCompleteTextView expDesc;
     private TextView expAccName, expCatName, expDate, sectionType, expCurr, sectionCurr;
-    private ImageButton expAccIcon, expCatIcon, scanReceiptBtn, sectionIcon, receiptCatIcon;
+    private ImageButton expAccIcon, expCatIcon, scanReceiptBtn, favouritesBtn, sectionIcon, receiptCatIcon;
     private LinearLayout expAccBox, expCatBox, expDelBtn, expDateBtn, expSaveBtn, sectionBanner, sectionCurrRow, sectionDelBtn, sectionSaveBtn;
 
     // Fragments
@@ -133,10 +138,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     private ViewPager2 viewPager;
     private ViewPagerAdapter adapter;
     private boolean updateFragments = false;
-
-    // Others
-    private static Uri imageUri;
-    private ReceiptItemAdapter receiptItemAdapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -448,6 +449,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         });
         expCurr = expView.findViewById(R.id.newExpCurrency);
         scanReceiptBtn = expView.findViewById(R.id.scanReceiptBtn);
+        favouritesBtn = expView.findViewById(R.id.favouritesBtn);
 
         return expDialog;
     }
@@ -708,8 +710,20 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         expAccBox.setBackgroundColor(acc.getColor()); // set bg color
         expCatBox.setBackgroundColor(cat.getColor());
         expCurr.setText(acc.getCurrencySymbol());
+        String[] favourites = getAllFavourites(this);
+        if (favourites.length > 0) {
+            ArrayAdapter<String> favAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favourites);
+            expDesc.setAdapter(favAdapter);
+            expDesc.setOnItemClickListener((parent, view, position, id) -> {
+                String selected = (String) parent.getItemAtPosition(position);
+                Favourite action = getFavourite(this, selected);
+                if (action == null) return;
+                setFavouriteViews(action);
+            });
+        }
 
         // actions
+        favouritesBtn.setOnClickListener(favouritesListener);
         expAccBox.setOnClickListener(view -> {
             AccountAdapter accAdapter = getAccountData();
             accAdapter.setSelected(expAccName.getText().toString());
@@ -819,6 +833,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         expDate.setText(getString(R.string.full_date,getRelativePrefix(exp.getDatetime()),exp.getDatetimeStr("dd MMMM yyyy")).toUpperCase());
 
         // actions
+        favouritesBtn.setOnClickListener(favouritesListener);
         expAccBox.setOnClickListener(view -> {
             AccountAdapter accAdapter = getAccountData();
             accAdapter.setSelected(expAccName.getText().toString());
@@ -1080,6 +1095,24 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
         dialog.show();
     }
+    private final View.OnClickListener favouritesListener = view -> {
+        if (receiptItemAdapter != null) return;
+        String desc = expDesc.getText().toString();
+        if (desc.isEmpty()) {
+            Toast.makeText(this, "Description cannot be empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (isFavourite()) {
+            removeFavourite(this, desc);
+            toggleFavouritesBtn(false);
+        } else {
+            setFavourite(this, desc, new Favourite(
+                    expAccName.getText().toString(),
+                    expCatName.getText().toString(),
+                    expAmt.getText().toString()));
+            toggleFavouritesBtn(true);
+        }
+    };
 
     /**
      * Helper functions
@@ -1285,6 +1318,79 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             String color = Constants.defaultCatColors[idx];
             db.createCategory(new Category(this,idx+1,name,icon,color,getNewPosCat()),true);
         }
+    }
+
+    /**
+     * User favourites
+     */
+    public static void setFavourite(Context context, String description, Favourite action) {
+        SharedPreferences pref = context.getSharedPreferences(Constants.FAVOURITES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(action, Favourite.class);
+        editor.putString(description, json);
+        editor.apply();
+    }
+    public static void removeFavourite(Context context, String description) {
+        SharedPreferences pref = context.getSharedPreferences(Constants.FAVOURITES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.remove(description);
+        editor.apply();
+    }
+    public static String[] getAllFavourites(Context context) {
+        SharedPreferences pref = context.getSharedPreferences(Constants.FAVOURITES, Context.MODE_PRIVATE);
+        Set<String> set = pref.getAll().keySet();
+        String[] favourites = new String[set.size()];
+        return set.toArray(favourites);
+    }
+    public static Favourite getFavourite(Context context, String description) {
+        SharedPreferences pref = context.getSharedPreferences(Constants.FAVOURITES, Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = pref.getString(description, "");
+        if (json.isEmpty()) return null;
+        return gson.fromJson(json, Favourite.class);
+    }
+    public static boolean isFavourite(Context context, String desc) {
+        return (getFavourite(context, desc) != null);
+    }
+    private boolean isFavourite() {
+        return isFavourite(this, expDesc.getText().toString());
+    }
+    private void setFavouriteViews(Favourite favourite) {
+        toggleFavouritesBtn(true);
+
+        String accName = favourite.getAccName();
+        if (!accName.isEmpty()) {
+            Account acc = db.getAccount(accName);
+            if (acc.getId() != -1) {
+                expAccName.setText(acc.getName());
+                expAccIcon.setForeground(acc.getIcon());
+                expAccIcon.setForegroundTintList(getColorStateListFromName(this, acc.getColorName()));
+                expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex()));
+                expCurr.setText(acc.getCurrencySymbol());
+            }
+        }
+
+        if (receiptItemAdapter != null) return;
+
+        String catName = favourite.getCatName();
+        if (!catName.isEmpty()) {
+            Category cat = db.getCategory(catName);
+            if (cat.getId() != -1) {
+                expCatName.setText(cat.getName());
+                expCatIcon.setForeground(cat.getIcon());
+                expCatIcon.setForegroundTintList(getColorStateListFromHex(cat.getColorHex()));
+                expCatBox.setBackgroundColor(cat.getColor());
+            }
+        }
+
+        String amount = favourite.getAmount();
+        if (amount.isEmpty()) return;
+        expAmt.setText(amount);
+    }
+    private void toggleFavouritesBtn(boolean show) {
+        int id = (show) ? R.drawable.ic_baseline_star_24 : R.drawable.ic_baseline_star_outline_24;
+        favouritesBtn.setImageResource(id);
     }
 
     /**
@@ -1580,7 +1686,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                     expAmt.setText(String.format(MainActivity.locale, "%.2f", receiptItemAdapter.getTotalAmt()));
                     expAmt.setSelection(expAmt.getText().length()); // set cursor to end of text
-                    scanReceiptBtn.setBackground(getIconFromId(MainActivity.this, R.drawable.ic_baseline_edit_24));
+                    scanReceiptBtn.setImageResource(R.drawable.ic_baseline_edit_24);
                     expCatIcon.setForeground(getIconFromId(MainActivity.this, R.drawable.cat_multi));
                     expCatName.setText(R.string.multiple);
                 })

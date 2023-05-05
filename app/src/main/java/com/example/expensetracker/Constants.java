@@ -2,7 +2,6 @@ package com.example.expensetracker;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import kotlin.Triple;
 
 public class Constants {
 
@@ -28,9 +27,9 @@ public class Constants {
             "cat_cyanite", "cat_lotus_pink", "cat_june_bud",
             "cat_fiery_fuchsia", "cat_nasu_purple"
     };
-    public static final String[] defaultAccNames = new String[] { "Cash", "VISA", "NETS" };
-    public static final String[] defaultAccIcons = new String[] { "acc_cash", "acc_visa", "acc_nets" };
-    public static final String[] defaultAccColors = new String[] { "cat_pure_apple", "cat_bluebell", "cat_amour" };
+    public static final String[] defaultAccNames = new String[] { "Cash", "VISA", "MasterCard" };
+    public static final String[] defaultAccIcons = new String[] { "acc_cash", "acc_visa", "acc_master" };
+    public static final String[] defaultAccColors = new String[] { "cat_pure_apple", "cat_bluebell", "cat_synthetic_pumpkin" };
     public static final String[] allColors = new String[] {
             "cat_amour", "cat_pastel_red", "cat_synthetic_pumpkin", "cat_dragon_skin", "cat_casandora_yellow",
             "cat_june_bud", "cat_android_green", "cat_pure_apple", "cat_pixelated_grass", "cat_green_800",
@@ -76,8 +75,6 @@ public class Constants {
     // Account/Category
     public static final int SECTION_ACCOUNT = 0;
     public static final int SECTION_CATEGORY = 1;
-    public static String defaultAccount = "Cash";
-    public static String defaultCategory = "Others";
 
     // Date navigation
     public static final int PREV = -1;
@@ -85,6 +82,9 @@ public class Constants {
     public static final int ASCENDING = 1;
     public static final int DESCENDING = -1;
 
+    // SharedPreferences
     public static final String SETTINGS = "settings";
+    public static final String FAVOURITES = "favorites";
     public static final String TMP = "tmp";
+
 }

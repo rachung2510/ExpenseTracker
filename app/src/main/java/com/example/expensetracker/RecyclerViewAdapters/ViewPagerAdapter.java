@@ -33,17 +33,6 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
     @Override
     public Fragment createFragment(int position) {
         return fragments.get(position);
-//        switch (position) {
-//            case Constants.HOME:
-//                return new HomeFragment();
-//            case Constants.CHARTS:
-//                return new ChartsFragment();
-//            case Constants.MANAGE:
-//                return new ManageFragment();
-//            default:
-//                break;
-//        }
-//        return null;
     }
 
     public void addFragment(Fragment fragment) {

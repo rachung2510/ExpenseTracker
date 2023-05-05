@@ -13,9 +13,12 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -38,6 +41,7 @@ import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.Expense;
+import com.example.expensetracker.Favourite;
 import com.example.expensetracker.HelperClasses.FileUtils;
 import com.example.expensetracker.HelperClasses.MoneyValueFilter;
 import com.example.expensetracker.MainActivity;
@@ -115,6 +119,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
                 scanReceipt();
                 break;
 
+            case WidgetStaticProvider.FAVOURITES:
+                favourites();
+                break;
+
             default:
                 break;
         }
@@ -165,22 +173,38 @@ public class WidgetStaticActivity extends AppCompatActivity {
         dialog.show();
     }
     public void editDescription() {
-        View view = getLayoutInflater().inflate(R.layout.dialog_input, null);
-        EditText input = view.findViewById(R.id.input);
-        input.setHint(getString(R.string.hint_description));
+        View view = getLayoutInflater().inflate(R.layout.dialog_autocomplete_input, null);
+        AutoCompleteTextView input = view.findViewById(R.id.input);
         String storedValue = getStringValue(KEY_DESC);
         if (!storedValue.isEmpty())
             input.setText(storedValue);
+        else
+            input.setHint(getString(R.string.hint_description));
         input.setSelection(input.getText().length()); // set cursor to end of text
+
+        RemoteViews views = getRemoteViews();
+        // favourites
+        String[] favourites = MainActivity.getAllFavourites(this);
+        if (favourites.length > 0) {
+            ArrayAdapter<String> favAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favourites);
+            input.setAdapter(favAdapter);
+            input.setOnItemClickListener((adapterView, view1, i, l) -> {
+                String selected = (String) adapterView.getItemAtPosition(i);
+                input.setText(selected);
+            });
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Description")
                 .setView(view)
                 .setOnDismissListener(dialogInterface -> {
                     hideKeyboard(input);
-                    RemoteViews views = getRemoteViews();
+//                    views.setTextViewText(R.id.newExpDesc, input.getText().toString());
+                    storeValue(KEY_DESC, input.getText().toString());
+                    Favourite action = MainActivity.getFavourite(this, input.getText().toString());
+                    if (action != null) setFavouriteViews(views, action);
                     views.setTextViewText(R.id.newExpDesc, input.getText().toString());
                     updateView(views);
-                    storeValue(KEY_DESC, input.getText().toString());
                     finish();
                 });
         AlertDialog dialog = builder.create();
@@ -292,6 +316,29 @@ public class WidgetStaticActivity extends AppCompatActivity {
         } else {
             chooseReceiptItems(adapter.getReceiptItems());
         }
+    }
+    public void favourites() {
+        if (getReceiptItemAdapter() != null) return;
+        String desc = getStringValue(KEY_DESC);
+        if (desc.isEmpty()) {
+            Toast.makeText(this, "Description cannot be empty", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        if (isFavourite()) {
+            MainActivity.removeFavourite(this, desc);
+            toggleFavouritesBtn(false);
+        } else {
+            String accName = getStringValue(KEY_ACC);
+            String catName = getStringValue(KEY_CAT);
+            float amount = getFloatValue(KEY_AMT);
+            MainActivity.setFavourite(this, desc, new Favourite(
+                    (accName.isEmpty()) ? db.getDefaultAccName() : accName,
+                    (catName.isEmpty()) ? db.getDefaultCatName() : catName,
+                    (amount > 0f) ? String.format(MainActivity.locale, "%.2f", amount) : ""));
+            toggleFavouritesBtn(true);
+        }
+        finish();
     }
 
     /**
@@ -515,5 +562,59 @@ public class WidgetStaticActivity extends AppCompatActivity {
     }
     public void hideProgressOverlay() {
         progressDialog.dismiss();
+    }
+
+    /**
+     * Favourites
+     */
+    private boolean isFavourite() {
+        return MainActivity.isFavourite(this, getStringValue(KEY_DESC));
+    }
+    private void setFavouriteViews(RemoteViews views, Favourite favourite) {
+        toggleFavouritesBtn(views, true);
+
+        String accName = favourite.getAccName();
+        if (!accName.isEmpty()) {
+            Account acc = db.getAccount(accName);
+            if (acc.getId() != -1) {
+                views.setTextViewText(R.id.newExpAccName, acc.getName());
+                views.setInt(R.id.newExpAccBox,"setColorFilter", acc.getColor());
+                views.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
+                views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(acc.getIcon()));
+                views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
+                updateView(views);
+                storeValue(KEY_ACC, acc.getName());
+            }
+        }
+
+        if (getReceiptItemAdapter() != null) return;
+
+        String catName = favourite.getCatName();
+        if (!catName.isEmpty()) {
+            Category cat = db.getCategory(catName);
+            if (cat.getId() != -1) {
+                views.setTextViewText(R.id.newExpCatName, cat.getName());
+                views.setInt(R.id.newExpCatBox,"setColorFilter", cat.getColor());
+                views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(cat.getIcon()));
+                views.setInt(R.id.newExpCatIcon,"setColorFilter", cat.getColor());
+                updateView(views);
+                storeValue(KEY_CAT, cat.getName());
+            }
+        }
+
+        String amount = favourite.getAmount();
+        if (!amount.isEmpty()) {
+            views.setTextViewText(R.id.newExpAmt, amount);
+            storeValue(KEY_AMT, Float.parseFloat(amount));
+        }
+    }
+    private void toggleFavouritesBtn(RemoteViews views, boolean show) {
+        int id = (show) ? R.drawable.ic_baseline_star_24 : R.drawable.ic_baseline_star_outline_24;
+        views.setImageViewBitmap(R.id.favouritesBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(this, id)));
+        updateView(views);
+    }
+    private void toggleFavouritesBtn(boolean show) {
+        RemoteViews views = getRemoteViews();
+        toggleFavouritesBtn(views, show);
     }
 }

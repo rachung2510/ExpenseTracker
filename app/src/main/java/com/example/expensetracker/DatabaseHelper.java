@@ -20,7 +20,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -949,7 +948,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String query = getQueryFromFiltersInDateRange(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")",
                 new ArrayList<>(), new ArrayList<>(),
                 from, to, "", KEY_ACC_ID, search);
-        Log.e(TAG, query);
+//        Log.e(TAG, query);
         Cursor c = getCursorFromQueryOrNull(query,"");
         if (c == null)
             return totalAmt;

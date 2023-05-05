@@ -244,6 +244,18 @@
             </LinearLayout>
 
             <ImageButton
+                android:id="@+id/favouritesBtn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="5dp"
+                android:background="@drawable/shape_circle"
+                android:backgroundTint="@color/white"
+                android:src="@drawable/ic_baseline_star_outline_24"
+                tools:ignore="ContentDescription" />
+
+            <ImageButton
                 android:id="@+id/scanReceiptBtn"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -333,7 +345,7 @@
                     android:backgroundTint="#feeec1"
                     android:clickable="false"
                     android:foreground="@drawable/ic_action_update"
-                    android:foregroundTint="#febd15"
+                    android:foregroundTint="@color/yellow"
                     android:scaleType="fitCenter"
                     android:src="@drawable/selector_circle_widget"
                     tools:ignore="ContentDescription" />

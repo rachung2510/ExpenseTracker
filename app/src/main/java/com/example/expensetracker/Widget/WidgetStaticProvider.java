@@ -32,6 +32,7 @@ public class WidgetStaticProvider extends AppWidgetProvider {
     public static final int SAVE = 6;
     public static final int UPDATE = 7;
     public static final int SCAN_RECEIPT = 8;
+    public static final int FAVOURITES = 9;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         // clear stored values
@@ -56,6 +57,7 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.newExpSave, getPendingIntent(context, SAVE));
         views.setOnClickPendingIntent(R.id.update, getPendingSelfIntent(context));
         views.setOnClickPendingIntent(R.id.scanReceiptBtn, getPendingIntent(context, SCAN_RECEIPT));
+        views.setOnClickPendingIntent(R.id.favouritesBtn, getPendingIntent(context, FAVOURITES));
 
         // configure default values
         DatabaseHelper db = new DatabaseHelper(context);
@@ -77,6 +79,7 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(cat.getIcon()));
         views.setInt(R.id.newExpCatIcon,"setColorFilter", cat.getColor());
         views.setImageViewBitmap(R.id.scanReceiptBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.ic_baseline_camera_alt_24)));
+        views.setImageViewBitmap(R.id.favouritesBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.ic_baseline_star_outline_24)));
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
