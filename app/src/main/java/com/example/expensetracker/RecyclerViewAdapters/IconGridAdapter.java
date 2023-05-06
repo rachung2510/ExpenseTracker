@@ -31,7 +31,7 @@ public class IconGridAdapter extends RecyclerView.Adapter<IconGridAdapter.ViewHo
     private int selectedPos;
 
     /**
-     * CONSTRUCTOR
+     * Constructor
      */
     public IconGridAdapter(Context context, String[] names, int selectedPos, int iconType) {
         this.names = names;
@@ -45,7 +45,7 @@ public class IconGridAdapter extends RecyclerView.Adapter<IconGridAdapter.ViewHo
     }
 
     /**
-     * INITIALISE ADAPTER
+     * Initialise adapter
      */
     @NonNull
     @Override
@@ -96,7 +96,7 @@ public class IconGridAdapter extends RecyclerView.Adapter<IconGridAdapter.ViewHo
     }
 
     /**
-     * VIEWHOLDER CLASS
+     * Viewholder class
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageButton iconBtn;
@@ -108,7 +108,7 @@ public class IconGridAdapter extends RecyclerView.Adapter<IconGridAdapter.ViewHo
     }
 
     /**
-     * GETTERS & SETTERS
+     * Getters & setters
      */
     public String getSelectedIcon() {
         if (selectedPos >=0 && selectedPos < getItemCount())

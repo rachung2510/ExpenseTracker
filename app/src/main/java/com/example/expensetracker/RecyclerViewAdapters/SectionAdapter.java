@@ -14,7 +14,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -51,7 +50,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     public void setItemTouchHelper(ItemTouchHelper itemTouchHelper) { this.itemTouchHelper = itemTouchHelper; }
 
     /**
-     * CONSTRUCTOR
+     * Constructor
      */
     public SectionAdapter(Context context, ArrayList<T> sections) {
         this.context = context;
@@ -75,7 +74,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     }
 
     /**
-     * INITIALISE ADAPTER
+     * Initialise adapter
      */
     @NonNull
     @Override
@@ -101,7 +100,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     }
 
     /**
-     * VIEWHOLDER CLASS
+     * Viewholder class
      */
     // ViewHolder class for expense options section grid
     public class GridViewHolder extends RecyclerView.ViewHolder {
@@ -317,7 +316,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     }
 
     /**
-     * FUNCTIONS
+     * Functions
      */
     public void clearAllSelected() {
         selectedPos.clear();

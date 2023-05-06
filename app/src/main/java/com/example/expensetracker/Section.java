@@ -12,7 +12,7 @@ public class Section {
     protected int position;
 
     /**
-     * CONSTRUCTORS
+     * Constructors
      */
     // no id given - create basic Section
     public Section(Context context, String name, String icon, String color, int pos) {
@@ -45,7 +45,7 @@ public class Section {
     }
 
     /**
-     * GETTERS
+     * Getters
      */
     public int getId() {
         return id;
@@ -70,7 +70,6 @@ public class Section {
     }
     public int getColorId() {
         return MainActivity.getColorIdFromName(context, color);
-//        return context.getResources().getIdentifier(color, "color", context.getPackageName());
     }
     public String getColorName() {
         return color;
@@ -78,7 +77,7 @@ public class Section {
     public int getPosition() { return position; }
 
     /**
-     * SETTERS
+     * Setters
      */
     public void setId(int id) {
         this.id = id;

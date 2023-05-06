@@ -1,5 +1,7 @@
 package com.example.expensetracker;
 
+import androidx.annotation.NonNull;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -118,9 +120,10 @@ public class Expense {
         Expense expense = (Expense) o;
         return id == expense.id;
     }
+    @NonNull
     @Override
     public String toString() {
-        return String.format("Expense %s: %.2f at %s (%s,%s)", description, amount, getDatetimeStr(), account.getName(), category.getName());
+        return String.format(MainActivity.locale, "Expense %s: %.2f at %s (%s,%s)", description, amount, getDatetimeStr(), account.getName(), category.getName());
     }
 
 

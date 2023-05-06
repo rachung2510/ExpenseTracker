@@ -31,7 +31,6 @@ public class CustomPieChartRenderer extends PieChartRenderer {
 
     @Override
     public void drawValues(Canvas c) {
-//        super.drawValues(c);
 
         MPPointF center = mChart.getCenterCircleBox();
 
@@ -80,9 +79,6 @@ public class CustomPieChartRenderer extends PieChartRenderer {
                 angle = angle + angleOffset;
 
                 final float transformedAngle = rotationAngle + angle * phaseY;
-
-//                float value = mChart.isUsePercentValuesEnabled() ? entry.getY()
-//                        / data.getYValueSum() * 100f : entry.getY();
 
                 final float sliceXBase = (float) Math.cos(transformedAngle * Utils.FDEG2RAD);
                 final float sliceYBase = (float) Math.sin(transformedAngle * Utils.FDEG2RAD);

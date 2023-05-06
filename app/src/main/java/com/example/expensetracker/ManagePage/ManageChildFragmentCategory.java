@@ -72,7 +72,7 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
             confirmReset.setTitle("Reset defaults")
                     .setMessage("Reset default categories?" + ((numExpenses == 0) ? "" :
                             " " + numExpenses + " expense(s) from " + context.db.getNumCategoriesNonDefault() +
-                                    " categorie(s) will be moved to " + context.getImmutableCat() + "."))
+                                    " categories will be moved to " + context.getImmutableCat() + "."))
                     .setPositiveButton("Reset", (dialogInterface, i) -> {
                         context.resetDefaultCats();
                         context.updateCategoryData();
@@ -107,7 +107,7 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
             confirmReset.setTitle("Reset defaults")
                     .setMessage("Reset default categories?" + ((numExpenses == 0) ? "" :
                             " " + numExpenses + " expense(s) from " + context.db.getNumCategoriesNonDefault() +
-                            " categorie(s) will be moved to " + context.getImmutableCat() + "."))
+                            " categories will be moved to " + context.getImmutableCat() + "."))
                     .setPositiveButton("Reset", (dialogInterface, i) -> {
                         context.resetDefaultCats();
                         context.updateCategoryData();

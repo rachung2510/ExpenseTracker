@@ -2,13 +2,15 @@ package com.example.expensetracker;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+
 public class Category extends Section {
 
     private float amount = -1;
     private int numExpenses = -1;
 
     /**
-     * CONSTRUCTORS
+     * Constructors
      */
     // no id given - create basic Category
     public Category(Context context, String name, String icon, String color, int pos) {
@@ -26,7 +28,7 @@ public class Category extends Section {
     }
 
     /**
-     * FUNCTIONS
+     * Functions
      */
     @Override
     public boolean equals(Object o) {
@@ -47,13 +49,14 @@ public class Category extends Section {
     public Category copy() {
         return new Category(context, id, name, icon, color, position);
     }
+    @NonNull
     @Override
     public String toString() {
-        return String.format("Category %d: %s (%s,%s)", id, name, icon, color);
+        return String.format(MainActivity.locale, "Category %d: %s (%s,%s)", id, name, icon, color);
     }
 
     /**
-     * GETTERS/SETTERS
+     * Getters/setters
      */
     public void setAmount(Float amount) {
         this.amount = amount;

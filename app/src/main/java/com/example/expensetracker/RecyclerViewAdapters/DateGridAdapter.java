@@ -31,7 +31,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     private static final String TAG = "DateGridAdapter";
     private final ArrayList<String> filterDateIconNames;
     private final ArrayList<String> filterDateNames;
-    private final ColorStateList iconGray, iconLightGray, iconWhite, bgNormal, bgSelectOrange;
+    private final ColorStateList iconGray, iconLightGray, iconWhite, bgSelectOrange;
 
     private final Context context;
     private final LayoutInflater inflater;
@@ -83,7 +83,6 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         iconGray = MainActivity.getColorStateListFromId(context, R.color.generic_icon_gray);
         iconLightGray = MainActivity.getColorStateListFromId(context, R.color.tag_bg_gray);
         iconWhite = MainActivity.getColorStateListFromId(context, R.color.white);
-        bgNormal = MainActivity.getColorStateListFromId(context, android.R.attr.colorBackgroundFloating);
         bgSelectOrange = MainActivity.getColorStateListFromId(context, R.color.select_med_orange);
     }
 

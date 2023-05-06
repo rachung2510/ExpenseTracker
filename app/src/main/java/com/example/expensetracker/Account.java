@@ -7,7 +7,7 @@ public class Account extends Section {
     private final Currency currency;
 
     /**
-     * CONSTRUCTORS
+     * Constructors
      */
     // no id given - create basic Account
     public Account(Context context, String name, String icon, String color, int pos) {
@@ -36,7 +36,7 @@ public class Account extends Section {
     }
 
     /**
-     * FUNCTIONS
+     * Functions
      */
     @Override
     public boolean equals(Object o) {
@@ -59,7 +59,7 @@ public class Account extends Section {
     }
 
     /**
-     * GETTERS/SETTERS
+     * Getters/setters
      */
     public String getCurrencyName() {
         return currency.getName();
