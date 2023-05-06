@@ -25,6 +25,9 @@ import java.util.Objects;
 
 public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAdapter> {
 
+    public ManageChildFragmentCategory() {
+        super();
+    }
     public ManageChildFragmentCategory(Context context) {
         super(context);
         this.sectionType = Constants.SECTION_CATEGORY;

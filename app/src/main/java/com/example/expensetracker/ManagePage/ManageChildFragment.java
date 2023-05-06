@@ -30,6 +30,7 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
     protected RecyclerView sectionList;
     protected int sectionType;
 
+    public ManageChildFragment() {}
     public ManageChildFragment(Context context) { this.context = context; }
     public void invalidateMenu() {}
 

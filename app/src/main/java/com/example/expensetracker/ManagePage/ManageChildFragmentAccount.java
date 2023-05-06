@@ -24,6 +24,9 @@ import java.util.Objects;
 
 public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapter> {
 
+    public ManageChildFragmentAccount() {
+        super();
+    }
     public ManageChildFragmentAccount(Context context) {
         super(context);
         this.sectionType = Constants.SECTION_ACCOUNT;

@@ -593,6 +593,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             return;
         }
 
+        if (from == null) return;
+
         String summaryDateText;
         float totalAmt;
         if (state == DateGridAdapter.ALL) {
