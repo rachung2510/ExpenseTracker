@@ -100,7 +100,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
      * Viewholder class
      */
     // ViewHolder class for normal expense entry
-    public class ItemViewHolder extends RecyclerView.ViewHolder {
+    private class ItemViewHolder extends RecyclerView.ViewHolder {
         TextView expAmt, expCurr, expDesc, expAccName, expCatName;
         ImageButton expCatIcon;
         ConstraintLayout expRow;
@@ -125,7 +125,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         public void deselect() {
-            expRow.setBackgroundColor(MainActivity.getColorFromId(context, android.R.attr.windowBackground));
+            expRow.setBackgroundColor(MainActivity.getColorFromId(context, android.R.attr.colorBackground));
         }
 
         public void toggleSelect(int position) {
@@ -134,7 +134,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
     }
-    public void populateItemRows(ItemViewHolder holder, int position) {
+    private void populateItemRows(ItemViewHolder holder, int position) {
         Expense exp = expenses.get(position);
         Category cat = exp.getCategory();
         holder.expAmt.setText(String.format(MainActivity.locale, "%.2f", exp.getAmount()));
@@ -196,13 +196,11 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 return true;
             }
             if (id == R.id.selectAll) {
-                if (selectedPos.size() != expenses.size()) {
-                    for (int i = 0; i < expenses.size(); i++) {
-                        if (!selectedPos.contains(i))
-                            selectedPos.add(i);
-                    }
-                } else {
+                if (selectedPos.size() == expenses.size())
                     selectedPos.clear();
+                else {
+                    for (int i = 0; i < expenses.size(); i++)
+                        if (!selectedPos.contains(i)) selectedPos.add(i);
                 }
                 notifyItemRangeChanged(0,getItemCount());
                 return true;
@@ -234,7 +232,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             actionMode = null;
         }
     };
-    public void bulkDelete(ActionMode mode) {
+    private void bulkDelete(ActionMode mode) {
         bulkNoAction();
         AlertDialog.Builder confirmDel = new AlertDialog.Builder(context, R.style.ConfirmDelDialog);
         confirmDel.setTitle((selectedPos.size() == 1) ? "Delete entry" : "Delete entries");
@@ -255,7 +253,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         });
         confirmDel.show();
     }
-    public void bulkChangeDate(ActionMode mode) {
+    private void bulkChangeDate(ActionMode mode) {
         bulkNoAction();
         AlertDialog.Builder changeDate = new AlertDialog.Builder(context, R.style.NormalDialog);
         DatePicker datePicker = new DatePicker(context);
@@ -284,7 +282,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         });
         changeDate.show();
     }
-    public void bulkChangeCat(ActionMode mode, CategoryAdapter adapter) {
+    private void bulkChangeCat(ActionMode mode, CategoryAdapter adapter) {
         bulkNoAction();
         @SuppressLint("InflateParams") final View expOptSectionView = inflater.inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog dialog = ((MainActivity) context).expenseSectionDialog(adapter, expOptSectionView).create();
@@ -311,7 +309,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         });
         dialog.show();
     }
-    public void bulkChangeAcc(ActionMode mode, AccountAdapter adapter) {
+    private void bulkChangeAcc(ActionMode mode, AccountAdapter adapter) {
         bulkNoAction();
         @SuppressLint("InflateParams") final View expOptSectionView = inflater.inflate(R.layout.dialog_expense_opt_section, null);
         AlertDialog dialog = ((MainActivity) context).expenseSectionDialog(adapter, expOptSectionView).create();
@@ -338,14 +336,14 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         });
         dialog.show();
     }
-    public void bulkNoAction() {
+    private void bulkNoAction() {
         if (selectedPos.isEmpty()) {
             Toast.makeText(context, "No expense selected", Toast.LENGTH_SHORT).show();
         }
     }
 
     // ViewHolder class for expense date headers
-    public static class DateViewHolder extends RecyclerView.ViewHolder {
+    private static class DateViewHolder extends RecyclerView.ViewHolder {
         TextView date;
 
         public DateViewHolder(@NonNull View itemView) {
@@ -353,7 +351,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             date = itemView.findViewById(R.id.expDate);
         }
     }
-    public void getDateHeaders(DateViewHolder holder, int position) {
+    private void getDateHeaders(DateViewHolder holder, int position) {
         Expense exp = expenses.get(position);
         holder.date.setText(context.getString(R.string.full_date,exp.getDatetimeStr("dd MMM"),MainActivity.getRelativePrefix(exp.getDatetime())).toUpperCase());
     }

@@ -53,10 +53,10 @@
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
+                    android:fontFamily="@font/roboto_medium"
                     android:gravity="center"
                     android:singleLine="true"
                     android:text="@string/EXPS"
-                    android:fontFamily="@font/roboto_medium"
                     android:textColor="@color/generic_icon_gray"
                     android:textSize="14sp" />
 

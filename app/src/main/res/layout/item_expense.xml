@@ -14,7 +14,7 @@
         android:translationY="1dp"
         android:layout_marginLeft="24dp"
         android:layout_marginRight="24dp"
-        android:foreground="#dddddd"
+        android:foreground="@color/border_gray"
         app:layout_constraintBottom_toTopOf="@id/linearLayout" />
 
     <LinearLayout

@@ -19,7 +19,7 @@ public class AccountAdapter extends SectionAdapter<Account> {
     private static final String TAG = "AccountAdapter";
 
     /**
-     * CONSTRUCTOR
+     * Constructor
      */
     public AccountAdapter(Context context, ArrayList<Account> accounts) {
         super(context, accounts);
@@ -29,7 +29,7 @@ public class AccountAdapter extends SectionAdapter<Account> {
     }
 
     /**
-     * INITIALISE ADAPTER
+     * Initialise adapter
      */
     @NonNull
     @Override
@@ -37,7 +37,7 @@ public class AccountAdapter extends SectionAdapter<Account> {
         if (page == Constants.MANAGE) {
             View view = inflater.inflate(R.layout.item_section_list, parent, false);
             return new ListViewHolder(view);
-        } else {
+        } else { // filter dialog
             View view = inflater.inflate(R.layout.item_section_grid, parent, false);
             return new GridViewHolder(view);
         }
@@ -46,7 +46,7 @@ public class AccountAdapter extends SectionAdapter<Account> {
     @Override
     @SuppressWarnings("unchecked")
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        if (holder instanceof SectionAdapter.GridViewHolder) {
+        if (holder instanceof SectionAdapter.GridViewHolder) { // filter dialog
             populateSectionGrid((GridViewHolder) holder, position);
         } else if (holder instanceof SectionAdapter.ListViewHolder) {
             ((ListViewHolder) holder).setPosition(position);
@@ -55,7 +55,7 @@ public class AccountAdapter extends SectionAdapter<Account> {
     }
 
     /**
-     * FUNCTIONS
+     * Functions
      */
     public void addNewAcc() {
         sections.add(new Account(context));

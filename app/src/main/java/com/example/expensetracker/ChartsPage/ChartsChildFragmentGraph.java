@@ -68,11 +68,9 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
 
     // Graph components
     private LineChart lineChart;
-    TextView lineAmt, lineDate, avgDay, avgWeek, avgMonth, placeholder, link;
-    LinearLayout summaryAmtBlk, statistics;
-    RecyclerView expenseList;
-    ArrayList<Expense> expenses = new ArrayList<>();
-    ArrayList<String> dates = new ArrayList<>();
+    private TextView lineAmt, lineDate, avgDay, avgWeek, avgMonth, placeholder, link;
+    private RecyclerView expenseList;
+    private final ArrayList<String> dates = new ArrayList<>();
     private int selDateState;
     private boolean isSelRange = false;
     private Calendar fromCal, toCal;
@@ -99,9 +97,9 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         lineDate = view.findViewById(R.id.summaryDate);
         lineAmt = view.findViewById(R.id.summaryAmt);
         updateCurrency(((MainActivity) getActivity()).getDefaultCurrencySymbol());
-        summaryAmtBlk = view.findViewById(R.id.summaryAmtBlk);
+        LinearLayout summaryAmtBlk = view.findViewById(R.id.summaryAmtBlk);
         summaryAmtBlk.setOnClickListener(view1 -> resetOnClick());
-        statistics = view.findViewById(R.id.statistics);
+        LinearLayout statistics = view.findViewById(R.id.statistics);
         statistics.setOnClickListener(view1 -> resetOnClick());
         expenseList = view.findViewById(R.id.expenseList);
         avgDay = view.findViewById(R.id.dayAvg);
@@ -131,13 +129,13 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     }
 
     @Override
-    public void invalidateMenu() {
+    protected void invalidateMenu() {
         if (getParentFragment() == null) return;
         Toolbar toolbar = ((ChartsFragment) getParentFragment()).getToolbar();
         createOptionsMenu(toolbar);
     }
     @Override
-    public void updateDateRange() {
+    protected void updateDateRange() {
         Calendar from = Calendar.getInstance();
         Calendar to = Calendar.getInstance();
         if (getParentFragment() != null) {
@@ -165,7 +163,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         }
     }
     @Override
-    public void updateCurrency(String curr) {
+    protected void updateCurrency(String curr) {
         ((TextView) view.findViewById(R.id.summaryCurrency)).setText(curr);
         ((TextView) view.findViewById(R.id.curr1)).setText(curr);
         ((TextView) view.findViewById(R.id.curr2)).setText(curr);
@@ -175,13 +173,13 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     /**
      * Menu
      */
-    public void createOptionsMenu(Toolbar toolbar) {
+    private void createOptionsMenu(Toolbar toolbar) {
         toolbar.inflateMenu(R.menu.home_menu);
         clearFiltersMenuOption = toolbar.getMenu().findItem(R.id.clearFilters);
         updateClearFiltersMenuItem();
         toolbar.setOnMenuItemClickListener(menuItemClickListener);
     }
-    public Toolbar.OnMenuItemClickListener menuItemClickListener = item -> {
+    private final Toolbar.OnMenuItemClickListener menuItemClickListener = item -> {
         int id = item.getItemId();
         if (getActivity() == null)
             return false;
@@ -227,7 +225,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
             updateClearFiltersMenuItem();
         updateDateRange();
     }
-    public void filterAccDialog(AccountAdapter adapter) {
+    private void filterAccDialog(AccountAdapter adapter) {
         if (getActivity() == null)
             return;
         final View view = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
@@ -238,7 +236,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         dialogBuilder.setNeutralButton(android.R.string.no, (((dialog, i) -> dialog.cancel())));
         dialogBuilder.show();
     }
-    public void filterCatDialog(CategoryAdapter adapter) {
+    private void filterCatDialog(CategoryAdapter adapter) {
         if (getActivity() == null)
             return;
         final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
@@ -249,7 +247,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         dialogBuilder.setNeutralButton(android.R.string.no, (((dialog, i) -> dialog.cancel())));
         dialogBuilder.show();
     }
-    public void updateClearFiltersMenuItem() {
+    private void updateClearFiltersMenuItem() {
         clearFiltersMenuOption.setVisible(!accFilters.isEmpty() || !catFilters.isEmpty());
     }
     public void setAccFilters(ArrayList<Account> accFilters, boolean isDelete) {
@@ -265,7 +263,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
      * Linechart functions
      */
     @SuppressWarnings("ConstantConditions")
-    public void loadLineChartData() {
+    private void loadLineChartData() {
         if (getActivity() == null)
             return;
         
@@ -372,7 +370,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         LineData data = new LineData(dataSets);
         lineChart.setData(data);
     }
-    public void setupLineChart() {
+    private void setupLineChart() {
         if (getActivity() == null)
             return;
         lineChart.getDescription().setEnabled(false);
@@ -392,7 +390,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         lineChart.setMarker(marker);
         lineChart.setXAxisRenderer(new CustomXAxisRenderer(lineChart.getViewPortHandler(), lineChart.getXAxis(), lineChart.getTransformer(YAxis.AxisDependency.LEFT)));
     }
-    public void configLineChartSelection() {
+    private void configLineChartSelection() {
         lineChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
@@ -418,7 +416,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
             }
         });
     }
-    public void configLineChartScale() {
+    private void configLineChartScale() {
         lineChart.setOnChartGestureListener(new OnChartGestureListener() {
             float scale = 1f;
             float scaleX = 1f;
@@ -470,7 +468,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
             }
         });
     }
-    public void configLineChartRecyclerView() {
+    private void configLineChartRecyclerView() {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         expenseList.setLayoutManager(linearLayoutManager);
@@ -479,7 +477,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     /**
      * Update
      */
-    public void updateAverages() {
+    private void updateAverages() {
         if (getActivity() == null)
             return;
         float[] averages = ((MainActivity) getActivity()).db.getAverages(fromCal, toCal);
@@ -487,7 +485,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         avgWeek.setText((averages[1] < 0) ? "–" : String.format(MainActivity.locale,"%.2f", averages[1]));
         avgMonth.setText((averages[2] < 0) ? "–" : String.format(MainActivity.locale,"%.2f", averages[2]));
     }
-    public Calendar updateDateRangeForDay(Calendar cal, int range) {
+    private Calendar updateDateRangeForDay(Calendar cal, int range) {
         if (getActivity() == null)
             return null;
         int firstDayOfWeek = ((MainActivity) getActivity()).getDefaultFirstDayOfWeek();
@@ -506,7 +504,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         }
         return copy;
     }
-    public void updateExpenseList() {
+    private void updateExpenseList() {
         if (hideExpenseList()) {
             expenseList.setVisibility(View.GONE);
             placeholder.setVisibility(View.GONE);
@@ -515,13 +513,13 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         }
         expenseList.setVisibility(View.VISIBLE);
         link.setVisibility(View.GONE);
-        expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(accFilters, catFilters, fromCal, toCal, Constants.DESCENDING, "");
+        ArrayList<Expense> expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(accFilters, catFilters, fromCal, toCal, Constants.DESCENDING, "");
         expenses = MainActivity.insertExpDateHeaders(expenses);
         expenseList.setAdapter(new ExpenseAdapter(getActivity(), expenses, true));
         if (expenses.size() > 0) placeholder.setVisibility(View.GONE);
         else placeholder.setVisibility(View.VISIBLE);
     }
-    public void updateLineChartSummary() {
+    private void updateLineChartSummary() {
         String lineDateText;
         if (isSelRange) {
             if (selDateState == DateGridAdapter.YEAR)
@@ -539,7 +537,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         lineAmt.setText(String.format(MainActivity.locale,"%.2f", totalAmt));
         lineDate.setText(lineDateText);
     }
-    public void updateSelDateState() {
+    private void updateSelDateState() {
         if (getParentFragment() == null)
             return;
         selDateState = ((ChartsFragment) getParentFragment()).getSelDateState();
@@ -552,7 +550,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
                 selDateState = DateGridAdapter.MONTH;
         }
     }
-    public void updateXLabels(float granularityRef) {
+    private void updateXLabels(float granularityRef) {
         lineChart.getXAxis().setGranularity(1f);
         lineChart.getXAxis().setGranularityEnabled(true);
         ((CustomXAxisRenderer) lineChart.getRendererXAxis()).setLabelCount(numUnits);
@@ -607,17 +605,17 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     /**
      * Helper functions
      */
-    public String getDtf() {
+    private String getDtf() {
         if (selDateState == DateGridAdapter.YEAR) return "yyyy-MM";
         else return "yyyy-MM-dd";
     }
-    public void highlightLineAmt(boolean enable) {
+    private void highlightLineAmt(boolean enable) {
         if (getActivity() == null)
             return;
         lineAmt.setTextColor(enable? MainActivity.getColorFromId(getActivity(), R.color.red_500) :
                 MainActivity.getColorFromId(getActivity(), R.color.text_dark_gray));
     }
-    public void resetOnClick() {
+    private void resetOnClick() {
         if (getParentFragment() == null)
             return;
         isHighlighted = false;
@@ -630,7 +628,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         updateLineChartSummary();
         updateExpenseList();
     }
-    public boolean hideExpenseList() {
+    private boolean hideExpenseList() {
 //        Log.e(TAG, "state=" + selDateState + ", numUnits=" + numUnits + ", highlight=" + isHighlighted);
         if (selDateState == DateGridAdapter.YEAR)
             return true;
@@ -640,7 +638,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         }
         return false;
     }
-    public int getActualSelDateState() {
+    private int getActualSelDateState() {
         if (isSelRange)
             return selDateState - 1;
         else if (!isHighlighted)

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -7,7 +8,7 @@
     <RelativeLayout
         android:id="@+id/toolbarContainer"
         android:layout_width="match_parent"
-        android:layout_height="97dp"
+        android:layout_height="@dimen/summaryHeight"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
@@ -15,11 +16,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@drawable/red_background_material"/>
+            android:src="@drawable/red_background_material"
+            tools:ignore="ContentDescription" />
 
         <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/statusBarHeight"
             app:elevation="0dp"
             android:background="@null">
 
@@ -124,13 +128,13 @@
             android:layout_width="44dp"
             android:layout_height="44dp"
             android:layout_marginStart="5dp"
-            android:layout_marginTop="6dp"
-            android:src="@drawable/selector_circle"
-            android:scaleType="fitCenter"
+            android:layout_marginTop="@dimen/menuBtnMarginTop"
+            android:background="@drawable/shape_circle"
+            android:backgroundTint="@android:color/transparent"
             android:foreground="@drawable/ic_menu"
             android:foregroundTint="@color/white"
-            android:background="@drawable/shape_circle"
-            android:backgroundTint="@android:color/transparent"/>
+            android:scaleType="fitCenter"
+            android:src="@drawable/selector_circle" />
 
     </RelativeLayout>
 

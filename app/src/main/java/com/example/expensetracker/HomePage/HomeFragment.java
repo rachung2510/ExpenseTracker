@@ -1,6 +1,7 @@
 package com.example.expensetracker.HomePage;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,6 +15,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -34,6 +39,7 @@ import com.example.expensetracker.RecyclerViewAdapters.FilterAdapter;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -144,7 +150,18 @@ public class HomeFragment extends Fragment {
         });
 
         // toolbar
+
         createOptionsMenu(view.findViewById(R.id.toolbar));
+//        AppBarLayout toolbar = view.findViewById(R.id.appBarLayout);
+//        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.appBarLayout), (v, insets) -> {
+//            int paddingTop1 = insets.getSystemWindowInsetTop() - MainActivity.convertDpToPx(context, 20);
+//            v.setPadding(v.getPaddingLeft(),
+//                    paddingTop1,
+//                    v.getPaddingRight(),
+//                    v.getPaddingBottom());
+//            Log.e(TAG, "padding=" + MainActivity.convertPxToDp(context, paddingTop1) + "dp");
+//            return insets;
+//        });
 
         // side menu
         context.setupMenuBtn(view.findViewById(R.id.menu_btn));

@@ -12,7 +12,7 @@ A simple expense tracker for android which has three pages.
 - Multiple currencies
 
 ## Todo
-- Dark mode
+- Swipe for prev/next date range
 
 ## Potential features
 - Calendar section in CHARTS page

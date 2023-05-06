@@ -168,7 +168,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
      * Functions
      */
     public void showSelDateDialog() {
-        AlertDialog.Builder selectDate = new AlertDialog.Builder(context);
+        AlertDialog.Builder selectDate = new AlertDialog.Builder(context, R.style.NormalDialog);
         final View datePicker = inflater.inflate(R.layout.dialog_date_select, null);
 
         // blocks

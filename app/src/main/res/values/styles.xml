@@ -39,6 +39,7 @@
 
     <!--Confirm delete dialog-->
     <style name="ConfirmDelDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="buttonBarNeutralButtonStyle">@style/DialogNormalButton</item>
         <item name="buttonBarNegativeButtonStyle">@style/DialogNormalButton</item>
         <item name="buttonBarPositiveButtonStyle">@style/DialogRedButton</item>
     </style>

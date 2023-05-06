@@ -42,19 +42,19 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     private static final String TAG = "ChartsChildFragmentPie";
 
     private float totalAmt = 0;
-    ArrayList<Category> categories;
+    private ArrayList<Category> categories;
 
     private PieChart pieChart;
-    ImageView pieIcon;
-    TextView pieLabel, pieAmt;
-    RecyclerView catDataGrid;
-    CatDataAdapter catDataAdapter;
-    GridLayoutManager gridLayoutManager;
+    private ImageView pieIcon;
+    private TextView pieLabel, pieAmt;
+    private RecyclerView catDataGrid;
+    private CatDataAdapter catDataAdapter;
+    private GridLayoutManager gridLayoutManager;
 
-    ArrayList<Category> pieCategories = new ArrayList<>();
-    HashMap<String,Integer> pieCategoriesMap = new HashMap<>();
+    private ArrayList<Category> pieCategories = new ArrayList<>();
+    private final HashMap<String,Integer> pieCategoriesMap = new HashMap<>();
     private Calendar fromCal, toCal;
-    boolean scrollToCat = true;
+    private boolean scrollToCat = true;
 
     public ChartsChildFragmentPie() {
         super();
@@ -85,13 +85,13 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     }
 
     @Override
-    public void invalidateMenu() {
+    protected void invalidateMenu() {
         if (getParentFragment() == null) return;
         Toolbar toolbar = ((ChartsFragment) getParentFragment()).getToolbar();
         toolbar.getMenu().clear();
     }
     @Override
-    public void updateDateRange() {
+    protected void updateDateRange() {
         Calendar from = Calendar.getInstance();
         Calendar to = Calendar.getInstance();
         if (getParentFragment() != null) {
@@ -114,14 +114,14 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
 //        Log.e(TAG,"newAdapter="+(tic2-tic1));
     }
     @Override
-    public void updateCurrency(String curr) {
+    protected void updateCurrency(String curr) {
         ((TextView) view.findViewById(R.id.summaryCurrency)).setText(curr);
     }
 
     /**
      * Piechart functions
      */
-    public void loadPieChartData() {
+    private void loadPieChartData() {
         if (getActivity() == null)
             return;
         ArrayList<PieEntry> pieEntries = new ArrayList<>();
@@ -170,7 +170,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         pieChart.setData(pieData);
         pieChart.invalidate();
     }
-    public void setupPieChart() {
+    private void setupPieChart() {
         pieChart.setRenderer(new CustomPieChartRenderer(pieChart, 10f, pieChart.getAnimator(), pieChart.getViewPortHandler()));
         pieChart.setExtraOffsets(36f, 15f, 36f, 15f);
 
@@ -184,7 +184,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         pieChart.getDescription().setEnabled(false);
         pieChart.getLegend().setEnabled(false);
     }
-    public void configPieChartSelection() {
+    private void configPieChartSelection() {
         pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
@@ -211,7 +211,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         });
         pieChart.invalidate();
     }
-    public void configPieChartRecyclerView() {
+    private void configPieChartRecyclerView() {
         if (getActivity() == null)
             return;
         catDataAdapter = new CatDataAdapter(getActivity(), categories);

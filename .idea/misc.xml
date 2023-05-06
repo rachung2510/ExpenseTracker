@@ -191,7 +191,7 @@
         <entry key="app/src/main/res/layout/dialog_section_opt.xml" value="0.37916666666666665" />
         <entry key="app/src/main/res/layout/dialog_xrate.xml" value="0.25" />
         <entry key="app/src/main/res/layout/drawer_header.xml" value="0.37916666666666665" />
-        <entry key="app/src/main/res/layout/drawer_menu.xml" value="0.33" />
+        <entry key="app/src/main/res/layout/drawer_menu.xml" value="0.41517857142857145" />
         <entry key="app/src/main/res/layout/dummy_nav_bar.xml" value="0.33242753623188404" />
         <entry key="app/src/main/res/layout/empty_view.xml" value="0.33242753623188404" />
         <entry key="app/src/main/res/layout/fragment_charts.xml" value="0.33242753623188404" />
@@ -213,7 +213,7 @@
         <entry key="app/src/main/res/layout/item_section_grid.xml" value="0.24682971014492755" />
         <entry key="app/src/main/res/layout/item_section_list.xml" value="0.31354166666666666" />
         <entry key="app/src/main/res/layout/progress_overlay.xml" value="0.378125" />
-        <entry key="app/src/main/res/layout/summary.xml" value="0.19635416666666666" />
+        <entry key="app/src/main/res/layout/summary.xml" value="0.25" />
         <entry key="app/src/main/res/layout/test.xml" value="0.378125" />
         <entry key="app/src/main/res/layout/widget_squircle.xml" value="0.21510416666666668" />
         <entry key="app/src/main/res/layout/widget_static.xml" value="0.5" />

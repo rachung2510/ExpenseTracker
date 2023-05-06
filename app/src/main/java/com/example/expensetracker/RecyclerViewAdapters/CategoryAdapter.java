@@ -18,7 +18,7 @@ public class CategoryAdapter extends SectionAdapter<Category> {
     private static final String TAG = "CategoryAdapter";
 
     /**
-     * CONSTRUCTOR
+     * Constructor
      */
     public CategoryAdapter(Context context, ArrayList<Category> categories) {
         super(context, categories);
@@ -46,7 +46,7 @@ public class CategoryAdapter extends SectionAdapter<Category> {
     }
 
     /**
-     * INITIALISE ADAPTER
+     * Initialise adapter
      */
     @NonNull
     @Override
@@ -56,12 +56,14 @@ public class CategoryAdapter extends SectionAdapter<Category> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        assert holder instanceof SectionAdapter.GridViewHolder;
         populateSectionGrid((GridViewHolder) holder, position);
     }
 
     /**
-     * FUNCTIONS
+     * Functions
      */
     public void addNewCat() {
         sections.add(new Category(context));

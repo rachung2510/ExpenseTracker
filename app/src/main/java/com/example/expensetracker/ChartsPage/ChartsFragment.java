@@ -133,7 +133,7 @@ public class ChartsFragment extends Fragment {
     /**
      * Summary date
      */
-    public void summaryDateAction() {
+    private void summaryDateAction() {
         selDatePos = DateGridAdapter.MONTH;
         selDateState = DateGridAdapter.MONTH;
         if (getActivity() == null)
@@ -192,7 +192,7 @@ public class ChartsFragment extends Fragment {
             });
         });
     }
-    public void navDateAction(int direction) {
+    private void navDateAction(int direction) {
         if (getActivity() == null)
             return;
         if (selDatePos != DateGridAdapter.WEEK && selDatePos != DateGridAdapter.SELECT_RANGE)

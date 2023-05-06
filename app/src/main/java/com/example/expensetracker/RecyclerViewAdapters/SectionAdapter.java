@@ -39,8 +39,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     protected int page;
 
     // Constants
-    public final Drawable iconCheck;
-    public final ColorStateList iconGray;
+    private final Drawable iconCheck;
 
     // Selection components
     protected boolean selectionMode = false;
@@ -55,7 +54,6 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     public SectionAdapter(Context context, ArrayList<T> sections) {
         this.context = context;
         this.inflater = LayoutInflater.from(context);
-        this.iconGray = MainActivity.getColorStateListFromId(context, R.color.generic_icon_gray);
         this.iconCheck = MainActivity.getIconFromId(context, R.drawable.action_check);
 
         this.sections = sections;
@@ -65,7 +63,6 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     public SectionAdapter(Context context, ArrayList<T> sections, int mode) {
         this.context = context;
         this.inflater = LayoutInflater.from(context);
-        this.iconGray = MainActivity.getColorStateListFromId(context, R.color.generic_icon_gray);
         this.iconCheck = MainActivity.getIconFromId(context, R.drawable.action_check);
 
         this.sections = sections;
@@ -103,7 +100,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
      * Viewholder class
      */
     // ViewHolder class for expense options section grid
-    public class GridViewHolder extends RecyclerView.ViewHolder {
+    protected class GridViewHolder extends RecyclerView.ViewHolder {
         TextView gridItemName;
         ImageButton gridItemIcon;
 
@@ -133,7 +130,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         }
     }
-    public void populateSectionGrid(GridViewHolder holder, int position) {
+    protected void populateSectionGrid(GridViewHolder holder, int position) {
         T section = sections.get(position);
 
         // set components
@@ -200,7 +197,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
     }
 
     // ViewHolder class for manage section list (accounts)
-    public class ListViewHolder extends RecyclerView.ViewHolder {
+    protected class ListViewHolder extends RecyclerView.ViewHolder {
         TextView listItemName, listItemAmt, listItemCurr;
         ImageButton listItemIcon;
         CardView listItemRow;
@@ -248,7 +245,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
         }
 
     }
-    public void populateList(ListViewHolder holder, int position) {
+    protected void populateList(ListViewHolder holder, int position) {
         T section = sections.get(position);
 
         // set components

@@ -300,7 +300,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
                 dialog.dismiss();
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 File photoFile = FileUtils.createImageFile(this);
-                if (photoFile == null) return;
+                if (photoFile == null) {
+                    finish();
+                    return;
+                }
                 Uri uri = FileProvider.getUriForFile(this,
                         BuildConfig.APPLICATION_ID + ".provider",
                         photoFile);
@@ -320,7 +323,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
         }
     }
     public void favourites() {
-        if (getReceiptItemAdapter() != null) return;
+        if (getReceiptItemAdapter() != null) {
+            finish();
+            return;
+        }
         String desc = getStringValue(KEY_DESC);
         if (desc.isEmpty()) {
             Toast.makeText(this, "Description cannot be empty", Toast.LENGTH_SHORT).show();

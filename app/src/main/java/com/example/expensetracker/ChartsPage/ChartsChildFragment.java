@@ -32,13 +32,13 @@ public class ChartsChildFragment extends Fragment {
     /**
      * Common update functions
      */
-    public void updateDateRange() {
+    protected void updateDateRange() {
     }
-    public void invalidateMenu() {
+    protected void invalidateMenu() {
     }
-    public void updateCurrency() {
+    protected void updateCurrency() {
         updateCurrency(((MainActivity) getActivity()).getDefaultCurrencySymbol());
     }
-    public void updateCurrency(String curr) {
+    protected void updateCurrency(String curr) {
     }
 }
