@@ -163,7 +163,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         viewPager = findViewById(R.id.viewPager);
         bottomNavView.setOnItemSelectedListener(this);
         getTabs();
-        ContextCompat.getColor()
 
         // Initialise menu
         navDrawer = findViewById(R.id.drawer_layout);
