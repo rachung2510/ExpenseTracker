@@ -141,7 +141,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
         if (section.getId() == -1 || isNew(position)) {
             holder.gridItemName.setText("");
             holder.gridItemIcon.setForeground(MainActivity.getIconFromId(context, R.drawable.add));
-            holder.gridItemIcon.setForegroundTintList(MainActivity.getColorStateListFromId(context, R.color.text_mid_gray));
+            holder.gridItemIcon.setForegroundTintList(MainActivity.getColorStateListFromId(context, R.color.text_med_gray));
             holder.gridItemIcon.setBackground(MainActivity.getIconFromId(context, R.drawable.shape_circle_dotted_border));
             holder.gridItemIcon.setBackgroundTintList(null);
         } else {
@@ -224,7 +224,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         public void select() {
             listItemIcon.setForeground(iconCheck);
-            listItemRow.setBackgroundColor(ContextCompat.getColor(context, R.color.orange_200));
+            listItemRow.setBackgroundColor(MainActivity.getColorFromId(context, R.color.select_light_orange));
             ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) separator.getLayoutParams();
             p.setMargins(0,0,0,0);
             separator.requestLayout();
@@ -232,7 +232,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         public void deselect(T section) {
             if (section.getId() != -1) {
-                listItemRow.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
+                listItemRow.setBackgroundColor(MainActivity.getColorFromId(context, R.color.white));
                 listItemIcon.setForeground(section.getIcon());
                 if (position != getItemCount()-2) {
                     ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) separator.getLayoutParams();
@@ -255,9 +255,9 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
         // set components
         if (section.getId() == -1 || isNew(position)) {
             holder.listItemName.setText(context.getString(R.string.new_acc_placeholder));
-            holder.listItemName.setTextColor(ContextCompat.getColor(context, R.color.text_light_gray));
+            holder.listItemName.setTextColor(MainActivity.getColorFromId(context, R.color.text_light_gray));
             holder.listItemIcon.setForeground(MainActivity.getIconFromId(context, R.drawable.add));
-            holder.listItemIcon.setForegroundTintList(MainActivity.getColorStateListFromId(context, R.color.text_mid_gray));
+            holder.listItemIcon.setForegroundTintList(MainActivity.getColorStateListFromId(context, R.color.text_med_gray));
             holder.listItemIcon.setBackground(MainActivity.getIconFromId(context, R.drawable.shape_rounded_square_dotted_border));
             holder.listItemIcon.setBackgroundTintList(null);
             holder.listItemTotal.setVisibility(LinearLayout.GONE);

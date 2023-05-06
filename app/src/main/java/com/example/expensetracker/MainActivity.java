@@ -163,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         viewPager = findViewById(R.id.viewPager);
         bottomNavView.setOnItemSelectedListener(this);
         getTabs();
+        ContextCompat.getColor()
 
         // Initialise menu
         navDrawer = findViewById(R.id.drawer_layout);
@@ -183,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             currencyList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
             currencyList.setAdapter(adapter);
 
-            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
             dialogBuilder.setTitle(getString(R.string.default_curr_title))
                     .setView(view1)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
@@ -238,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 requestPermissions();
                 return;
             }
-            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
             dialogBuilder.setTitle("Export database?")
                     .setMessage("Database will be exported to Downloads folder.")
                     .setPositiveButton(android.R.string.yes, (dialogInterface1, i1) -> db.exportDatabase())
@@ -270,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 }
             });
 
-            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
             dialogBuilder.setTitle(getString(R.string.set_xrate_title, getDefaultCurrency()))
                     .setView(view1)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
@@ -444,8 +445,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         expDateBtn = expView.findViewById(R.id.newExpDate);
         expSaveBtn =  expView.findViewById(R.id.newExpSave);
         expDesc.setOnFocusChangeListener((view, b) -> {
-            if (b) expDesc.setBackground(getIconFromId(this, R.color.white));
-            else expDesc.setBackground(new ColorDrawable(android.R.attr.selectableItemBackground));
+            Log.e(TAG, "b=" + b);
+            if (b) expDesc.setBackgroundResource(getResourceFromAttr(this, android.R.attr.colorBackground));
+            else expDesc.setBackgroundResource(getResourceFromAttr(this, android.R.attr.selectableItemBackground));
         });
         expCurr = expView.findViewById(R.id.newExpCurrency);
         scanReceiptBtn = expView.findViewById(R.id.scanReceiptBtn);
@@ -454,7 +456,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         return expDialog;
     }
     public <T extends SectionAdapter<? extends Section>> AlertDialog.Builder expenseSectionDialog(T adapter, View expOptSectionView) {
-        dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
         RecyclerView sectionGrid = expOptSectionView.findViewById(R.id.sectionGrid);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
         sectionGrid.setLayoutManager(gridLayoutManager);
@@ -735,7 +737,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             expenseCatDialog(catAdapter, new Expense(Calendar.getInstance()));
         });
         expDateBtn.setOnClickListener(view -> {
-            AlertDialog.Builder changeDate = new AlertDialog.Builder(MainActivity.this);
+            AlertDialog.Builder changeDate = new AlertDialog.Builder(MainActivity.this, R.style.NormalDialog);
             DatePicker datePicker = new DatePicker(MainActivity.this);
             datePicker.setFirstDayOfWeek(getDefaultFirstDayOfWeek());
             changeDate.setView(datePicker)
@@ -776,7 +778,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         });
         scanReceiptBtn.setOnClickListener(view -> {
             if (receiptItemAdapter == null) {
-                dialogBuilder = new AlertDialog.Builder(this);
+                dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
                 View dialogView = getLayoutInflater().inflate(R.layout.dialog_camera, null);
                 LinearLayout cameraOpt, galleryOpt;
                 cameraOpt = dialogView.findViewById(R.id.cameraOpt);
@@ -878,7 +880,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     .show();
         });
         expDateBtn.setOnClickListener(view -> {
-            AlertDialog.Builder changeDate = new AlertDialog.Builder(MainActivity.this);
+            AlertDialog.Builder changeDate = new AlertDialog.Builder(MainActivity.this, R.style.NormalDialog);
             DatePicker datePicker = new DatePicker(MainActivity.this);
             Calendar expDatetime = exp.getDatetime();
             datePicker.setFirstDayOfWeek(getDefaultFirstDayOfWeek());
@@ -914,7 +916,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             currencyList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
             currencyList.setAdapter(adapter);
 
-            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
             dialogBuilder.setTitle("Account currency")
                     .setView(view)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> sectionCurr.setText(adapter.getSelected()))
@@ -965,7 +967,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             currencyList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
             currencyList.setAdapter(adapter);
 
-            dialogBuilder = new AlertDialog.Builder(this);
+            dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
             dialogBuilder.setTitle("Account currency")
                     .setView(view)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> sectionCurr.setText(adapter.getSelected()))
@@ -1233,7 +1235,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         return getColorHexFromId(context, getColorIdFromName(context, name));
     }
     public static String getColorHexFromId(Context context, int id) {
-        return Integer.toHexString(ContextCompat.getColor(context.getApplicationContext(), id));
+        return Integer.toHexString(getColorFromId(context, id));
     }
     public static ColorStateList getColorStateListFromName(Context context, String name) {
         return getColorStateListFromHex(getColorHexFromName(context, name));
@@ -1242,10 +1244,24 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         return ColorStateList.valueOf(Color.parseColor("#" + hex));
     }
     public static ColorStateList getColorStateListFromId(Context context, int id) {
-        return ColorStateList.valueOf(ContextCompat.getColor(context, id));
+        return ColorStateList.valueOf(getColorFromId(context, id));
     }
     public static int getColorFromHex(String hex) {
         return Color.parseColor("#" + hex);
+    }
+    public static int getColorFromId(Context context, int id) {
+        try {
+            return ContextCompat.getColor(context, id);
+        } catch (Exception e) {
+            TypedValue a = new TypedValue();
+            context.getTheme().resolveAttribute(id, a, true);
+            return a.data;
+        }
+    }
+    public static int getResourceFromAttr(Context context, int attr) {
+        TypedValue a = new TypedValue();
+        context.getTheme().resolveAttribute(attr, a, true);
+        return a.resourceId;
     }
 
     /**
@@ -1680,7 +1696,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         receiptCatIcon = view.findViewById(R.id.selectCat);
         receiptCatIcon.setOnClickListener(view1 -> receiptCatDialog());
 
-        dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
         dialogBuilder.setTitle("Receipt items")
                 .setView(view)
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {

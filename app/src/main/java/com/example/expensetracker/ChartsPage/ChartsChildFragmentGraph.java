@@ -15,7 +15,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -360,13 +359,13 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
             set.setCircleRadius(2);
             set.setDrawHorizontalHighlightIndicator(false);
             set.setDrawVerticalHighlightIndicator(false);
-            set.setCircleColor(ContextCompat.getColor(getActivity(),R.color.red_500));
+            set.setCircleColor(MainActivity.getColorFromId(getActivity(),R.color.red_500));
             set.setLineWidth(0);
-            set.setColor(ContextCompat.getColor(getActivity(), R.color.red_500));
+            set.setColor(MainActivity.getColorFromId(getActivity(), R.color.red_500));
             set.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
         }
 
-        Drawable fadeRed = ContextCompat.getDrawable(getActivity(), R.drawable.fade_red);
+        Drawable fadeRed = MainActivity.getIconFromId(getActivity(), R.drawable.fade_red);
         set.setFillDrawable(fadeRed); // Color.RED
         ArrayList<ILineDataSet> dataSets = new ArrayList<>();
         dataSets.add(set);
@@ -381,7 +380,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         lineChart.getXAxis().setDrawGridLines(false);
         lineChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         lineChart.getXAxis().setYOffset(-48);
-        lineChart.getXAxis().setTextColor(ContextCompat.getColor(getActivity(), R.color.text_light_gray));
+        lineChart.getXAxis().setTextColor(MainActivity.getColorFromId(getActivity(), R.color.text_light_gray));
         lineChart.getXAxis().setTextColor(Color.parseColor("#c8c8c8"));
         lineChart.getAxisLeft().setEnabled(false);
         lineChart.getAxisRight().setEnabled(false);
@@ -615,8 +614,8 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     public void highlightLineAmt(boolean enable) {
         if (getActivity() == null)
             return;
-        lineAmt.setTextColor(enable? ContextCompat.getColor(getActivity(), R.color.red_500) :
-                ContextCompat.getColor(getActivity(), R.color.text_dark_gray));
+        lineAmt.setTextColor(enable? MainActivity.getColorFromId(getActivity(), R.color.red_500) :
+                MainActivity.getColorFromId(getActivity(), R.color.text_dark_gray));
     }
     public void resetOnClick() {
         if (getParentFragment() == null)

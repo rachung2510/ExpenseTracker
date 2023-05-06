@@ -73,44 +73,50 @@
 
         </RelativeLayout>
 
-        <LinearLayout
-            android:id="@+id/sectionCurrencyRow"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginStart="-1dp"
-            android:layout_marginEnd="-1dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:background="@drawable/shape_rectangle_border"
-            android:foreground="?selectableItemBackground"
-            android:clickable="true">
+            android:background="?android:attr/colorBackgroundFloating">
 
-            <TextView
-                android:layout_width="0dp"
+            <LinearLayout
+                android:id="@+id/sectionCurrencyRow"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:paddingStart="15dp"
-                android:textColor="@color/generic_icon_gray"
-                android:text="Currency:"/>
+                android:layout_marginStart="-1dp"
+                android:layout_marginEnd="-1dp"
+                android:background="@drawable/shape_rectangle_border_floating"
+                android:clickable="true"
+                android:foreground="?selectableItemBackground"
+                android:gravity="center"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
 
-            <TextView
-                android:id="@+id/sectionCurrency"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingEnd="20dp"
-                android:textColor="@color/generic_icon_gray"
-                android:textSize="16sp"
-                android:text="@string/default_currency"/>
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:paddingStart="15dp"
+                    android:text="Currency:"
+                    android:textColor="@color/generic_icon_gray" />
 
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/sectionCurrency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingEnd="20dp"
+                    android:text="@string/default_currency"
+                    android:textColor="@color/generic_icon_gray"
+                    android:textSize="16sp" />
+
+            </LinearLayout>
+        </RelativeLayout>
 
         <LinearLayout
             android:id="@+id/expEditOptions"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingTop="5dp"
-            android:background="@color/white"
+            android:background="?android:attr/colorBackgroundFloating"
             android:orientation="vertical">
 
             <LinearLayout
@@ -122,7 +128,6 @@
                 android:paddingLeft="30dp"
                 android:paddingRight="30dp"
                 android:gravity="center"
-                android:background="@color/white"
                 android:baselineAligned="false">
 
                 <LinearLayout
@@ -139,14 +144,14 @@
                         android:src="@drawable/selector_circle"
                         android:scaleType="fitCenter"
                         android:background="@drawable/shape_circle"
-                        android:backgroundTint="#fcd0cb"
+                        android:backgroundTint="@color/action_red_bg"
                         android:foreground="@drawable/action_delete"
-                        android:foregroundTint="@color/red" />
+                        android:foregroundTint="@color/action_red_icon" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/text_mid_gray"
+                        android:textColor="@color/text_med_gray"
                         android:layout_marginTop="3dp"
                         android:text="@string/opt_del" />
 
@@ -171,14 +176,14 @@
                         android:src="@drawable/selector_circle"
                         android:scaleType="fitCenter"
                         android:background="@drawable/shape_circle"
-                        android:backgroundTint="#cfd3eb"
+                        android:backgroundTint="@color/action_blue_bg"
                         android:foreground="@drawable/action_check"
-                        android:foregroundTint="#4f54a7" />
+                        android:foregroundTint="@color/action_blue_icon" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/text_mid_gray"
+                        android:textColor="@color/text_med_gray"
                         android:layout_marginTop="3dp"
                         android:text="@string/opt_save" />
 

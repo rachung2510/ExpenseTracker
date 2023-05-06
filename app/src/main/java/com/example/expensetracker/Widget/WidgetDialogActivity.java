@@ -182,7 +182,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         });
         scanReceiptBtn.setOnClickListener(view -> {
             if (receiptItemAdapter == null) {
-                dialogBuilder = new AlertDialog.Builder(this);
+                dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
                 View dialogView = getLayoutInflater().inflate(R.layout.dialog_camera, null);
                 LinearLayout cameraOpt, galleryOpt;
                 cameraOpt = dialogView.findViewById(R.id.cameraOpt);
@@ -262,7 +262,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         return expDialog;
     }
     public <T extends SectionAdapter<? extends Section>> AlertDialog.Builder expenseSectionDialog(T adapter, View expOptSectionView) {
-        dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
         RecyclerView sectionGrid = expOptSectionView.findViewById(R.id.sectionGrid);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
         sectionGrid.setLayoutManager(gridLayoutManager);
@@ -446,7 +446,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         receiptCatIcon = view.findViewById(R.id.selectCat);
         receiptCatIcon.setOnClickListener(view1 -> receiptCatDialog());
 
-        dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
         dialogBuilder.setTitle("Receipt items")
                 .setView(view)
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {

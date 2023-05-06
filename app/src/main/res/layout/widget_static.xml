@@ -185,26 +185,27 @@
         <!--    amount-->
         <RelativeLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:background="@color/colorBackground">
 
             <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:layout_marginStart="-1dp"
-            android:layout_marginEnd="-1dp"
-            android:layout_marginTop="-1dp"
-            android:layout_marginBottom="-.7dp"
-            android:background="@drawable/shape_rectangle_border">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="-1dp"
+                android:layout_marginTop="-1dp"
+                android:layout_marginEnd="-1dp"
+                android:layout_marginBottom="-.3dp"
+                android:background="@drawable/shape_rectangle_border"
+                android:gravity="center"
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
                     android:paddingTop="@dimen/widgetTextSize"
                     android:text="@string/Exp"
-                    android:fontFamily="sans-serif"
-                    android:textColor="@color/text_mid_gray"
+                    android:textColor="@color/text_med_gray"
                     android:textSize="@dimen/widgetTextSize" />
 
                 <LinearLayout
@@ -217,26 +218,27 @@
                         android:id="@+id/newExpCurrency"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="end"
                         android:layout_marginEnd="5dp"
-                        android:textColor="@color/text_light_gray"
+                        android:layout_weight="1"
                         android:fontFamily="sans-serif"
+                        android:gravity="end"
+                        android:text="@string/default_currency"
+                        android:textColor="@color/text_light_gray"
                         android:textFontWeight="600"
-                        android:textSize="10sp"
-                        android:text="@string/default_currency" />
+                        android:textSize="10sp" />
 
                     <TextView
                         android:id="@+id/newExpAmt"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="start"
-                        android:clickable="true"
                         android:background="@null"
-                        android:textColor="@color/text_dark_gray"
-                        android:hint="@string/hint_amt"
+                        android:clickable="true"
+                        android:gravity="start"
                         android:paddingBottom="6dp"
+                        android:hint="@string/hint_amt"
+                        android:textColorHint="@color/text_color_hint"
+                        android:textColor="@color/text_dark_gray"
                         android:textSize="36sp" />
 
                 </LinearLayout>
@@ -251,7 +253,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginStart="5dp"
                 android:background="@drawable/shape_circle"
-                android:backgroundTint="@color/white"
+                android:backgroundTint="@color/colorBackground"
                 android:src="@drawable/ic_baseline_star_outline_24"
                 tools:ignore="ContentDescription" />
 
@@ -263,7 +265,7 @@
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="10dp"
                 android:background="@drawable/shape_circle"
-                android:backgroundTint="@color/white"
+                android:backgroundTint="@color/colorBackground"
                 android:foreground="@drawable/selector_circle_widget"
                 android:src="@drawable/ic_baseline_camera_alt_24"
                 tools:ignore="ContentDescription" />
@@ -279,7 +281,8 @@
             android:layout_marginStart="-1dp"
             android:layout_marginEnd="-1dp"
             android:layout_marginBottom="-.8dp"
-            android:background="@drawable/shape_rectangle_border">
+            android:background="@drawable/shape_rectangle_border"
+            android:backgroundTint="@color/colorBackground">
 
             <TextView
                 android:id="@+id/newExpDesc"
@@ -287,6 +290,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="1dp"
                 android:gravity="center"
+                android:textColorHint="@color/text_color_hint"
                 android:textColor="@color/generic_icon_gray"
                 android:clickable="true"
                 android:hint="@string/hint_description"
@@ -327,7 +331,7 @@
             android:paddingLeft="30dp"
             android:paddingRight="30dp"
             android:gravity="center"
-            android:background="@color/white"
+            android:background="@color/colorBackground"
             android:baselineAligned="false">
 
             <LinearLayout
@@ -342,10 +346,10 @@
                     android:layout_width="@dimen/widgetBtnSize"
                     android:layout_height="@dimen/widgetBtnSize"
                     android:background="@drawable/shape_circle"
-                    android:backgroundTint="#feeec1"
+                    android:backgroundTint="@color/action_yellow_bg"
                     android:clickable="false"
                     android:foreground="@drawable/ic_action_update"
-                    android:foregroundTint="@color/yellow"
+                    android:foregroundTint="@color/action_yellow_icon"
                     android:scaleType="fitCenter"
                     android:src="@drawable/selector_circle_widget"
                     tools:ignore="ContentDescription" />
@@ -353,7 +357,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_mid_gray"
+                    android:textColor="@color/text_med_gray"
                     android:layout_marginTop="3dp"
                     android:textSize="@dimen/widgetTextSize"
                     android:text="@string/opt_update" />
@@ -376,15 +380,15 @@
                     android:src="@drawable/selector_circle_widget"
                     android:scaleType="fitCenter"
                     android:background="@drawable/shape_circle"
-                    android:backgroundTint="#dadada"
+                    android:backgroundTint="@color/action_gray_bg"
                     android:foreground="@drawable/action_date"
-                    android:foregroundTint="#757575"
+                    android:foregroundTint="@color/action_gray_icon"
                     tools:ignore="ContentDescription" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_mid_gray"
+                    android:textColor="@color/text_med_gray"
                     android:layout_marginTop="3dp"
                     android:textSize="@dimen/widgetTextSize"
                     android:text="@string/sel_single" />
@@ -406,15 +410,15 @@
                     android:src="@drawable/selector_circle_widget"
                     android:scaleType="fitCenter"
                     android:background="@drawable/shape_circle"
-                    android:backgroundTint="#cfd3eb"
+                    android:backgroundTint="@color/action_blue_bg"
                     android:foreground="@drawable/action_check"
-                    android:foregroundTint="#4f54a7"
+                    android:foregroundTint="@color/action_blue_icon"
                     tools:ignore="ContentDescription" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_mid_gray"
+                    android:textColor="@color/text_med_gray"
                     android:layout_marginTop="3dp"
                     android:textSize="@dimen/widgetTextSize"
                     android:text="@string/opt_save" />

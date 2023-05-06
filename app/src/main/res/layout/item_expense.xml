@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="90dp"
     android:layout_marginTop="-11dp"
-    android:layout_marginBottom="10dp"
-    android:background="@color/white">
+    android:layout_marginBottom="10dp">
 
     <View
         android:id="@+id/separator"
@@ -40,13 +39,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
                 android:paddingEnd="10dp"
                 android:singleLine="true"
                 android:text="@string/hint_description"
-                android:fontFamily="sans-serif-medium"
-                android:textFontWeight="500"
                 android:textColor="@color/text_dark_gray"
-                android:textSize="20sp"/>
+                android:textFontWeight="500"
+                android:textSize="20sp" />
 
             <LinearLayout
                 android:layout_width="wrap_content"

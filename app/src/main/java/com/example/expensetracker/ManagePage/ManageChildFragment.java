@@ -4,10 +4,8 @@ import static androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_DRAG;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.os.Bundle;
 import android.view.ActionMode;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;

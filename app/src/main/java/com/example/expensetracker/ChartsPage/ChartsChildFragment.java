@@ -9,12 +9,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.example.expensetracker.Expense;
 import com.example.expensetracker.MainActivity;
-import com.example.expensetracker.Section;
-
-import java.util.ArrayList;
-import java.util.Calendar;
 
 public class ChartsChildFragment extends Fragment {
 

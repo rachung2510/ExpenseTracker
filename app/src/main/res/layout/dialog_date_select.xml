@@ -168,7 +168,7 @@
                     android:id="@+id/fromDayTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_mid_gray"
+                    android:textColor="@color/text_med_gray"
                     android:textSize="13sp"
                     android:text="@string/example_date" />
 
@@ -203,7 +203,7 @@
                     android:id="@+id/toDayTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_mid_gray"
+                    android:textColor="@color/text_med_gray"
                     android:textSize="13sp"
                     android:text="@string/example_date" />
 
@@ -227,7 +227,7 @@
         android:layout_marginEnd="10dp"
         android:layout_gravity="end"
         android:text="Select range"
-        android:textColor="@color/text_mid_gray"
+        android:textColor="@color/text_med_gray"
         android:checked="false"
         android:textOff="@string/sel_range"
         android:textOn="@string/sel_single"/>

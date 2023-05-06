@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorBackground">#121212</color>
+
+    <!--shades-->
+    <color name="red">#f27384</color>
+    <color name="select_light_orange">#4d2919</color>
+    <color name="select_med_orange">#f9aa33</color>
+
+    <!--actions-->
+    <color name="action_red_bg">#950029</color>
+    <color name="action_gray_icon">#989c9d</color>
+    <color name="action_gray_bg">#4d4d4d</color>
+    <color name="action_blue_icon">#b9bfe1</color>
+    <color name="action_blue_bg">#5d67a8</color>
+    <color name="action_yellow_icon">#f9bf24</color>
+    <color name="action_yellow_bg">#926f00</color>
+
+    <!--grays-->
+    <color name="light_gray_bg">#1f1f1f</color>
+    <color name="text_light_gray">#5a5d68</color>
+    <color name="text_med_gray">#7b828e</color>
+    <color name="text_dark_gray">#e2e4e9</color>
+    <color name="generic_icon_gray">#b2b2b2</color>
+    <color name="muted_generic_icon_gray">#808080</color>
+    <color name="text_color_hint">#737373</color>
+    <color name="border_gray">#262626</color>
+    <color name="floating_border_gray">#575757</color>
+    <color name="icon_bg_light_gray">#454545</color>
+    <color name="icon_border_gray">#595959</color>
+    <color name="dialog_separator">@color/floating_border_gray</color>
+
+    <!--tag pills-->
+    <color name="tag_bg_gray">#333333</color>
+    <color name="tag_text_gray">#a6a6a6</color>
+    <color name="tag_bg_orange">#5c2905</color>
+    <color name="tag_text_orange">#efa890</color>
+    <color name="tag_icon_orange">#ca9977</color>
+
+</resources>

@@ -29,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="36dp"
             android:background="@drawable/shape_tab_bg"
-            android:backgroundTint="@color/white"/>
+            android:backgroundTint="?android:attr/colorBackground"/>
 
         <View
             android:id="@+id/chartsTabIndicator"
@@ -46,7 +46,7 @@
             app:tabTextAppearance="@style/TabLayoutTextStyle"
             app:tabGravity="fill"
             app:tabMode="fixed"
-            app:tabSelectedTextColor="#fff"
+            app:tabSelectedTextColor="@color/white"
             app:tabIndicator="@null"
             app:tabRippleColor="@null"/>
 

@@ -29,7 +29,7 @@
             android:backgroundTint="@color/cat_pastel_red"
             android:foreground="@drawable/cat_food"
             android:foregroundTint="@color/white"
-            android:src="@drawable/selector_circle_widget"/>
+            android:src="@drawable/selector_circle"/>
 
     </RelativeLayout>
 

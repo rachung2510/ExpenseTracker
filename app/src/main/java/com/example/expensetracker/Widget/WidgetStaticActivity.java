@@ -234,7 +234,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
             datePicker.updateDate(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
         }
 
-        AlertDialog.Builder changeDate = new AlertDialog.Builder(this);
+        AlertDialog.Builder changeDate = new AlertDialog.Builder(this, R.style.NormalDialog);
         Calendar finalCal = cal;
         changeDate.setView(datePicker)
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
@@ -248,8 +248,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
                 .setNeutralButton(android.R.string.no, (dialog, which) -> {
                     dialog.cancel();
                     finish();
-                })
-                .show();
+                });
+        AlertDialog dialog = changeDate.create();
+        dialog.setOnDismissListener(dialogInterface -> finish());
+        dialog.show();
     }
     public void saveExpense() {
         float amt = getFloatValue(KEY_AMT);
@@ -284,7 +286,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
     public void scanReceipt() {
         ReceiptItemAdapter adapter = getReceiptItemAdapter();
         if (adapter == null) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.NormalDialog);
             View dialogView = getLayoutInflater().inflate(R.layout.dialog_camera, null);
             LinearLayout cameraOpt, galleryOpt;
             cameraOpt = dialogView.findViewById(R.id.cameraOpt);
@@ -345,7 +347,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
      * Dialogs
      */
     public <T extends SectionAdapter<? extends Section>> AlertDialog.Builder expenseSectionDialog(T adapter, View expOptSectionView) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.NormalDialog);
         RecyclerView sectionGrid = expOptSectionView.findViewById(R.id.sectionGrid);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3, GridLayoutManager.VERTICAL, false);
         sectionGrid.setLayoutManager(gridLayoutManager);
@@ -528,7 +530,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
         receiptCatIcon = view.findViewById(R.id.selectCat);
         receiptCatIcon.setOnClickListener(view1 -> receiptCatDialog());
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.NormalDialog);
         builder.setTitle("Receipt items")
                 .setView(view)
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {

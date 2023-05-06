@@ -49,7 +49,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private final ArrayList<Integer> selectedPos = new ArrayList<>();
 
     /**
-     * CONSTRUCTOR
+     * Constructor
      */
     public ExpenseAdapter(Context context, ArrayList<Expense> expenses) {
         this.expenses = expenses;
@@ -64,7 +64,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     /**
-     * INITIALISE ADAPTER
+     * Initialise adapter
      */
     @NonNull
     @Override
@@ -98,7 +98,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     /**
-     * VIEWHOLDER CLASS
+     * Viewholder class
      */
     // ViewHolder class for normal expense entry
     public class ItemViewHolder extends RecyclerView.ViewHolder {
@@ -122,11 +122,11 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         public void select() {
-            expRow.setBackgroundColor(ContextCompat.getColor(context, R.color.orange_200));
+            expRow.setBackgroundColor(MainActivity.getColorFromId(context, R.color.select_light_orange));
         }
 
         public void deselect() {
-            expRow.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
+            expRow.setBackgroundColor(MainActivity.getColorFromId(context, android.R.attr.windowBackground));
         }
 
         public void toggleSelect(int position) {
@@ -237,7 +237,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     };
     public void bulkDelete(ActionMode mode) {
         bulkNoAction();
-        AlertDialog.Builder confirmDel = new AlertDialog.Builder(context, R.style.DiscardChangesDialog);
+        AlertDialog.Builder confirmDel = new AlertDialog.Builder(context, R.style.ConfirmDelDialog);
         confirmDel.setTitle((selectedPos.size() == 1) ? "Delete entry" : "Delete entries");
         confirmDel.setMessage("Are you sure you want to delete?");
         confirmDel.setPositiveButton("Delete", (dialog, which) -> {
@@ -258,14 +258,14 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
     public void bulkChangeDate(ActionMode mode) {
         bulkNoAction();
-        AlertDialog.Builder changeDate = new AlertDialog.Builder(context);
+        AlertDialog.Builder changeDate = new AlertDialog.Builder(context, R.style.NormalDialog);
         DatePicker datePicker = new DatePicker(context);
         changeDate.setView(datePicker);
         changeDate.setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
             Calendar datetime = Calendar.getInstance();
             datetime.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
 
-            AlertDialog.Builder confirmChangeDate = new AlertDialog.Builder(context, R.style.DiscardChangesDialog);
+            AlertDialog.Builder confirmChangeDate = new AlertDialog.Builder(context, R.style.NormalDialog);
             DateFormat dateFormat = new SimpleDateFormat("d MMM, yyyy", MainActivity.locale);
             confirmChangeDate.setMessage("Change date to " + dateFormat.format(datetime.getTime()) +  "?");
             confirmChangeDate.setPositiveButton(android.R.string.yes, (dialog, which12) -> {
@@ -295,7 +295,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         dialog.setOnCancelListener(dialogInterface -> {
             if (adapter.getSelected() == null) return;
-            AlertDialog.Builder confirmEdit = new AlertDialog.Builder(context, R.style.DiscardChangesDialog);
+            AlertDialog.Builder confirmEdit = new AlertDialog.Builder(context, R.style.NormalDialog);
             confirmEdit.setMessage("Change category to " + adapter.getSelected().getName() + "?");
             confirmEdit.setPositiveButton(android.R.string.yes, (dialog1, which) -> {
                 for (int i = 0; i < selectedPos.size(); i++) {
@@ -322,7 +322,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         dialog.setOnCancelListener(dialogInterface -> {
             if (adapter.getSelected() == null) return;
-            AlertDialog.Builder confirmEdit = new AlertDialog.Builder(context, R.style.DiscardChangesDialog);
+            AlertDialog.Builder confirmEdit = new AlertDialog.Builder(context, R.style.NormalDialog);
             confirmEdit.setMessage("Change account to " + adapter.getSelected().getName() + "?");
             confirmEdit.setPositiveButton(android.R.string.yes, (dialog1, which) -> {
                 for (int i = 0; i < selectedPos.size(); i++) {

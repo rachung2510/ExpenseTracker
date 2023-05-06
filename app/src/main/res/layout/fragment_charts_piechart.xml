@@ -99,6 +99,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:background="@drawable/card_shadow"
+            android:backgroundTint="?android:attr/colorBackground"
             android:paddingTop="15dp"
             android:orientation="vertical"
             android:gravity="center_horizontal"

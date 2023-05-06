@@ -8,6 +8,7 @@
         android:id="@+id/listItemRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="?android:attr/colorBackground"
         android:foreground="?selectableItemBackgroundBorderless"
         app:cardElevation="0dp"
         app:layout_constraintEnd_toEndOf="parent"

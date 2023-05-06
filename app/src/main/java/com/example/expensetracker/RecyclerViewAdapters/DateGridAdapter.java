@@ -31,7 +31,7 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
     private static final String TAG = "DateGridAdapter";
     private final ArrayList<String> filterDateIconNames;
     private final ArrayList<String> filterDateNames;
-    private final ColorStateList iconGray, iconLightGray, iconWhite, bgSelectOrange;
+    private final ColorStateList iconGray, iconLightGray, iconWhite, bgNormal, bgSelectOrange;
 
     private final Context context;
     private final LayoutInflater inflater;
@@ -83,7 +83,8 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         iconGray = MainActivity.getColorStateListFromId(context, R.color.generic_icon_gray);
         iconLightGray = MainActivity.getColorStateListFromId(context, R.color.tag_bg_gray);
         iconWhite = MainActivity.getColorStateListFromId(context, R.color.white);
-        bgSelectOrange = MainActivity.getColorStateListFromId(context, R.color.orange_500);
+        bgNormal = MainActivity.getColorStateListFromId(context, android.R.attr.colorBackgroundFloating);
+        bgSelectOrange = MainActivity.getColorStateListFromId(context, R.color.select_med_orange);
     }
 
     /**
@@ -154,13 +155,13 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
         public void select() {
             itemView.setBackgroundTintList(bgSelectOrange);
             filterDateIcon.setForegroundTintList(iconWhite);
-            filterDateName.setTextColor(ContextCompat.getColor(context, R.color.white));
+            filterDateName.setTextColor(MainActivity.getColorFromId(context, R.color.white));
         }
 
         public void deselect(int pos) {
             itemView.setBackgroundTintList(null);
             filterDateIcon.setForegroundTintList(disabledPos[pos] ? iconLightGray : iconGray);
-            filterDateName.setTextColor(disabledPos[pos] ? ContextCompat.getColor(context, R.color.tag_bg_gray) : ContextCompat.getColor(context, R.color.text_mid_gray));
+            filterDateName.setTextColor(disabledPos[pos] ? MainActivity.getColorFromId(context, R.color.tag_bg_gray) : ContextCompat.getColor(context, R.color.text_med_gray));
         }
     }
 

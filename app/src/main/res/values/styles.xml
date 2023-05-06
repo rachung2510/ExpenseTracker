@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--Toolbar-->
-    <style name="ToolbarStyle" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="ToolbarStyle" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <item name="colorControlNormal">@color/white</item>
         <item name="titleTextColor">@color/white</item>
     </style>
 
-    <!--Font-->
+    <!--Font & Colours-->
     <style name="RobotoTextViewStyle" parent="android:Widget.TextView">
         <item name="android:fontFamily">sans-serif</item>
     </style>
@@ -15,32 +15,43 @@
         <item name="android:fontFamily">sans-serif</item>
     </style>
 
-    <!--Discard changes dialog-->
-    <style name="DiscardChangesDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
-        <item name="buttonBarNegativeButtonStyle">@style/DiscardNegButtonStyle</item>
+    <style name="DialogNormalButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@color/text_med_gray</item>
     </style>
 
-    <style name="DiscardNegButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+    <style name="DialogRedButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
         <item name="android:textColor">@color/red</item>
+    </style>
+
+    <!--Normal dialog-->
+    <style name="NormalDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="buttonBarNeutralButtonStyle">@style/DialogNormalButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/DialogNormalButton</item>
+        <item name="buttonBarPositiveButtonStyle">@style/DialogNormalButton</item>
+    </style>
+
+    <!--Discard changes dialog-->
+    <style name="DiscardChangesDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="buttonBarNeutralButtonStyle">@style/DialogNormalButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/DialogNormalButton</item>
+        <item name="buttonBarPositiveButtonStyle">@style/DialogRedButton</item>
     </style>
 
     <!--Confirm delete dialog-->
     <style name="ConfirmDelDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
-        <item name="buttonBarPositiveButtonStyle">@style/DelPosButtonStyle</item>
+        <item name="buttonBarNegativeButtonStyle">@style/DialogNormalButton</item>
+        <item name="buttonBarPositiveButtonStyle">@style/DialogRedButton</item>
     </style>
 
-    <style name="DelPosButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
-        <item name="android:textColor">@color/red</item>
-    </style>
 
     <!--Wrap content width dialog-->
-    <style name="WrapContentDialog" parent="Theme.AppCompat.Light.Dialog">
+    <style name="WrapContentDialog" parent="Theme.AppCompat.DayNight.Dialog">
         <item name="windowMinWidthMajor">0%</item>
         <item name="windowMinWidthMinor">0%</item>
     </style>
 
     <!--Fullscreen dialog-->
-    <style name="FullscreenAlertDialog" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="FullscreenAlertDialog" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
         <item name="android:windowIsTranslucent">true</item>
@@ -54,15 +65,15 @@
     </style>
 
     <!--Widget Theme-->
-    <style name="Theme.Transparent" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.Transparent" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:fitsSystemWindows">false</item>
-        <item name="colorPrimary">@color/blue_gray_600</item>
-        <item name="colorAccent">@color/red_500</item>
+        <item name="colorPrimary">@color/text_dark_gray</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
 </resources>

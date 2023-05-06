@@ -66,7 +66,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
             holder.filterItemName.setText(acc.getName());
             holder.filterItemIcon.setVisibility(ImageView.GONE);
 
-            holder.filterItemName.setTextColor(ContextCompat.getColor(context, R.color.tag_text_gray));
+            holder.filterItemName.setTextColor(MainActivity.getColorFromId(context, R.color.tag_text_gray));
             holder.filterItemIcon.setForegroundTintList(tagGray);
             holder.delFilterItem.setForegroundTintList(tagGray);
         } else {
@@ -79,7 +79,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
             holder.filterItemIcon.setForeground(cat.getIcon());
             holder.filterItemIcon.setVisibility(ImageView.VISIBLE);
 
-            holder.filterItemName.setTextColor(ContextCompat.getColor(context, R.color.tag_text_orange));
+            holder.filterItemName.setTextColor(MainActivity.getColorFromId(context, R.color.tag_text_orange));
             holder.filterItemIcon.setForegroundTintList(tagOrange);
             holder.delFilterItem.setForegroundTintList(tagOrange);
         }

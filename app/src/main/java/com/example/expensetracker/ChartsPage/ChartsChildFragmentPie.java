@@ -136,7 +136,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
             float amt = cat.getAmount();
             if (amt == 0f) continue;
             pieEntries.add(new PieEntry(amt, cat.getIcon()));
-            colors.add(ContextCompat.getColor(getActivity(), cat.getColorId()));
+            colors.add(MainActivity.getColorFromId(getActivity(), cat.getColorId()));
             pieCategories.add(cat);
             pieCategoriesMap.put(cat.getName(), count);
             count++;

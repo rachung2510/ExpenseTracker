@@ -6,7 +6,7 @@
     <corners
         android:radius="100dp" />
     <stroke
-        android:color="@color/text_mid_gray"
+        android:color="@color/text_med_gray"
         android:dashWidth="7dp"
         android:dashGap="7dp"
         android:width="0dp" />
