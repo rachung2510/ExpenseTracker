@@ -129,6 +129,8 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
 
         setHasOptionsMenu(true);
         filterList = view.findViewById(R.id.sectionFilters);
+        // to hide error msg "No adapter attached; skipping layout"
+        filterList.setAdapter((new FilterAdapter(getActivity(), new ArrayList<>(), new ArrayList<>())));
         return view;
     }
 

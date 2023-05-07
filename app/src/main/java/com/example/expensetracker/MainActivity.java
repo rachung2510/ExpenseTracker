@@ -143,7 +143,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-//        savedInstanceState = null; // issues with fragments being saved separately from viewpageradapter
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);

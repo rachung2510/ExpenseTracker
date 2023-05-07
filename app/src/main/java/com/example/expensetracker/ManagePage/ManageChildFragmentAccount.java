@@ -2,6 +2,7 @@ package com.example.expensetracker.ManagePage;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +24,8 @@ import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import java.util.Objects;
 
 public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapter> {
+
+    public static final String TAG = "ManageChildFragmentAccount";
 
     public ManageChildFragmentAccount() {
         super();
