@@ -1,13 +1,10 @@
 package com.example.expensetracker.HomePage;
 
 import android.os.Bundle;
-import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -16,10 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.OnApplyWindowInsetsListener;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -37,21 +30,32 @@ import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.ExpenseAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.FilterAdapter;
+import com.example.expensetracker.Section;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
-import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class HomeFragment extends Fragment {
 
     private static final String TAG = "HomeFragment";
 
-    // Layout components
+    // Components to save
+    private Calendar fromDate, toDate;
+    private int selDatePos = DateGridAdapter.MONTH;
+    private int selDateState = DateGridAdapter.MONTH;
+    private ArrayList<Account> selAccFilters = new ArrayList<>();
+    private ArrayList<Category> selCatFilters = new ArrayList<>();
+    private String searchQuery = "";
+
+    // View components
     private RecyclerView expenseList;
     public TextView placeholder, summaryDate, summaryAmt, summaryCurr;
     private ImageButton prevDate, nextDate;
@@ -62,14 +66,8 @@ public class HomeFragment extends Fragment {
     private FloatingActionButton addExpBtn, searchBtn;
     private View dummyView;
 
-    // Filter components
+    // Others
     private DateGridAdapter filterDateAdapter;
-
-    private Calendar fromDate, toDate;
-    private int selDatePos, selDateState;
-    private ArrayList<Account> selAccFilters = new ArrayList<>();
-    private ArrayList<Category> selCatFilters = new ArrayList<>();
-    private String searchQuery = "";
 
     /**
      * Main
@@ -78,42 +76,65 @@ public class HomeFragment extends Fragment {
         if (getActivity() == null)
             return null;
 
+        // Define all views
         MainActivity context = (MainActivity) getActivity();
-
         View view = inflater.inflate(R.layout.fragment_home, container, false);
-
-        // summary & expense list
-        summaryDate = view.findViewById(R.id.summaryDate);
-        summaryDateAction();
-        summaryCurr = view.findViewById(R.id.summaryCurrency);
         summaryAmt = view.findViewById(R.id.summaryAmt);
+        summaryCurr = view.findViewById(R.id.summaryCurrency);
+        summaryDate = view.findViewById(R.id.summaryDate);
         expenseList = view.findViewById(R.id.expenseList);
         expenseListLayout = view.findViewById(R.id.homeFragLinearLayout);
         ((SimpleItemAnimator) Objects.requireNonNull(expenseList.getItemAnimator())).setSupportsChangeAnimations(false);
+        filterList = view.findViewById(R.id.sectionFilters);
         placeholder = view.findViewById(R.id.placeholder);
-
-        // date navigation buttons
         prevDate = view.findViewById(R.id.prevDate);
         nextDate = view.findViewById(R.id.nextDate);
-        prevDate.setOnClickListener((l) -> navDateAction(Constants.PREV));
-        nextDate.setOnClickListener((l) -> navDateAction(Constants.NEXT));
-
-        // update data
-        updateData(); // update summary & expense list
-
-        // apply filters
-        filterList = view.findViewById(R.id.sectionFilters);
-        applyFiltersViewItems();
-
-        // search
-        dummyView = view.findViewById(R.id.dummy);
+        prevDate.setOnClickListener((l) -> navDateOnClick(Constants.PREV));
+        nextDate.setOnClickListener((l) -> navDateOnClick(Constants.NEXT));
+        searchBtn = view.findViewById(R.id.searchBtn);
         searchBg = view.findViewById(R.id.searchBg);
         searchView = view.findViewById(R.id.searchView);
+        dummyView = view.findViewById(R.id.dummy);
+        addExpBtn = view.findViewById(R.id.addExpBtn);
+
+        // Restore state if saved
+        if (savedInstanceState != null) {
+            Gson gson = new GsonBuilder().create();
+            fromDate = gson.fromJson((String) savedInstanceState.get("fromDate"), Calendar.class);
+            toDate = gson.fromJson((String) savedInstanceState.get("toDate"), Calendar.class);
+            selDatePos = (int) savedInstanceState.get("selDatePos");
+            selDateState = (int) savedInstanceState.get("selDateState");
+            selAccFilters = getFilterAccounts((ArrayList<Integer>) savedInstanceState.get("selAccFilters"));
+            selCatFilters = getFilterCategories((ArrayList<Integer>) savedInstanceState.get("selCatFilters"));
+            searchQuery = (String) savedInstanceState.get("searchQuery");
+            if (!searchQuery.isEmpty()) searchView.setVisibility(View.VISIBLE);
+        }
+
+        // summary
+        setUpSummaryAction();
+
+        // apply filters
+        setUpFilters();
+
+        // search
+        searchBtn.setOnClickListener(view13 -> {
+            if (searchView.getVisibility() == View.VISIBLE) {
+                searchView.setQuery("", false);
+                closeSearch();
+            } else {
+                searchBg.setVisibility(View.VISIBLE);
+                searchView.setVisibility(View.VISIBLE);
+                searchView.setIconified(false); // focus search edit
+                searchView.setQuery(searchQuery, false);
+                ((MainActivity) getActivity()).enableBottomNavView(false);
+                toggleFloatingButtons(false);
+            }
+        });
         searchView.setOnQueryTextFocusChangeListener((view14, b) -> {
             if (!b) return;
             searchBg.setVisibility(View.VISIBLE);
             ((MainActivity) getActivity()).enableBottomNavView(false);
-            enableFloatingBtns(false);
+            toggleFloatingButtons(false);
         });
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -133,23 +154,8 @@ public class HomeFragment extends Fragment {
         });
         searchBg.setOnClickListener(view12 -> closeSearch());
 
-        // floating action buttons
-        addExpBtn = view.findViewById(R.id.addExpBtn);
+        // add expense
         addExpBtn.setOnClickListener(view1 -> ((MainActivity) getActivity()).addExpense());
-        searchBtn = view.findViewById(R.id.searchBtn);
-        searchBtn.setOnClickListener(view13 -> {
-            if (searchView.getVisibility() == View.VISIBLE) {
-                searchView.setQuery("", false);
-                closeSearch();
-            } else {
-                searchBg.setVisibility(View.VISIBLE);
-                searchView.setVisibility(View.VISIBLE);
-                searchView.setIconified(false); // focus search edit
-                searchView.setQuery(searchQuery, false);
-                ((MainActivity) getActivity()).enableBottomNavView(false);
-                enableFloatingBtns(false);
-            }
-        });
 
         // toolbar
         createOptionsMenu(view.findViewById(R.id.toolbar));
@@ -157,7 +163,22 @@ public class HomeFragment extends Fragment {
         // side menu
         context.setupMenuBtn(view.findViewById(R.id.menu_btn));
 
+        // update data
+        updateData(); // update summary & expense list
+
         return view;
+    }
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Gson gson = new GsonBuilder().create();
+        outState.putString("fromDate", gson.toJson(fromDate));
+        outState.putString("toDate", gson.toJson(toDate));
+        outState.putInt("selDatePos", selDatePos);
+        outState.putInt("selDateState", selDateState);
+        outState.putIntegerArrayList("selAccFilters", getFilterIds(selAccFilters));
+        outState.putIntegerArrayList("selCatFilters", getFilterIds(selCatFilters));
+        outState.putString("searchQuery", searchQuery);
     }
     @Override
     public void onDestroyView() {
@@ -199,7 +220,7 @@ public class HomeFragment extends Fragment {
         if (id == R.id.clearFilters) {
             selAccFilters.clear();
             selCatFilters.clear();
-            applyFiltersViewItems();
+            setUpFilters();
             updateClearFiltersMenuItem();
             updateData(); // update summary & expense list
             return true;
@@ -227,7 +248,7 @@ public class HomeFragment extends Fragment {
         }
         if (searchQuery.isEmpty()) searchBtn.setImageDrawable(MainActivity.getIconFromId(getActivity(), R.drawable.ic_baseline_search_24));
         ((MainActivity) getActivity()).enableBottomNavView(true);
-        enableFloatingBtns(true);
+        toggleFloatingButtons(true);
     }
     public void expandExpenseListLayout(boolean show) {
         int bottom = (show) ? (int) getResources().getDimension(R.dimen.bottom_nav_height) : 0;
@@ -239,11 +260,9 @@ public class HomeFragment extends Fragment {
     /**
      * Functions
      */
-    public void summaryDateAction() {
+    public void setUpSummaryAction() {
         if (getActivity() == null)
             return;
-        selDatePos = DateGridAdapter.MONTH;
-        selDateState = DateGridAdapter.MONTH;
         if (fromDate == null) {
             fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selDateState);
             toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selDateState);
@@ -293,7 +312,21 @@ public class HomeFragment extends Fragment {
             });
         });
     }
-    public void navDateAction(int direction) {
+    public void setUpFilters() {
+        FilterAdapter filterAdapter = new FilterAdapter(getActivity(), selAccFilters, selCatFilters);
+        FlexboxLayoutManager manager = new FlexboxLayoutManager(getActivity());
+        manager.setFlexDirection(FlexDirection.ROW);
+        manager.setJustifyContent(JustifyContent.FLEX_START);
+        filterList.setLayoutManager(manager);
+        filterList.setAdapter(filterAdapter);
+        if (!selAccFilters.isEmpty()) {
+            summaryCurr.setText(selAccFilters.get(0).getCurrencySymbol()); // get currency of first filter
+        } else {
+            String currencySymbol = ((MainActivity) getActivity()).getDefaultCurrencySymbol();
+            summaryCurr.setText(currencySymbol); // default
+        }
+    }
+    public void navDateOnClick(int direction) {
         if (getActivity() == null)
             return;
         if (selDatePos != DateGridAdapter.WEEK && selDatePos != DateGridAdapter.SELECT_RANGE)
@@ -318,20 +351,6 @@ public class HomeFragment extends Fragment {
                 toDate.set(Calendar.DAY_OF_YEAR, toDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
         }
         updateData(); // update summary & expense list
-    }
-    public void applyFiltersViewItems() {
-        FilterAdapter filterAdapter = new FilterAdapter(getActivity(), selAccFilters, selCatFilters);
-        FlexboxLayoutManager manager = new FlexboxLayoutManager(getActivity());
-        manager.setFlexDirection(FlexDirection.ROW);
-        manager.setJustifyContent(JustifyContent.FLEX_START);
-        filterList.setLayoutManager(manager);
-        filterList.setAdapter(filterAdapter);
-        if (!selAccFilters.isEmpty()) {
-            summaryCurr.setText(selAccFilters.get(0).getCurrencySymbol()); // get currency of first filter
-        } else {
-            String currencySymbol = ((MainActivity) getActivity()).getDefaultCurrencySymbol();
-            summaryCurr.setText(currencySymbol); // default
-        }
     }
     public void filterAccDialog(AccountAdapter adapter) {
         if (getActivity() == null)
@@ -359,37 +378,6 @@ public class HomeFragment extends Fragment {
 
         dialogBuilder.show();
     }
-    public void updateClearFiltersMenuItem() {
-        clearFilters.setVisible(!selAccFilters.isEmpty() || !selCatFilters.isEmpty());
-    }
-    public void updateDateRange() {
-        if (getActivity() == null)
-            return;
-        fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selDateState);
-        toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selDateState);
-    }
-
-    /**
-     * Getters & Setters
-     */
-    public Calendar[] getDateRange() {
-        return new Calendar[] { fromDate, toDate };
-    }
-    public int getSelDateState() {
-        return selDateState;
-    }
-    public ArrayList<Account> getSelAccFilters() {
-        return selAccFilters;
-    }
-    public ArrayList<Category> getSelCatFilters() {
-        return selCatFilters;
-    }
-    public String getSearchQuery() {
-        return searchQuery;
-    }
-    public String getSummaryAmt() { return summaryAmt.getText().toString(); }
-    public TextView getSummaryDate() { return summaryDate; }
-
     public void updateData() {
         updateData(false);
     }
@@ -407,7 +395,7 @@ public class HomeFragment extends Fragment {
         ExpenseAdapter expAdapter = new ExpenseAdapter(getActivity(), expenses);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        if (retainScrollPos)
+        if (retainScrollPos) // restore scroll position
             linearLayoutManager.scrollToPositionWithOffset(index, top);
         expenseList.setLayoutManager(linearLayoutManager);
         expenseList.setAdapter(expAdapter);
@@ -415,6 +403,19 @@ public class HomeFragment extends Fragment {
         else placeholder.setVisibility(View.VISIBLE);
         ((MainActivity) getActivity()).updateSummaryData(Constants.HOME);
     }
+    public void updateDateRange() {
+        if (getActivity() == null)
+            return;
+        fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selDateState);
+        toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selDateState);
+    }
+    public void updateClearFiltersMenuItem() {
+        clearFilters.setVisible(!selAccFilters.isEmpty() || !selCatFilters.isEmpty());
+    }
+
+    /**
+     * Getters & Setters
+     */
     public ArrayList<Expense> getExpenseList() {
         ArrayList<Expense> expenses;
         Calendar from = getDateRange()[0];
@@ -425,12 +426,35 @@ public class HomeFragment extends Fragment {
             expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(getSelAccFilters(), getSelCatFilters(), from, to, Constants.DESCENDING, searchQuery);
         return expenses;
     }
+    public Calendar[] getDateRange() {
+        return new Calendar[] { fromDate, toDate };
+    }
+    public int getSelDateState() {
+        return selDateState;
+    }
+    public ArrayList<Account> getSelAccFilters() {
+        return selAccFilters;
+    }
+    public ArrayList<Category> getSelCatFilters() {
+        return selCatFilters;
+    }
+    public String getSearchQuery() {
+        return searchQuery;
+    }
+    public String getSummaryAmt() { return summaryAmt.getText().toString(); }
+
     public void setSummaryData(String summaryDateText, float summaryAmtText) {
         summaryDate.setText(summaryDateText);
         summaryAmt.setText(String.format(MainActivity.locale, "%.2f", summaryAmtText));
     }
     public void setSummaryCurr(String currency) {
         summaryCurr.setText(currency);
+    }
+    public void setDateRange(Calendar[] range, int selDatePos, int selDateState) {
+        this.fromDate = range[0];
+        this.toDate = range[1];
+        this.selDatePos = selDatePos;
+        this.selDateState = selDateState;
     }
     public void setSelAccFilters(ArrayList<Account> selAccFilters) {
         setSelFilters(selAccFilters, null);
@@ -441,23 +465,34 @@ public class HomeFragment extends Fragment {
     public void setSelFilters(ArrayList<Account> selAccFilters, ArrayList<Category> selCatFilters) {
         if (selAccFilters != null) this.selAccFilters = selAccFilters;
         if (selCatFilters != null) this.selCatFilters = selCatFilters;
-        applyFiltersViewItems();
+        setUpFilters();
         updateClearFiltersMenuItem();
         updateData();
-    }
-    public void setDateRange(Calendar[] range, int selDatePos, int selDateState) {
-        this.fromDate = range[0];
-        this.toDate = range[1];
-        this.selDatePos = selDatePos;
-        this.selDateState = selDateState;
     }
 
     /**
      * Others
      */
-    public void enableFloatingBtns(boolean show) {
+    public void toggleFloatingButtons(boolean show) {
         int visibility = (show) ? View.VISIBLE : View.GONE;
         addExpBtn.setVisibility(visibility);
         searchBtn.setVisibility(visibility);
+    }
+    private <T extends Section> ArrayList<Integer> getFilterIds(ArrayList<T> arr) {
+        return arr
+                .stream()
+                .map(Section::getId).collect(Collectors.toCollection(ArrayList::new));
+    }
+    private ArrayList<Account> getFilterAccounts(ArrayList<Integer> arr) {
+        return arr
+                .stream()
+                .map(v -> ((MainActivity) getActivity()).db.getAccount(v))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+    private ArrayList<Category> getFilterCategories(ArrayList<Integer> arr) {
+        return arr
+                .stream()
+                .map(v -> ((MainActivity) getActivity()).db.getCategory(v))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }
