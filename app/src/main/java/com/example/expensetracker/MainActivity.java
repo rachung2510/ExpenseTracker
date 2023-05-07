@@ -460,8 +460,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         expSaveBtn =  expView.findViewById(R.id.newExpSave);
         expDesc.setOnFocusChangeListener((view, b) -> {
             Log.e(TAG, "b=" + b);
-            if (b) expDesc.setBackgroundResource(getResourceFromAttr(this, android.R.attr.colorBackground));
-            else expDesc.setBackgroundResource(getResourceFromAttr(this, android.R.attr.selectableItemBackground));
+            if (b) expDesc.setBackgroundResource(getResourceIdFromAttr(this, android.R.attr.colorBackground));
+            else expDesc.setBackgroundResource(getResourceIdFromAttr(this, android.R.attr.selectableItemBackground));
         });
         expCurr = expView.findViewById(R.id.newExpCurrency);
         scanReceiptBtn = expView.findViewById(R.id.scanReceiptBtn);
@@ -1270,19 +1270,21 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public static ColorStateList getColorStateListFromId(Context context, int id) {
         return ColorStateList.valueOf(getColorFromId(context, id));
     }
+    public static ColorStateList getColorStateListFromAttr(Context context, int attr) {
+        return ColorStateList.valueOf(getResourceFromAttr(context, attr));
+    }
     public static int getColorFromHex(String hex) {
         return Color.parseColor("#" + hex);
     }
     public static int getColorFromId(Context context, int id) {
-        try {
-            return ContextCompat.getColor(context, id);
-        } catch (Exception e) {
-            TypedValue a = new TypedValue();
-            context.getTheme().resolveAttribute(id, a, true);
-            return a.data;
-        }
+        return ContextCompat.getColor(context, id);
     }
     public static int getResourceFromAttr(Context context, int attr) {
+        TypedValue a = new TypedValue();
+        context.getTheme().resolveAttribute(attr, a, true);
+        return a.data;
+    }
+    public static int getResourceIdFromAttr(Context context, int attr) {
         TypedValue a = new TypedValue();
         context.getTheme().resolveAttribute(attr, a, true);
         return a.resourceId;

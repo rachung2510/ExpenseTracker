@@ -125,7 +125,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         public void deselect() {
-            expRow.setBackgroundColor(MainActivity.getColorFromId(context, android.R.attr.colorBackground));
+            expRow.setBackgroundColor(MainActivity.getResourceFromAttr(context, android.R.attr.windowBackground));
         }
 
         public void toggleSelect(int position) {
