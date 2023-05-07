@@ -13,10 +13,10 @@ A simple expense tracker for android which has three pages.
 
 ## Todo
 - Swipe for prev/next date range
-- Save instance on theme change
 
 ## Potential features
 - Calendar section in CHARTS page
 
 ## Bug fixes
+- Erroneous computation of amounts
 
