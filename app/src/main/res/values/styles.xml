@@ -74,7 +74,7 @@
         <item name="android:windowFullscreen">false</item>
         <item name="android:fitsSystemWindows">false</item>
         <item name="colorPrimary">@color/text_dark_gray</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorAccent">@color/color_accent</item>
     </style>
 
 </resources>

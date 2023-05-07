@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorBackground">#121212</color>
-    <color name="colorBackgroundFloating">#424242</color>
+    <color name="color_background">#121212</color>
+    <color name="color_background_floating">#424242</color>
 
     <!--shades-->
     <color name="red">#f27384</color>
