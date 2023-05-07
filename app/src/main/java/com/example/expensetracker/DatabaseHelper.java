@@ -995,14 +995,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     public HashMap<String, Float> getSortedAmountsByDateRange(Calendar from, Calendar to, String dateFormat) {
         HashMap<String, Float> dateAmtMap = new HashMap<>();
-        String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
-        String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
-        Cursor c = getCursorFromQueryOrNull(
-                "SELECT " + KEY_ACC_ID + ", strftime('" + dateFormat + "', " + KEY_DATETIME + "), SUM(" + KEY_AMOUNT +
-                        ") FROM " + TABLE_EXPENSE +
-                        " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr +
-                        "' GROUP BY strftime('" + dateFormat + "', " + KEY_DATETIME + "), " + KEY_ACC_ID,
+        String query = getQueryFromFiltersInDateRange(
+                KEY_ACC_ID + ", strftime('" + dateFormat + "', " + KEY_DATETIME + "), SUM(" + KEY_AMOUNT + ")",
+                new ArrayList<>(), new ArrayList<>(),
+                from, to,
+                "",
+                "strftime('" + dateFormat + "', " + KEY_DATETIME + "), " + KEY_ACC_ID,
                 "");
+//        Log.e(TAG, query);
+        Cursor c = getCursorFromQueryOrNull(query,"");
         if (c == null)
             return dateAmtMap;
         while (c.moveToNext()) {
@@ -1024,9 +1025,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String query = getQueryFromFiltersInDateRange(
                 KEY_ACC_ID + ", strftime('" + dateFormat + "', " + KEY_DATETIME + "), SUM(" + KEY_AMOUNT + ")",
                 accs, cats, from, to,
+                "strftime('" + dateFormat + "', " + KEY_DATETIME + ")",
                 "strftime('" + dateFormat + "', " + KEY_DATETIME + "), " + KEY_ACC_ID,
-                KEY_ACC_ID,
                 "");
+//        Log.e(TAG, query);
         Cursor c = getCursorFromQueryOrNull(query, "");
         if (c == null)
             return dateAmtMap;
