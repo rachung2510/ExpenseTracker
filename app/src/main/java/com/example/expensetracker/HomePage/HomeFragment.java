@@ -70,6 +70,7 @@ public class HomeFragment extends Fragment {
     /**
      * Main
      */
+    @SuppressWarnings("unchecked")
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getActivity() == null)
             return null;

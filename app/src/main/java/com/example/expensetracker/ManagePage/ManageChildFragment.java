@@ -1,6 +1,7 @@
 package com.example.expensetracker.ManagePage;
 
 import static androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_DRAG;
+import static androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_IDLE;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -27,11 +28,10 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
     private static final String TAG = "ManageChildFragment";
     protected Context context;
     protected T adapter;
-    protected RecyclerView sectionList;
+    protected RecyclerView recyclerView;
     protected int sectionType;
 
     public ManageChildFragment() {}
-    public ManageChildFragment(Context context) { this.context = context; }
     public void invalidateMenu() {}
 
     public void updateView() {
@@ -39,9 +39,9 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
     }
     public void setAdapter(T adapter, int args) {
         this.adapter = adapter;
-        sectionList.setAdapter(adapter);
+        recyclerView.setAdapter(adapter);
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(getSimpleCallback(args));
-        itemTouchHelper.attachToRecyclerView(sectionList);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
         adapter.setItemTouchHelper(itemTouchHelper);
     }
 
@@ -97,7 +97,8 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
     }
     public void updateData() {}
 
-    // Define drag/drop moveable grid
+    // Define drag/drop movable grid
+    private boolean onMove = false;
     @SuppressWarnings("unchecked")
     public <E extends Section> ItemTouchHelper.SimpleCallback getSimpleCallback(int args) {
         return new ItemTouchHelper.SimpleCallback(args, 0) {
@@ -121,6 +122,7 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
                 if (recyclerView.getAdapter() == null)
                     return false;
+                onMove = true;
                 int fromPos = viewHolder.getAdapterPosition();
                 int toPos = target.getAdapterPosition();
                 fromFinal = (fromFinal < 0) ? fromPos : fromFinal;
@@ -140,6 +142,9 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
 
             @Override
             public void onSelectedChanged(@Nullable RecyclerView.ViewHolder viewHolder, int actionState) {
+                if (actionState == ACTION_STATE_IDLE && !onMove)
+                    recyclerView.post(() -> adapter.notifyItemRangeChanged(0, adapter.getItemCount() - 1));
+                onMove = false;
                 if (viewHolder == null)
                     return;
                 if (actionState == ACTION_STATE_DRAG)

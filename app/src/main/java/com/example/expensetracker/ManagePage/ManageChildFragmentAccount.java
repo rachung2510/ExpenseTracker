@@ -1,8 +1,6 @@
 package com.example.expensetracker.ManagePage;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,9 +27,6 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
 
     public ManageChildFragmentAccount() {
         super();
-    }
-    public ManageChildFragmentAccount(Context context) {
-        super(context);
         this.sectionType = Constants.SECTION_ACCOUNT;
     }
 
@@ -39,11 +34,14 @@ public class ManageChildFragmentAccount extends ManageChildFragment<AccountAdapt
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getActivity() == null)
             return null;
+        context = getActivity();
         View view = inflater.inflate(R.layout.fragment_manage_acc, container, false);
-        sectionList = view.findViewById(R.id.accList);
-        ((SimpleItemAnimator) Objects.requireNonNull(sectionList.getItemAnimator())).setSupportsChangeAnimations(false);
-        sectionList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recyclerView = view.findViewById(R.id.accList);
+        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
+        recyclerView.setLayoutManager(new LinearLayoutManager(context));
+        recyclerView.setHasFixedSize(true);
         updateView();
+
         // menu
         invalidateMenu();
         setHasOptionsMenu(true);

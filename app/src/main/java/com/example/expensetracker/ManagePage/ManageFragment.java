@@ -35,8 +35,8 @@ public class ManageFragment extends Fragment {
 
         viewPager = view.findViewById(R.id.viewPager);
         ViewPagerAdapter adapter = new ViewPagerAdapter(this);
-        ManageChildFragmentAccount fragmentAccount = new ManageChildFragmentAccount(getActivity());
-        ManageChildFragmentCategory fragmentCategory = new ManageChildFragmentCategory(getActivity());
+        ManageChildFragmentAccount fragmentAccount = new ManageChildFragmentAccount();
+        ManageChildFragmentCategory fragmentCategory = new ManageChildFragmentCategory();
         if (savedInstanceState != null) {
             for (int i = 0; i < getChildFragmentManager().getFragments().size() ; i++) {
                 switch (i) {

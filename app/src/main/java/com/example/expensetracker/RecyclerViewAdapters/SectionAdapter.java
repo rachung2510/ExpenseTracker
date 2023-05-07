@@ -1,7 +1,6 @@
 package com.example.expensetracker.RecyclerViewAdapters;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -220,7 +219,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         public void select() {
             listItemIcon.setForeground(iconCheck);
-            listItemRow.setBackgroundColor(MainActivity.getColorFromId(context, R.color.select_light_orange));
+            listItemRow.setBackgroundTintList(MainActivity.getColorStateListFromId(context, R.color.select_light_orange));
             ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) separator.getLayoutParams();
             p.setMargins(0,0,0,0);
             separator.requestLayout();
@@ -228,11 +227,11 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
 
         public void deselect(T section) {
             if (section.getId() != -1) {
-                listItemRow.setBackgroundColor(MainActivity.getColorFromId(context, R.color.white));
+                listItemRow.setBackgroundTintList(MainActivity.getColorStateListFromAttr(context, android.R.attr.colorBackground ));
                 listItemIcon.setForeground(section.getIcon());
                 if (position != getItemCount()-2) {
                     ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) separator.getLayoutParams();
-                    int m = (int) MainActivity.convertDpToPx(context, 24);
+                    int m = MainActivity.convertDpToPx(context, 24);
                     p.setMargins(m, 0, m, 0);
                     separator.requestLayout();
                 }
@@ -297,7 +296,7 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             return;
         }
 
-        holder.itemView.setAlpha(1f);
+        holder.itemView.setAlpha(1f); // restore opacity if dragged to same position
         holder.listItemRow.setOnClickListener(view -> {
             if (isNew(position))
                 ((MainActivity) context).addAccount();

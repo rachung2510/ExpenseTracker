@@ -1,8 +1,6 @@
 package com.example.expensetracker.ManagePage;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -30,9 +28,6 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
 
     public ManageChildFragmentCategory() {
         super();
-    }
-    public ManageChildFragmentCategory(Context context) {
-        super(context);
         this.sectionType = Constants.SECTION_CATEGORY;
     }
 
@@ -40,10 +35,12 @@ public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAda
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getActivity() == null)
             return null;
+        context = getActivity();
         View view = inflater.inflate(R.layout.fragment_manage_cat, container, false);
-        sectionList = view.findViewById(R.id.catGrid);
-        ((SimpleItemAnimator) Objects.requireNonNull(sectionList.getItemAnimator())).setSupportsChangeAnimations(false);
-        sectionList.setLayoutManager(new GridLayoutManager(getActivity(), 3, GridLayoutManager.VERTICAL, false));
+        recyclerView = view.findViewById(R.id.catGrid);
+        ((SimpleItemAnimator) Objects.requireNonNull(recyclerView.getItemAnimator())).setSupportsChangeAnimations(false);
+        recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3, GridLayoutManager.VERTICAL, false));
+        recyclerView.setHasFixedSize(true);
         updateView();
         invalidateMenu();
         setHasOptionsMenu(true);
