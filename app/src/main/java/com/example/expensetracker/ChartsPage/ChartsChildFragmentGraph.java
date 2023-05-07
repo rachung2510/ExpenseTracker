@@ -670,11 +670,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
 //        Log.e(TAG, "state=" + selDateState + ", numUnits=" + numUnits + ", highlight=" + isHighlighted);
         if (selDateState == DateGridAdapter.YEAR)
             return true;
-        if (selDateState == DateGridAdapter.MONTH) {
-            if (isHighlighted) return false;
-            else return (numUnits > 27);
-        }
-        return false;
+        return !(isHighlighted);
     }
     private int getActualSelDateState() {
         if (isSelRange)
