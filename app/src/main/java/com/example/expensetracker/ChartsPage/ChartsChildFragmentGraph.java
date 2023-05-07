@@ -3,7 +3,7 @@ package com.example.expensetracker.ChartsPage;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -51,7 +51,11 @@ import com.github.mikephil.charting.utils.Transformer;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -64,26 +68,28 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
 
     private static final String TAG = "ChartsChildFragmentGraph";
 
+    // Main components
     private float totalAmt = 0;
-    private boolean isInitialised = false;
-
-    // Graph components
-    private LineChart lineChart;
-    private TextView lineAmt, lineDate, avgDay, avgWeek, avgMonth, placeholder, link;
-    private RecyclerView expenseList;
-    private final ArrayList<String> dates = new ArrayList<>();
+    private Calendar fromDate, toDate;
     private int selDateState;
-    private boolean isSelRange = false;
-    private Calendar fromCal, toCal;
-    private int numUnits = 1;
-    private static final float granDivisor = 10f;
-    private boolean isHighlighted = false;
-
-    // Filter components
-    private RecyclerView filterList;
-    private MenuItem clearFiltersMenuOption;
+    private final ArrayList<String> dates = new ArrayList<>();
     private ArrayList<Account> accFilters = new ArrayList<>();
     private ArrayList<Category> catFilters = new ArrayList<>();
+    private Pair<Float,Float> highlightEntry;
+    private String highlightDate;
+
+    // View components
+    private LineChart lineChart;
+    private TextView lineAmt, lineDate, avgDay, avgWeek, avgMonth, placeholder, link;
+    private RecyclerView expenseList, filterList;
+    private MenuItem clearFiltersMenuOption;
+
+    // Others
+    private boolean isHighlighted = false;
+    private boolean isSelRange = false;
+    private boolean isInitialised = false;
+    private int numUnits = 1;
+    private static final float granDivisor = 10f;
 
     public ChartsChildFragmentGraph() {
         super();
@@ -96,15 +102,16 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
 
         isInitialised = true;
 
+        // Define all views
         view = inflater.inflate(R.layout.fragment_charts_graph, container, false);
         lineChart = view.findViewById(R.id.lineChart);
         lineDate = view.findViewById(R.id.summaryDate);
         lineAmt = view.findViewById(R.id.summaryAmt);
         updateCurrency(((MainActivity) getActivity()).getDefaultCurrencySymbol());
         LinearLayout summaryAmtBlk = view.findViewById(R.id.summaryAmtBlk);
-        summaryAmtBlk.setOnClickListener(view1 -> resetOnClick());
+        summaryAmtBlk.setOnClickListener(view1 -> removeHighlight());
         LinearLayout statistics = view.findViewById(R.id.statistics);
-        statistics.setOnClickListener(view1 -> resetOnClick());
+        statistics.setOnClickListener(view1 -> removeHighlight());
         expenseList = view.findViewById(R.id.expenseList);
         avgDay = view.findViewById(R.id.dayAvg);
         avgWeek = view.findViewById(R.id.weekAvg);
@@ -112,11 +119,12 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         placeholder = view.findViewById(R.id.placeholder);
         link = view.findViewById(R.id.link);
 
+
         link.setOnClickListener(view -> {
             HomeFragment homeFrag = (HomeFragment) ((MainActivity) getActivity()).getFragment(Constants.HOME);
             ChartsFragment chartsFrag = (ChartsFragment) ((MainActivity) getActivity()).getFragment(Constants.CHARTS);
             homeFrag.setSelFilters(MainActivity.clone(accFilters), MainActivity.clone(catFilters));
-            homeFrag.setDateRange(new Calendar[] { fromCal, toCal }, chartsFrag.getSelDatePos(), getActualSelDateState());
+            homeFrag.setDateRange(new Calendar[] {fromDate, toDate}, chartsFrag.getSelectedDatePos(), getActualSelDateState());
             ((MainActivity) getActivity()).updateHomeData();
             ((MainActivity) getActivity()).goToFragment(Constants.HOME);
         });
@@ -131,7 +139,25 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         filterList = view.findViewById(R.id.sectionFilters);
         // to hide error msg "No adapter attached; skipping layout"
         filterList.setAdapter((new FilterAdapter(getActivity(), new ArrayList<>(), new ArrayList<>())));
+
+        if (savedInstanceState != null) {
+            Gson gson = new GsonBuilder().create();
+            Type type = new TypeToken<Pair<Float,Float>>(){}.getType();
+            highlightEntry = gson.fromJson((String) savedInstanceState.get("highlightEntry"), type);
+            if (highlightEntry == null) return view;
+            highlightDate = (String) savedInstanceState.get("highlightDate");
+            lineChart.highlightValue(highlightEntry.first, highlightEntry.second, 0);
+            setHighlight();
+        }
+
         return view;
+    }
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Gson gson = new GsonBuilder().create();
+        outState.putString("highlightEntry", gson.toJson(highlightEntry));
+        outState.putString("highlightDate", highlightDate);
     }
 
     @Override
@@ -150,11 +176,11 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         }
         updateSelDateState();
         
-        fromCal = MainActivity.getCalendarCopy(from, DateGridAdapter.FROM);
-        toCal = MainActivity.getCalendarCopy(to, DateGridAdapter.TO);
-        Calendar old = MainActivity.getCalendarCopy(fromCal, DateGridAdapter.FROM);
-        fromCal = updateDateRangeForDay(fromCal, DateGridAdapter.FROM);
-        toCal = updateDateRangeForDay(toCal, DateGridAdapter.TO);
+        fromDate = MainActivity.getCalendarCopy(from, DateGridAdapter.FROM);
+        toDate = MainActivity.getCalendarCopy(to, DateGridAdapter.TO);
+        Calendar old = MainActivity.getCalendarCopy(fromDate, DateGridAdapter.FROM);
+        fromDate = updateDateRangeForDay(fromDate, DateGridAdapter.FROM);
+        toDate = updateDateRangeForDay(toDate, DateGridAdapter.TO);
 
         loadLineChartData();
         updateExpenseList();
@@ -278,8 +304,8 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
 
         String dateFormat;
         int range;
-        LocalDate fromDate = LocalDateTime.ofInstant(fromCal.toInstant(), fromCal.getTimeZone().toZoneId()).toLocalDate();
-        LocalDate toDate = LocalDateTime.ofInstant(toCal.toInstant(), toCal.getTimeZone().toZoneId()).toLocalDate();
+        LocalDate fromDate = LocalDateTime.ofInstant(this.fromDate.toInstant(), this.fromDate.getTimeZone().toZoneId()).toLocalDate();
+        LocalDate toDate = LocalDateTime.ofInstant(this.toDate.toInstant(), this.toDate.getTimeZone().toZoneId()).toLocalDate();
         if (selDateState == DateGridAdapter.YEAR) { // by months
             dateFormat = "%Y-%m";
             range = Calendar.MONTH;
@@ -294,7 +320,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         }
 
         // create date xticks
-        Calendar calUnit = MainActivity.getCalendarCopy(fromCal, DateGridAdapter.FROM);
+        Calendar calUnit = MainActivity.getCalendarCopy(this.fromDate, DateGridAdapter.FROM);
         dates.clear();
         for (int i = 0; i < numUnits; i++) {
             values.add(new Entry(i, 0f));
@@ -307,8 +333,8 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         float maxAmt = 0;
         float prevAmt = 0;
         float nextAmt = 0;
-        Calendar prev = MainActivity.getCalendarCopy(fromCal, DateGridAdapter.FROM);
-        Calendar next = MainActivity.getCalendarCopy(toCal, DateGridAdapter.TO);
+        Calendar prev = MainActivity.getCalendarCopy(this.fromDate, DateGridAdapter.FROM);
+        Calendar next = MainActivity.getCalendarCopy(this.toDate, DateGridAdapter.TO);
         prev.add(range, -1);
         next.add(range, 1);
         HashMap<String, Float> dateAmtMap;
@@ -400,25 +426,15 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         lineChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-                isHighlighted = true;
-                if (e.getX() < 0 || e.getX() > numUnits) return;
-                lineAmt.setText(String.format(MainActivity.locale,"%.2f",e.getY()));
-                highlightLineAmt(true);
+                highlightEntry = new Pair<>(e.getX(), e.getY());
                 int x = (int) e.getX();
-                ChartsChildFragmentGraph.this.fromCal = MainActivity.getCalFromString(getDtf(), dates.get(x));
-                ChartsChildFragmentGraph.this.fromCal = MainActivity.getCalendarCopy(ChartsChildFragmentGraph.this.fromCal, DateGridAdapter.FROM);
-                toCal = MainActivity.getCalendarCopy(ChartsChildFragmentGraph.this.fromCal, DateGridAdapter.TO);
-                if (selDateState == DateGridAdapter.YEAR) {
-                    toCal.set(Calendar.DAY_OF_MONTH, fromCal.getActualMaximum(Calendar.DATE));
-                    lineDate.setText(MainActivity.getDatetimeStr(fromCal, "MMM yyyy").toUpperCase());
-                } else
-                    lineDate.setText(getString(R.string.full_date,MainActivity.getRelativePrefix(fromCal), MainActivity.getDatetimeStr(fromCal, "dd MMM yyyy")).toUpperCase());
-                updateExpenseList();
+                highlightDate = dates.get(x);
+                setHighlight();
             }
 
             @Override
             public void onNothingSelected() {
-                resetOnClick();
+                removeHighlight();
             }
         });
     }
@@ -486,7 +502,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     private void updateAverages() {
         if (getActivity() == null)
             return;
-        float[] averages = ((MainActivity) getActivity()).db.getAverages(fromCal, toCal);
+        float[] averages = ((MainActivity) getActivity()).db.getAverages(fromDate, toDate);
         avgDay.setText((averages[0] < 0) ? "–" : String.format(MainActivity.locale,"%.2f", averages[0]));
         avgWeek.setText((averages[1] < 0) ? "–" : String.format(MainActivity.locale,"%.2f", averages[1]));
         avgMonth.setText((averages[2] < 0) ? "–" : String.format(MainActivity.locale,"%.2f", averages[2]));
@@ -519,7 +535,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         }
         expenseList.setVisibility(View.VISIBLE);
         link.setVisibility(View.GONE);
-        ArrayList<Expense> expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(accFilters, catFilters, fromCal, toCal, Constants.DESCENDING, "");
+        ArrayList<Expense> expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(accFilters, catFilters, fromDate, toDate, Constants.DESCENDING, "");
         expenses = MainActivity.insertExpDateHeaders(expenses);
         expenseList.setAdapter(new ExpenseAdapter(getActivity(), expenses, true));
         if (expenses.size() > 0) placeholder.setVisibility(View.GONE);
@@ -529,16 +545,16 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         String lineDateText;
         if (isSelRange) {
             if (selDateState == DateGridAdapter.YEAR)
-                lineDateText = getString(R.string.date_range,MainActivity.getDatetimeStr(fromCal, "MMM yyyy"),MainActivity.getDatetimeStr(toCal, "MMM yyyy")).toUpperCase();
+                lineDateText = getString(R.string.date_range,MainActivity.getDatetimeStr(fromDate, "MMM yyyy"),MainActivity.getDatetimeStr(toDate, "MMM yyyy")).toUpperCase();
             else
-                lineDateText = getString(R.string.date_range,MainActivity.getDatetimeStr(fromCal, "dd MMM yyyy"),MainActivity.getDatetimeStr(toCal, "dd MMM yyyy")).toUpperCase();
+                lineDateText = getString(R.string.date_range,MainActivity.getDatetimeStr(fromDate, "dd MMM yyyy"),MainActivity.getDatetimeStr(toDate, "dd MMM yyyy")).toUpperCase();
         } else {
             if (selDateState == DateGridAdapter.YEAR)
-                lineDateText = MainActivity.getDatetimeStr(fromCal, "yyyy").toUpperCase();
+                lineDateText = MainActivity.getDatetimeStr(fromDate, "yyyy").toUpperCase();
             else if (selDateState <= DateGridAdapter.WEEK)
-                lineDateText = getString(R.string.date_range,MainActivity.getDatetimeStr(fromCal, "dd MMM yyyy"),MainActivity.getDatetimeStr(toCal, "dd MMM yyyy")).toUpperCase();
+                lineDateText = getString(R.string.date_range,MainActivity.getDatetimeStr(fromDate, "dd MMM yyyy"),MainActivity.getDatetimeStr(toDate, "dd MMM yyyy")).toUpperCase();
             else
-                lineDateText = MainActivity.getDatetimeStr(fromCal, "MMMM yyyy").toUpperCase();
+                lineDateText = MainActivity.getDatetimeStr(fromDate, "MMMM yyyy").toUpperCase();
         }
         lineAmt.setText(String.format(MainActivity.locale,"%.2f", totalAmt));
         lineDate.setText(lineDateText);
@@ -546,8 +562,8 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     private void updateSelDateState() {
         if (getParentFragment() == null)
             return;
-        selDateState = ((ChartsFragment) getParentFragment()).getSelDateState();
-        isSelRange = ((ChartsFragment) getParentFragment()).getSelDatePos() == DateGridAdapter.SELECT_RANGE;
+        selDateState = ((ChartsFragment) getParentFragment()).getSelectedDateState();
+        isSelRange = ((ChartsFragment) getParentFragment()).getSelectedDatePos() == DateGridAdapter.SELECT_RANGE;
         isHighlighted = selDateState == DateGridAdapter.DAY && !isSelRange;
         if (isSelRange) {
             if (selDateState == DateGridAdapter.MONTH)
@@ -615,20 +631,36 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         if (selDateState == DateGridAdapter.YEAR) return "yyyy-MM";
         else return "yyyy-MM-dd";
     }
+    private void setHighlight() {
+        isHighlighted = true;
+        if (highlightEntry.first < 0 || highlightEntry.first > numUnits) return;
+        lineAmt.setText(String.format(MainActivity.locale,"%.2f", highlightEntry.second));
+        highlightLineAmt(true);
+        ChartsChildFragmentGraph.this.fromDate = MainActivity.getCalFromString(getDtf(), highlightDate);
+        ChartsChildFragmentGraph.this.fromDate = MainActivity.getCalendarCopy(ChartsChildFragmentGraph.this.fromDate, DateGridAdapter.FROM);
+        toDate = MainActivity.getCalendarCopy(ChartsChildFragmentGraph.this.fromDate, DateGridAdapter.TO);
+        if (selDateState == DateGridAdapter.YEAR) {
+            toDate.set(Calendar.DAY_OF_MONTH, fromDate.getActualMaximum(Calendar.DATE));
+            lineDate.setText(MainActivity.getDatetimeStr(fromDate, "MMM yyyy").toUpperCase());
+        } else
+            lineDate.setText(getString(R.string.full_date,MainActivity.getRelativePrefix(fromDate), MainActivity.getDatetimeStr(fromDate, "dd MMM yyyy")).toUpperCase());
+        updateExpenseList();
+    }
     private void highlightLineAmt(boolean enable) {
         if (getActivity() == null)
             return;
         lineAmt.setTextColor(enable? MainActivity.getColorFromId(getActivity(), R.color.red_500) :
                 MainActivity.getColorFromId(getActivity(), R.color.text_dark_gray));
     }
-    private void resetOnClick() {
+    private void removeHighlight() {
         if (getParentFragment() == null)
             return;
+        highlightEntry = null;
         isHighlighted = false;
-        fromCal = ((ChartsFragment) getParentFragment()).getDateRange()[0];
-        toCal = ((ChartsFragment) getParentFragment()).getDateRange()[1];
-        fromCal = updateDateRangeForDay(fromCal, DateGridAdapter.FROM);
-        toCal = updateDateRangeForDay(toCal, DateGridAdapter.TO);
+        fromDate = ((ChartsFragment) getParentFragment()).getDateRange()[0];
+        toDate = ((ChartsFragment) getParentFragment()).getDateRange()[1];
+        fromDate = updateDateRangeForDay(fromDate, DateGridAdapter.FROM);
+        toDate = updateDateRangeForDay(toDate, DateGridAdapter.TO);
         lineChart.highlightValues(null);
         highlightLineAmt(false);
         updateLineChartSummary();

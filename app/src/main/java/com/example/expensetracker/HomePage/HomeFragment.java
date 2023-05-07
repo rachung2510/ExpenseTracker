@@ -30,7 +30,6 @@ import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.ExpenseAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.FilterAdapter;
-import com.example.expensetracker.Section;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayoutManager;
 import com.google.android.flexbox.JustifyContent;
@@ -41,7 +40,6 @@ import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class HomeFragment extends Fragment {
 
@@ -49,10 +47,10 @@ public class HomeFragment extends Fragment {
 
     // Components to save
     private Calendar fromDate, toDate;
-    private int selDatePos = DateGridAdapter.MONTH;
-    private int selDateState = DateGridAdapter.MONTH;
-    private ArrayList<Account> selAccFilters = new ArrayList<>();
-    private ArrayList<Category> selCatFilters = new ArrayList<>();
+    private int selectedDatePos = DateGridAdapter.MONTH;
+    private int selectedDateState = DateGridAdapter.MONTH;
+    private ArrayList<Account> accFilters = new ArrayList<>();
+    private ArrayList<Category> catFilters = new ArrayList<>();
     private String searchQuery = "";
 
     // View components
@@ -102,10 +100,10 @@ public class HomeFragment extends Fragment {
             Gson gson = new GsonBuilder().create();
             fromDate = gson.fromJson((String) savedInstanceState.get("fromDate"), Calendar.class);
             toDate = gson.fromJson((String) savedInstanceState.get("toDate"), Calendar.class);
-            selDatePos = (int) savedInstanceState.get("selDatePos");
-            selDateState = (int) savedInstanceState.get("selDateState");
-            selAccFilters = getFilterAccounts((ArrayList<Integer>) savedInstanceState.get("selAccFilters"));
-            selCatFilters = getFilterCategories((ArrayList<Integer>) savedInstanceState.get("selCatFilters"));
+            selectedDatePos = (int) savedInstanceState.get("selectedDatePos");
+            selectedDateState = (int) savedInstanceState.get("selectedDateState");
+            accFilters = context.getFilterAccounts((ArrayList<Integer>) savedInstanceState.get("accFilters"));
+            catFilters = context.getFilterCategories((ArrayList<Integer>) savedInstanceState.get("catFilters"));
             searchQuery = (String) savedInstanceState.get("searchQuery");
             if (!searchQuery.isEmpty()) searchView.setVisibility(View.VISIBLE);
         }
@@ -174,15 +172,11 @@ public class HomeFragment extends Fragment {
         Gson gson = new GsonBuilder().create();
         outState.putString("fromDate", gson.toJson(fromDate));
         outState.putString("toDate", gson.toJson(toDate));
-        outState.putInt("selDatePos", selDatePos);
-        outState.putInt("selDateState", selDateState);
-        outState.putIntegerArrayList("selAccFilters", getFilterIds(selAccFilters));
-        outState.putIntegerArrayList("selCatFilters", getFilterIds(selCatFilters));
+        outState.putInt("selectedDatePos", selectedDatePos);
+        outState.putInt("selectedDateState", selectedDateState);
+        outState.putIntegerArrayList("accFilters", ((MainActivity) getActivity()).getFilterIds(accFilters));
+        outState.putIntegerArrayList("catFilters", ((MainActivity) getActivity()).getFilterIds(catFilters));
         outState.putString("searchQuery", searchQuery);
-    }
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
     }
 
     /**
@@ -202,7 +196,7 @@ public class HomeFragment extends Fragment {
         if (id == R.id.filterAcc) {
             AccountAdapter accAdapter = ((MainActivity) getActivity()).getAccountData();
             accAdapter.setSelectionMode(true);
-            for (Account acc : selAccFilters) {
+            for (Account acc : accFilters) {
                 accAdapter.setSelected(acc.getName());
             }
             filterAccDialog(accAdapter);
@@ -211,15 +205,15 @@ public class HomeFragment extends Fragment {
         if (id == R.id.filterCat) {
             CategoryAdapter catAdapter = ((MainActivity) getActivity()).getCategoryData();
             catAdapter.setSelectionMode(true);
-            for (Category cat : selCatFilters) {
+            for (Category cat : catFilters) {
                 catAdapter.setSelected(cat.getName());
             }
             filterCatDialog(catAdapter);
             return true;
         }
         if (id == R.id.clearFilters) {
-            selAccFilters.clear();
-            selCatFilters.clear();
+            accFilters.clear();
+            catFilters.clear();
             setUpFilters();
             updateClearFiltersMenuItem();
             updateData(); // update summary & expense list
@@ -260,124 +254,6 @@ public class HomeFragment extends Fragment {
     /**
      * Functions
      */
-    public void setUpSummaryAction() {
-        if (getActivity() == null)
-            return;
-        if (fromDate == null) {
-            fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selDateState);
-            toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selDateState);
-        }
-        summaryDate.setOnClickListener(view -> {
-            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity(), R.style.WrapContentDialog);
-            final View filterDateView = getLayoutInflater().inflate(R.layout.dialog_date_grid, null);
-            RecyclerView dateGrid = filterDateView.findViewById(R.id.dateGrid);
-
-            // set RecyclerView behaviour and adapter
-            ((SimpleItemAnimator) Objects.requireNonNull(dateGrid.getItemAnimator())).setSupportsChangeAnimations(false);
-            GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
-            filterDateAdapter = new DateGridAdapter(getActivity(), new int[] { selDatePos, selDateState }, fromDate, toDate);
-
-            dateGrid.setLayoutManager(gridLayoutManager);
-            dateGrid.setAdapter(filterDateAdapter);
-
-            dialogBuilder.setView(filterDateView);
-            AlertDialog dialog = dialogBuilder.create();
-            filterDateAdapter.setParentDialog(dialog);
-            dialog.show();
-
-            // resize dialog to fit width
-            dateGrid.measure( View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-            int width = dateGrid.getMeasuredWidth();
-            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-
-            dialog.setOnDismissListener(dialogInterface -> {
-                filterDateAdapter.updateState();
-                selDatePos = filterDateAdapter.getSelectedPos();
-                selDateState = filterDateAdapter.getSelectedState();
-                if (!filterDateAdapter.errorState) {
-                    fromDate = (selDatePos == DateGridAdapter.ALL) ? null : filterDateAdapter.getSelDateRange()[0];
-                    toDate = filterDateAdapter.getSelDateRange()[1];
-                    selDatePos = filterDateAdapter.getSelectedPos();
-                    selDateState = filterDateAdapter.getSelectedState();
-                    updateData(); // update summary & expense list
-                }
-
-                if (selDatePos == DateGridAdapter.ALL) {
-                    prevDate.setVisibility(ImageButton.GONE);
-                    nextDate.setVisibility(ImageButton.GONE);
-                } else {
-                    prevDate.setVisibility(ImageButton.VISIBLE);
-                    nextDate.setVisibility(ImageButton.VISIBLE);
-                }
-            });
-        });
-    }
-    public void setUpFilters() {
-        FilterAdapter filterAdapter = new FilterAdapter(getActivity(), selAccFilters, selCatFilters);
-        FlexboxLayoutManager manager = new FlexboxLayoutManager(getActivity());
-        manager.setFlexDirection(FlexDirection.ROW);
-        manager.setJustifyContent(JustifyContent.FLEX_START);
-        filterList.setLayoutManager(manager);
-        filterList.setAdapter(filterAdapter);
-        if (!selAccFilters.isEmpty()) {
-            summaryCurr.setText(selAccFilters.get(0).getCurrencySymbol()); // get currency of first filter
-        } else {
-            String currencySymbol = ((MainActivity) getActivity()).getDefaultCurrencySymbol();
-            summaryCurr.setText(currencySymbol); // default
-        }
-    }
-    public void navDateOnClick(int direction) {
-        if (getActivity() == null)
-            return;
-        if (selDatePos != DateGridAdapter.WEEK && selDatePos != DateGridAdapter.SELECT_RANGE)
-            selDatePos = DateGridAdapter.SELECT_SINGLE;
-        switch (selDateState) {
-            case DateGridAdapter.DAY:
-                if (selDatePos != DateGridAdapter.SELECT_SINGLE) direction *= 7;
-                fromDate.set(Calendar.DAY_OF_YEAR, fromDate.get(Calendar.DAY_OF_YEAR) + direction);
-                toDate.set(Calendar.DAY_OF_YEAR, toDate.get(Calendar.DAY_OF_YEAR) + direction);
-                break;
-            case DateGridAdapter.MONTH:
-                fromDate.set(Calendar.MONTH, fromDate.get(Calendar.MONTH) + direction);
-                toDate.set(toDate.get(Calendar.YEAR), toDate.get(Calendar.MONTH) + direction, 1);
-                toDate.set(Calendar.DAY_OF_MONTH, toDate.getActualMaximum(Calendar.DATE));
-                break;
-            case DateGridAdapter.YEAR:
-                fromDate.set(Calendar.YEAR, fromDate.get(Calendar.YEAR) + direction);
-                toDate.set(Calendar.YEAR, toDate.get(Calendar.YEAR) + direction);
-                break;
-            default:
-                fromDate.set(Calendar.DAY_OF_YEAR, fromDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
-                toDate.set(Calendar.DAY_OF_YEAR, toDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
-        }
-        updateData(); // update summary & expense list
-    }
-    public void filterAccDialog(AccountAdapter adapter) {
-        if (getActivity() == null)
-            return;
-        final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expenseSectionDialog(adapter, expOptSectionView);
-        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText(getString(R.string.filter_dialog_title,getResources().getString(R.string.ACC)));
-        dialogBuilder.setView(expOptSectionView);
-
-        dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> setSelAccFilters(adapter.getAllSelected())));
-        dialogBuilder.setNeutralButton(android.R.string.no, (((dialog, i) -> dialog.cancel())));
-
-        dialogBuilder.show();
-    }
-    public void filterCatDialog(CategoryAdapter adapter) {
-        if (getActivity() == null)
-            return;
-        final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
-        AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expenseSectionDialog(adapter, expOptSectionView);
-        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText(getString(R.string.filter_dialog_title,getResources().getString(R.string.CAT)));
-        dialogBuilder.setView(expOptSectionView);
-
-        dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> setSelCatFilters(adapter.getAllSelected())));
-        dialogBuilder.setNeutralButton(android.R.string.no, (((dialog, i) -> dialog.cancel())));
-
-        dialogBuilder.show();
-    }
     public void updateData() {
         updateData(false);
     }
@@ -403,14 +279,132 @@ public class HomeFragment extends Fragment {
         else placeholder.setVisibility(View.VISIBLE);
         ((MainActivity) getActivity()).updateSummaryData(Constants.HOME);
     }
+    private void setUpSummaryAction() {
+        if (getActivity() == null)
+            return;
+        if (fromDate == null) {
+            fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selectedDateState);
+            toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selectedDateState);
+        }
+        summaryDate.setOnClickListener(view -> {
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity(), R.style.WrapContentDialog);
+            final View filterDateView = getLayoutInflater().inflate(R.layout.dialog_date_grid, null);
+            RecyclerView dateGrid = filterDateView.findViewById(R.id.dateGrid);
+
+            // set RecyclerView behaviour and adapter
+            ((SimpleItemAnimator) Objects.requireNonNull(dateGrid.getItemAnimator())).setSupportsChangeAnimations(false);
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2, GridLayoutManager.VERTICAL, false);
+            filterDateAdapter = new DateGridAdapter(getActivity(), new int[] {selectedDatePos, selectedDateState}, fromDate, toDate);
+
+            dateGrid.setLayoutManager(gridLayoutManager);
+            dateGrid.setAdapter(filterDateAdapter);
+
+            dialogBuilder.setView(filterDateView);
+            AlertDialog dialog = dialogBuilder.create();
+            filterDateAdapter.setParentDialog(dialog);
+            dialog.show();
+
+            // resize dialog to fit width
+            dateGrid.measure( View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+            int width = dateGrid.getMeasuredWidth();
+            dialog.getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+            dialog.setOnDismissListener(dialogInterface -> {
+                filterDateAdapter.updateState();
+                selectedDatePos = filterDateAdapter.getSelectedPos();
+                selectedDateState = filterDateAdapter.getSelectedState();
+                if (!filterDateAdapter.errorState) {
+                    fromDate = (selectedDatePos == DateGridAdapter.ALL) ? null : filterDateAdapter.getSelDateRange()[0];
+                    toDate = filterDateAdapter.getSelDateRange()[1];
+                    selectedDatePos = filterDateAdapter.getSelectedPos();
+                    selectedDateState = filterDateAdapter.getSelectedState();
+                    updateData(); // update summary & expense list
+                }
+
+                if (selectedDatePos == DateGridAdapter.ALL) {
+                    prevDate.setVisibility(ImageButton.GONE);
+                    nextDate.setVisibility(ImageButton.GONE);
+                } else {
+                    prevDate.setVisibility(ImageButton.VISIBLE);
+                    nextDate.setVisibility(ImageButton.VISIBLE);
+                }
+            });
+        });
+    }
+    private void setUpFilters() {
+        FilterAdapter filterAdapter = new FilterAdapter(getActivity(), accFilters, catFilters);
+        FlexboxLayoutManager manager = new FlexboxLayoutManager(getActivity());
+        manager.setFlexDirection(FlexDirection.ROW);
+        manager.setJustifyContent(JustifyContent.FLEX_START);
+        filterList.setLayoutManager(manager);
+        filterList.setAdapter(filterAdapter);
+        if (!accFilters.isEmpty()) {
+            summaryCurr.setText(accFilters.get(0).getCurrencySymbol()); // get currency of first filter
+        } else {
+            String currencySymbol = ((MainActivity) getActivity()).getDefaultCurrencySymbol();
+            summaryCurr.setText(currencySymbol); // default
+        }
+    }
+    private void navDateOnClick(int direction) {
+        if (getActivity() == null)
+            return;
+        if (selectedDatePos != DateGridAdapter.WEEK && selectedDatePos != DateGridAdapter.SELECT_RANGE)
+            selectedDatePos = DateGridAdapter.SELECT_SINGLE;
+        switch (selectedDateState) {
+            case DateGridAdapter.DAY:
+                if (selectedDatePos != DateGridAdapter.SELECT_SINGLE) direction *= 7;
+                fromDate.set(Calendar.DAY_OF_YEAR, fromDate.get(Calendar.DAY_OF_YEAR) + direction);
+                toDate.set(Calendar.DAY_OF_YEAR, toDate.get(Calendar.DAY_OF_YEAR) + direction);
+                break;
+            case DateGridAdapter.MONTH:
+                fromDate.set(Calendar.MONTH, fromDate.get(Calendar.MONTH) + direction);
+                toDate.set(toDate.get(Calendar.YEAR), toDate.get(Calendar.MONTH) + direction, 1);
+                toDate.set(Calendar.DAY_OF_MONTH, toDate.getActualMaximum(Calendar.DATE));
+                break;
+            case DateGridAdapter.YEAR:
+                fromDate.set(Calendar.YEAR, fromDate.get(Calendar.YEAR) + direction);
+                toDate.set(Calendar.YEAR, toDate.get(Calendar.YEAR) + direction);
+                break;
+            default:
+                fromDate.set(Calendar.DAY_OF_YEAR, fromDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
+                toDate.set(Calendar.DAY_OF_YEAR, toDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
+        }
+        updateData(); // update summary & expense list
+    }
+    private void filterAccDialog(AccountAdapter adapter) {
+        if (getActivity() == null)
+            return;
+        final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expenseSectionDialog(adapter, expOptSectionView);
+        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText(getString(R.string.filter_dialog_title,getResources().getString(R.string.ACC)));
+        dialogBuilder.setView(expOptSectionView);
+
+        dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> setAccFilters(adapter.getAllSelected())));
+        dialogBuilder.setNeutralButton(android.R.string.no, (((dialog, i) -> dialog.cancel())));
+
+        dialogBuilder.show();
+    }
+    private void filterCatDialog(CategoryAdapter adapter) {
+        if (getActivity() == null)
+            return;
+        final View expOptSectionView = getLayoutInflater().inflate(R.layout.dialog_expense_opt_section, null);
+        AlertDialog.Builder dialogBuilder = ((MainActivity) getActivity()).expenseSectionDialog(adapter, expOptSectionView);
+        ((TextView) expOptSectionView.findViewById(R.id.expOptSectionTitle)).setText(getString(R.string.filter_dialog_title,getResources().getString(R.string.CAT)));
+        dialogBuilder.setView(expOptSectionView);
+
+        dialogBuilder.setPositiveButton(android.R.string.yes, ((dialogInterface, i) -> setCatFilters(adapter.getAllSelected())));
+        dialogBuilder.setNeutralButton(android.R.string.no, (((dialog, i) -> dialog.cancel())));
+
+        dialogBuilder.show();
+    }
     public void updateDateRange() {
         if (getActivity() == null)
             return;
-        fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selDateState);
-        toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selDateState);
+        fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selectedDateState);
+        toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selectedDateState);
     }
-    public void updateClearFiltersMenuItem() {
-        clearFilters.setVisible(!selAccFilters.isEmpty() || !selCatFilters.isEmpty());
+    private void updateClearFiltersMenuItem() {
+        clearFilters.setVisible(!accFilters.isEmpty() || !catFilters.isEmpty());
     }
 
     /**
@@ -421,22 +415,22 @@ public class HomeFragment extends Fragment {
         Calendar from = getDateRange()[0];
         Calendar to = getDateRange()[1];
         if (getSelDateState() == DateGridAdapter.ALL)
-            expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpenses(getSelAccFilters(), getSelCatFilters(), Constants.DESCENDING, searchQuery);
+            expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpenses(getAccFilters(), getCatFilters(), Constants.DESCENDING, searchQuery);
         else
-            expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(getSelAccFilters(), getSelCatFilters(), from, to, Constants.DESCENDING, searchQuery);
+            expenses = ((MainActivity) getActivity()).db.getSortedFilteredExpensesInDateRange(getAccFilters(), getCatFilters(), from, to, Constants.DESCENDING, searchQuery);
         return expenses;
     }
     public Calendar[] getDateRange() {
         return new Calendar[] { fromDate, toDate };
     }
     public int getSelDateState() {
-        return selDateState;
+        return selectedDateState;
     }
-    public ArrayList<Account> getSelAccFilters() {
-        return selAccFilters;
+    public ArrayList<Account> getAccFilters() {
+        return accFilters;
     }
-    public ArrayList<Category> getSelCatFilters() {
-        return selCatFilters;
+    public ArrayList<Category> getCatFilters() {
+        return catFilters;
     }
     public String getSearchQuery() {
         return searchQuery;
@@ -453,18 +447,18 @@ public class HomeFragment extends Fragment {
     public void setDateRange(Calendar[] range, int selDatePos, int selDateState) {
         this.fromDate = range[0];
         this.toDate = range[1];
-        this.selDatePos = selDatePos;
-        this.selDateState = selDateState;
+        this.selectedDatePos = selDatePos;
+        this.selectedDateState = selDateState;
     }
-    public void setSelAccFilters(ArrayList<Account> selAccFilters) {
-        setSelFilters(selAccFilters, null);
+    public void setAccFilters(ArrayList<Account> accFilters) {
+        setSelFilters(accFilters, null);
     }
-    public void setSelCatFilters(ArrayList<Category> selCatFilters) {
-        setSelFilters(null, selCatFilters);
+    public void setCatFilters(ArrayList<Category> catFilters) {
+        setSelFilters(null, catFilters);
     }
     public void setSelFilters(ArrayList<Account> selAccFilters, ArrayList<Category> selCatFilters) {
-        if (selAccFilters != null) this.selAccFilters = selAccFilters;
-        if (selCatFilters != null) this.selCatFilters = selCatFilters;
+        if (selAccFilters != null) this.accFilters = selAccFilters;
+        if (selCatFilters != null) this.catFilters = selCatFilters;
         setUpFilters();
         updateClearFiltersMenuItem();
         updateData();
@@ -478,21 +472,5 @@ public class HomeFragment extends Fragment {
         addExpBtn.setVisibility(visibility);
         searchBtn.setVisibility(visibility);
     }
-    private <T extends Section> ArrayList<Integer> getFilterIds(ArrayList<T> arr) {
-        return arr
-                .stream()
-                .map(Section::getId).collect(Collectors.toCollection(ArrayList::new));
-    }
-    private ArrayList<Account> getFilterAccounts(ArrayList<Integer> arr) {
-        return arr
-                .stream()
-                .map(v -> ((MainActivity) getActivity()).db.getAccount(v))
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-    private ArrayList<Category> getFilterCategories(ArrayList<Integer> arr) {
-        return arr
-                .stream()
-                .map(v -> ((MainActivity) getActivity()).db.getCategory(v))
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
+
 }

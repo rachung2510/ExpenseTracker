@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.util.Log;
-import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -100,6 +99,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -590,12 +590,12 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             from = ((HomeFragment) fragment).getDateRange()[0];
             to = ((HomeFragment) fragment).getDateRange()[1];
             state = ((HomeFragment) fragment).getSelDateState();
-            accFilters = ((HomeFragment) fragment).getSelAccFilters();
-            catFilters = ((HomeFragment) fragment).getSelCatFilters();
+            accFilters = ((HomeFragment) fragment).getAccFilters();
+            catFilters = ((HomeFragment) fragment).getCatFilters();
         } else if (page == Constants.CHARTS) {
             from = ((ChartsFragment) fragment).getDateRange()[0];
             to = ((ChartsFragment) fragment).getDateRange()[1];
-            state = ((ChartsFragment) fragment).getSelDateState();
+            state = ((ChartsFragment) fragment).getSelectedDateState();
         } else {
             return;
         }
@@ -666,7 +666,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public void updateAccFilters(ArrayList<Account> filters) {
         if (getCurrentFragment() instanceof HomeFragment) {
             HomeFragment fragment = (HomeFragment) getCurrentFragment();
-            fragment.setSelAccFilters(filters);
+            fragment.setAccFilters(filters);
             return;
         }
         if (getCurrentFragment() instanceof ChartsFragment) {
@@ -677,7 +677,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public void updateCatFilters(ArrayList<Category> filters) {
         if (getCurrentFragment() instanceof HomeFragment) {
             HomeFragment fragment = (HomeFragment) getCurrentFragment();
-            fragment.setSelCatFilters(filters);
+            fragment.setCatFilters(filters);
             return;
         }
         if (getCurrentFragment() instanceof ChartsFragment) {
@@ -1172,6 +1172,23 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public static Currency getCurrencyFromNameStatic(String name) {
         return Constants.currency_map.get(name);
+    }
+    public <T extends Section> ArrayList<Integer> getFilterIds(ArrayList<T> arr) {
+        return arr
+                .stream()
+                .map(Section::getId).collect(Collectors.toCollection(ArrayList::new));
+    }
+    public ArrayList<Account> getFilterAccounts(ArrayList<Integer> arr) {
+        return arr
+                .stream()
+                .map(v -> db.getAccount(v))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+    public ArrayList<Category> getFilterCategories(ArrayList<Integer> arr) {
+        return arr
+                .stream()
+                .map(v -> db.getCategory(v))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
     public int getNewPosAcc() { return db.getNewPosAccount(); }
     public int getNewPosCat() {

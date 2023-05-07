@@ -1,7 +1,6 @@
 package com.example.expensetracker.RecyclerViewAdapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -99,8 +98,8 @@ public class CatDataAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             ArrayList<Category> catFilter = new ArrayList<>(Collections.singletonList(cat));
             HomeFragment homeFrag = (HomeFragment) ((MainActivity) context).getFragment(Constants.HOME);
             ChartsFragment chartsFrag = (ChartsFragment) ((MainActivity) context).getFragment(Constants.CHARTS);
-            homeFrag.setSelCatFilters(MainActivity.clone(catFilter));
-            homeFrag.setDateRange(chartsFrag.getDateRange(), chartsFrag.getSelDatePos(), chartsFrag.getSelDateState());
+            homeFrag.setCatFilters(MainActivity.clone(catFilter));
+            homeFrag.setDateRange(chartsFrag.getDateRange(), chartsFrag.getSelectedDatePos(), chartsFrag.getSelectedDateState());
             ((MainActivity) context).updateHomeData();
             ((MainActivity) context).goToFragment(Constants.HOME);
         });

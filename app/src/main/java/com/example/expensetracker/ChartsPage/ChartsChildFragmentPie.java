@@ -3,7 +3,6 @@ package com.example.expensetracker.ChartsPage;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +22,6 @@ import com.example.expensetracker.HelperClasses.CustomPieChartRenderer;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.CatDataAdapter;
-import com.example.expensetracker.RecyclerViewAdapters.DateGridAdapter;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
@@ -41,9 +39,12 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
 
     private static final String TAG = "ChartsChildFragmentPie";
 
+    // Main components
     private float totalAmt = 0;
     private ArrayList<Category> categories;
+    private final HashMap<String,Integer> categoryNumExpMap = new HashMap<>();
 
+    // View components
     private PieChart pieChart;
     private ImageView pieIcon;
     private TextView pieLabel, pieAmt;
@@ -51,9 +52,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     private CatDataAdapter catDataAdapter;
     private GridLayoutManager gridLayoutManager;
 
-    private ArrayList<Category> pieCategories = new ArrayList<>();
-    private final HashMap<String,Integer> pieCategoriesMap = new HashMap<>();
-    private Calendar fromCal, toCal;
+    // Others
     private boolean scrollToCat = true;
 
     public ChartsChildFragmentPie() {
@@ -73,12 +72,12 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         catDataGrid = view.findViewById(R.id.catDataGrid);
         String currencySymbol = ((MainActivity) getActivity()).getDefaultCurrencySymbol();
         ((TextView) view.findViewById(R.id.summaryCurrency)).setText(currencySymbol);
-
         pieIcon.setVisibility(ImageView.GONE);
+
         loadPieChartData();
         setupPieChart();
-        configPieChartSelection();
-        configPieChartRecyclerView();
+        configurePieChartSelection();
+        configurePieChartRecyclerView();
 
         if (getActivity() != null)
             ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS);
@@ -94,26 +93,15 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     }
     @Override
     protected void updateDateRange() {
-        Calendar from = Calendar.getInstance();
-        Calendar to = Calendar.getInstance();
-        if (getParentFragment() != null) {
-            from = ((ChartsFragment) getParentFragment()).getDateRange()[0];
-            to = ((ChartsFragment) getParentFragment()).getDateRange()[1];
-        }
-        fromCal = MainActivity.getCalendarCopy(from, DateGridAdapter.FROM);
-        toCal = MainActivity.getCalendarCopy(to, DateGridAdapter.TO);
-        long tic = System.currentTimeMillis();
+        Calendar fromDate = ((ChartsFragment) getParentFragment()).getDateRange()[0];
+        Calendar toDate = ((ChartsFragment) getParentFragment()).getDateRange()[1];
         loadPieChartData();
-        long tic1 = System.currentTimeMillis();
-        if (fromCal == null)
+        if (fromDate == null)
             categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmt();
         else
-            categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmtInDateRange(fromCal, toCal);
+            categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmtInDateRange(fromDate, toDate);
         catDataAdapter = new CatDataAdapter(getActivity(), categories);
-        long tic2 = System.currentTimeMillis();
         catDataGrid.setAdapter(catDataAdapter);
-//        Log.e(TAG,"loadPieChartData="+(tic1-tic));
-//        Log.e(TAG,"newAdapter="+(tic2-tic1));
     }
     @Override
     protected void updateCurrency(String curr) {
@@ -121,26 +109,26 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     }
 
     /**
-     * Piechart functions
+     * Functions
      */
     private void loadPieChartData() {
         if (getActivity() == null)
             return;
         ArrayList<PieEntry> pieEntries = new ArrayList<>();
-        pieCategories = new ArrayList<>();
         ArrayList<Integer> colors = new ArrayList<>();
         int count = 0;
-        if (fromCal == null)
+        Calendar fromDate = ((ChartsFragment) getParentFragment()).getDateRange()[0];
+        Calendar toDate = ((ChartsFragment) getParentFragment()).getDateRange()[1];
+        if (fromDate == null)
             categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmt();
         else
-            categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmtInDateRange(fromCal, toCal);
+            categories = ((MainActivity) getActivity()).db.getSortedCategoriesByConvertedTotalAmtInDateRange(fromDate, toDate);
         for (Category cat : categories) {
             float amt = cat.getAmount();
             if (amt == 0f) continue;
             pieEntries.add(new PieEntry(amt, cat.getIcon()));
             colors.add(MainActivity.getColorFromId(getActivity(), cat.getColorId()));
-            pieCategories.add(cat);
-            pieCategoriesMap.put(cat.getName(), count);
+            categoryNumExpMap.put(cat.getName(), count);
             count++;
         }
 
@@ -186,7 +174,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         pieChart.getDescription().setEnabled(false);
         pieChart.getLegend().setEnabled(false);
     }
-    private void configPieChartSelection() {
+    private void configurePieChartSelection() {
         pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
@@ -196,7 +184,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
                 pieAmt.setText(String.format(MainActivity.locale,"%.2f",e.getY()));
                 pieIcon.setVisibility(ImageButton.VISIBLE);
                 int pos = (int) h.getX();
-                Category cat =  pieCategories.get(pos);
+                Category cat =  categories.get(pos);
                 pieIcon.setForeground(MainActivity.getIconFromId(getActivity(), cat.getIconId()));
                 pieLabel.setText(cat.getName());
                 pieLabel.setTypeface(ResourcesCompat.getFont(getActivity(), R.font.roboto_regular));
@@ -213,7 +201,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         });
         pieChart.invalidate();
     }
-    private void configPieChartRecyclerView() {
+    private void configurePieChartRecyclerView() {
         if (getActivity() == null)
             return;
         catDataAdapter = new CatDataAdapter(getActivity(), categories);
@@ -221,6 +209,10 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         catDataGrid.setLayoutManager(gridLayoutManager);
         catDataGrid.setAdapter(catDataAdapter);
     }
+
+    /**
+     * Getters & Setters
+     */
     public void setPieChartTotalAmt(float totalAmt) {
         this.totalAmt = totalAmt;
         pieAmt.setText(String.format(MainActivity.locale, "%.2f", this.totalAmt));
@@ -229,16 +221,20 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
         this.totalAmt = Float.parseFloat(totalAmt);
         pieAmt.setText(totalAmt);
     }
+
+    /**
+     * Others
+     */
     public boolean isPieHighlighted(String name) {
         Highlight[] highlights = pieChart.getHighlighted();
         if (highlights != null) {
             int x = (int) highlights[0].getX();
-            return pieCategoriesMap.get(name) == x;
+            return categoryNumExpMap.get(name) == x;
         }
         return false;
     }
     public void highlightPieValue(String name) {
-        float x = (float) pieCategoriesMap.get(name);
+        float x = (float) categoryNumExpMap.get(name);
         scrollToCat = false; // don't scroll when highlighted from clicking on CatData
         pieChart.highlightValue(x,0);
     }
