@@ -1,6 +1,7 @@
 package com.example.expensetracker.ManagePage;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,13 +29,28 @@ public class ManageFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getActivity() == null)
             return null;
+
         View view = inflater.inflate(R.layout.fragment_manage, container, false);
         TabLayout sectionTypeTab = view.findViewById(R.id.sectionTypeTab);
+
         viewPager = view.findViewById(R.id.viewPager);
         ViewPagerAdapter adapter = new ViewPagerAdapter(this);
-
-        adapter.addFragment(new ManageChildFragmentAccount(getActivity()));
-        adapter.addFragment(new ManageChildFragmentCategory(getActivity()));
+        ManageChildFragmentAccount fragmentAccount = new ManageChildFragmentAccount(getActivity());
+        ManageChildFragmentCategory fragmentCategory = new ManageChildFragmentCategory(getActivity());
+        if (savedInstanceState != null) {
+            for (int i = 0; i < getChildFragmentManager().getFragments().size() ; i++) {
+                switch (i) {
+                    case 0:
+                        fragmentAccount = (ManageChildFragmentAccount) getChildFragmentManager().getFragments().get(i);
+                        break;
+                    case 1:
+                        fragmentCategory = (ManageChildFragmentCategory) getChildFragmentManager().getFragments().get(i);
+                        break;
+                }
+            }
+        }
+        adapter.addFragment(fragmentAccount);
+        adapter.addFragment(fragmentCategory);
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {

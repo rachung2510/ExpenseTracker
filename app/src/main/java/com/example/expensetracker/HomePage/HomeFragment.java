@@ -2,6 +2,7 @@ package com.example.expensetracker.HomePage;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,7 +53,7 @@ public class HomeFragment extends Fragment {
 
     // Layout components
     private RecyclerView expenseList;
-    private TextView placeholder, summaryDate, summaryAmt, summaryCurr;
+    public TextView placeholder, summaryDate, summaryAmt, summaryCurr;
     private ImageButton prevDate, nextDate;
     private RecyclerView filterList;
     private MenuItem clearFilters;
@@ -76,6 +77,7 @@ public class HomeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getActivity() == null)
             return null;
+
         MainActivity context = (MainActivity) getActivity();
 
         View view = inflater.inflate(R.layout.fragment_home, container, false);
@@ -150,18 +152,7 @@ public class HomeFragment extends Fragment {
         });
 
         // toolbar
-
         createOptionsMenu(view.findViewById(R.id.toolbar));
-//        AppBarLayout toolbar = view.findViewById(R.id.appBarLayout);
-//        ViewCompat.setOnApplyWindowInsetsListener(view.findViewById(R.id.appBarLayout), (v, insets) -> {
-//            int paddingTop1 = insets.getSystemWindowInsetTop() - MainActivity.convertDpToPx(context, 20);
-//            v.setPadding(v.getPaddingLeft(),
-//                    paddingTop1,
-//                    v.getPaddingRight(),
-//                    v.getPaddingBottom());
-//            Log.e(TAG, "padding=" + MainActivity.convertPxToDp(context, paddingTop1) + "dp");
-//            return insets;
-//        });
 
         // side menu
         context.setupMenuBtn(view.findViewById(R.id.menu_btn));
@@ -397,6 +388,7 @@ public class HomeFragment extends Fragment {
         return searchQuery;
     }
     public String getSummaryAmt() { return summaryAmt.getText().toString(); }
+    public TextView getSummaryDate() { return summaryDate; }
 
     public void updateData() {
         updateData(false);

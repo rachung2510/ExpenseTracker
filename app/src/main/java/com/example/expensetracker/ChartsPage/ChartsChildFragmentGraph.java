@@ -65,6 +65,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     private static final String TAG = "ChartsChildFragmentGraph";
 
     private float totalAmt = 0;
+    private boolean isInitialised = false;
 
     // Graph components
     private LineChart lineChart;
@@ -92,6 +93,9 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getActivity() == null || getParentFragment() == null)
             return null;
+
+        isInitialised = true;
+
         view = inflater.inflate(R.layout.fragment_charts_graph, container, false);
         lineChart = view.findViewById(R.id.lineChart);
         lineDate = view.findViewById(R.id.summaryDate);
@@ -646,4 +650,5 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
         else
             return selDateState - 1;
     }
+    public boolean isInitialised() { return isInitialised; }
 }

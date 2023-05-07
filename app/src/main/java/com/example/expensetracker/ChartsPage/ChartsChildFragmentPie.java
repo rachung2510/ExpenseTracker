@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -64,6 +63,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (getActivity() == null || getParentFragment() == null)
             return null;
+
         view = inflater.inflate(R.layout.fragment_charts_piechart, container, false);
         pieChart = view.findViewById(R.id.pieChart);
         pieIcon = view.findViewById(R.id.pieIcon);
@@ -81,6 +81,7 @@ public class ChartsChildFragmentPie extends ChartsChildFragment {
 
         if (getActivity() != null)
             ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS);
+
         return view;
     }
 

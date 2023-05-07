@@ -2,6 +2,7 @@ package com.example.expensetracker.ManagePage;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -24,6 +25,8 @@ import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
 import java.util.Objects;
 
 public class ManageChildFragmentCategory extends ManageChildFragment<CategoryAdapter> {
+
+    public static final String TAG = "ManageChildFragmentCategory";
 
     public ManageChildFragmentCategory() {
         super();

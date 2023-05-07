@@ -1,6 +1,7 @@
 package com.example.expensetracker.ChartsPage;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -52,7 +54,7 @@ public class ChartsFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_charts, container, false);
         TabLayout tabLayout = view.findViewById(R.id.chartsTab);
         View tabIndicator = view.findViewById(R.id.chartsTabIndicator);
@@ -75,8 +77,14 @@ public class ChartsFragment extends Fragment {
 
         // load fragments
         ViewPagerAdapter adapter = new ViewPagerAdapter(this);
-        adapter.addFragment(new ChartsChildFragmentPie());
-        adapter.addFragment(new ChartsChildFragmentGraph());
+        ChartsChildFragmentPie fragmentPie = new ChartsChildFragmentPie();
+        ChartsChildFragmentGraph fragmentGraph = new ChartsChildFragmentGraph();
+        if (savedInstanceState != null) {
+            fragmentPie = (ChartsChildFragmentPie) getChildFragmentManager().getFragments().get(ChartsChildFragment.TYPE_PIECHART);
+            fragmentGraph = (ChartsChildFragmentGraph) getChildFragmentManager().getFragments().get(ChartsChildFragment.TYPE_GRAPH);
+        }
+        adapter.addFragment(fragmentPie);
+        adapter.addFragment(fragmentGraph);
         viewPager.setAdapter(adapter);
         viewPager.setOffscreenPageLimit(2);
 
@@ -263,7 +271,7 @@ public class ChartsFragment extends Fragment {
         pieChartFrag.updateDateRange();
         if (getChildFragmentManager().getFragments().size() > 1) {
             ChartsChildFragmentGraph lineChartFrag = getChildFragmentGraph();
-            lineChartFrag.updateDateRange();
+            if (lineChartFrag.isInitialised()) lineChartFrag.updateDateRange();
         }
     }
 

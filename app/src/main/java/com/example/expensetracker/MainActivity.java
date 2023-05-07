@@ -10,26 +10,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.util.Log;
+import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -141,12 +138,14 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     // Fragments
     private BottomNavigationView bottomNavView;
     private ViewPager2 viewPager;
-    private ViewPagerAdapter adapter;
+    private ViewPagerAdapter viewPagerAdapter;
     private boolean updateFragments = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+//        savedInstanceState = null; // issues with fragments being saved separately from viewpageradapter
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         FileUtils.setWindowFlag(this, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, false);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
@@ -169,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         bottomNavView = findViewById(R.id.bottom_nav_view);
         viewPager = findViewById(R.id.viewPager);
         bottomNavView.setOnItemSelectedListener(this);
-        getTabs();
+        getTabs(savedInstanceState);
 
         // Initialise menu
         navDrawer = findViewById(R.id.drawer_layout);
@@ -314,12 +313,21 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     /**
      * Fragments
      */
-    public void getTabs() {
-        adapter = new ViewPagerAdapter(getSupportFragmentManager(), getLifecycle());
-        adapter.addFragment(new HomeFragment());
-        adapter.addFragment(new ChartsFragment());
-        adapter.addFragment(new ManageFragment());
-        viewPager.setAdapter(adapter);
+    public void getTabs(Bundle savedInstanceState) {
+        viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), getLifecycle());
+
+        HomeFragment homeFragment = new HomeFragment();
+        ChartsFragment chartsFragment = new ChartsFragment();
+        ManageFragment manageFragment = new ManageFragment();
+        if (savedInstanceState != null) {
+            homeFragment = (HomeFragment) getSupportFragmentManager().getFragments().get(Constants.HOME);
+            chartsFragment = (ChartsFragment) getSupportFragmentManager().getFragments().get(Constants.CHARTS);
+            manageFragment = (ManageFragment) getSupportFragmentManager().getFragments().get(Constants.MANAGE);
+        }
+        viewPagerAdapter.addFragment(homeFragment);
+        viewPagerAdapter.addFragment(chartsFragment);
+        viewPagerAdapter.addFragment(manageFragment);
+        viewPager.setAdapter(viewPagerAdapter);
         viewPager.setOffscreenPageLimit(3);
 
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -363,10 +371,10 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         return true;
     }
     public Fragment getCurrentFragment() {
-        return adapter.createFragment(viewPager.getCurrentItem());
+        return viewPagerAdapter.createFragment(viewPager.getCurrentItem());
     }
     public Fragment getFragment(int page) {
-        return adapter.createFragment(page);
+        return viewPagerAdapter.createFragment(page);
     }
     public void goToFragment(int page) {
         viewPager.setCurrentItem(page);
@@ -593,7 +601,11 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             return;
         }
 
-        if (from == null) return;
+        if (from == null) {
+            state = DateGridAdapter.MONTH;
+            from = getInitSelectedDates(DateGridAdapter.FROM, state);
+            to = getInitSelectedDates(DateGridAdapter.TO, state);
+        }
 
         String summaryDateText;
         float totalAmt;
@@ -628,9 +640,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
         // set summary data
         if (page == Constants.HOME)
-            ((HomeFragment) getFragment(Constants.HOME)).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
+            ((HomeFragment) fragment).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         else if (page == Constants.CHARTS)
-            ((ChartsFragment) getFragment(Constants.CHARTS)).setSummaryData(summaryDateText.toUpperCase(), totalAmt, true);
+            ((ChartsFragment) fragment).setSummaryData(summaryDateText.toUpperCase(), totalAmt, true);
     }
     @SuppressWarnings("unchecked")
     public void updateAccountData() {

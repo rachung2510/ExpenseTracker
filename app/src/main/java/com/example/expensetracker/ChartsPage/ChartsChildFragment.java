@@ -22,8 +22,7 @@ public class ChartsChildFragment extends Fragment {
     public static final int TYPE_CALENDAR = 2;
 
     public ChartsChildFragment() {
-
-    }
+            }
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return null;

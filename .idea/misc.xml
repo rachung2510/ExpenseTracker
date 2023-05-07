@@ -174,8 +174,8 @@
         <entry key="app/src/main/res/drawable/shape_rounded_top_left_rectangle.xml" value="0.197" />
         <entry key="app/src/main/res/drawable/shape_tab_bg.xml" value="0.197" />
         <entry key="app/src/main/res/drawable/shape_tab_indicator.xml" value="0.197" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.37916666666666665" />
-        <entry key="app/src/main/res/layout/content_main.xml" value="0.37916666666666665" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.29945054945054944" />
+        <entry key="app/src/main/res/layout/content_main.xml" value="0.29945054945054944" />
         <entry key="app/src/main/res/layout/custom_dialog.xml" value="0.25" />
         <entry key="app/src/main/res/layout/custom_marker_view_layout.xml" value="0.37916666666666665" />
         <entry key="app/src/main/res/layout/dialog_autocomplete_input.xml" value="0.21197916666666666" />
