@@ -4,7 +4,7 @@
         <shape>
             <padding
                 android:top="@dimen/cardShadowOffset" />
-            <solid android:color="#00CCCCCC" />
+            <solid android:color="@color/alpha_gray_00" />
             <corners android:radius="@dimen/cardCornerRadius" />
         </shape>
     </item>
@@ -12,7 +12,7 @@
         <shape>
             <padding
                 android:top="@dimen/cardShadowOffset" />
-            <solid android:color="#10CCCCCC" />
+            <solid android:color="@color/alpha_gray_10" />
             <corners android:radius="@dimen/cardCornerRadius" />
         </shape>
     </item>
@@ -20,7 +20,7 @@
         <shape>
             <padding
                 android:top="@dimen/cardShadowOffset" />
-            <solid android:color="#20CCCCCC" />
+            <solid android:color="@color/alpha_gray_20" />
             <corners android:radius="@dimen/cardCornerRadius" />
         </shape>
     </item>
@@ -28,7 +28,7 @@
         <shape>
             <padding
                 android:top="@dimen/cardShadowOffset" />
-            <solid android:color="#30CCCCCC" />
+            <solid android:color="@color/alpha_gray_30" />
             <corners android:radius="@dimen/cardCornerRadius" />
         </shape>
     </item>
@@ -60,7 +60,7 @@
     <!-- Background -->
     <item>
         <shape>
-            <solid android:color="@color/white" />
+            <solid android:color="?android:attr/colorBackground" />
             <corners
                 android:topLeftRadius="@dimen/cardCornerRadius"
                 android:topRightRadius="@dimen/cardCornerRadius"/>

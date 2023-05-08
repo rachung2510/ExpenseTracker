@@ -7,6 +7,10 @@
     <color name="red">#f27384</color>
     <color name="select_light_orange">#4d2919</color>
     <color name="select_med_orange">#f9aa33</color>
+    <color name="alpha_gray_00">#00404040</color>
+    <color name="alpha_gray_10">#10404040</color>
+    <color name="alpha_gray_20">#20404040</color>
+    <color name="alpha_gray_30">#30404040</color>
 
     <!--actions-->
     <color name="action_red_bg">#950029</color>
@@ -18,14 +22,14 @@
     <color name="action_yellow_bg">#926f00</color>
 
     <!--grays-->
-    <color name="light_gray_bg">#1f1f1f</color>
+    <color name="light_gray_bg">#262626</color>
     <color name="text_light_gray">#5a5d68</color>
     <color name="text_med_gray">#7b828e</color>
     <color name="text_dark_gray">#e2e4e9</color>
     <color name="generic_icon_gray">#b2b2b2</color>
     <color name="muted_generic_icon_gray">#808080</color>
     <color name="text_color_hint">#737373</color>
-    <color name="border_gray">#262626</color>
+    <color name="border_gray">@color/tag_bg_gray</color>
     <color name="floating_border_gray">#4d4d4d</color>
     <color name="icon_bg_light_gray">#454545</color>
     <color name="icon_border_gray">#595959</color>

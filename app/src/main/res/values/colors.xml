@@ -16,6 +16,10 @@
     <color name="red_700">#731010</color>
     <color name="select_light_orange">#fff1ee</color>
     <color name="select_med_orange">#f9aa33</color>
+    <color name="alpha_gray_00">#00cccccc</color>
+    <color name="alpha_gray_10">#10cccccc</color>
+    <color name="alpha_gray_20">#20cccccc</color>
+    <color name="alpha_gray_30">#30cccccc</color>
     <color name="orange_700">#ff793f</color>
     <color name="blue_gray_700">#344955</color>
     <color name="blue_gray_800">#232f34</color>
