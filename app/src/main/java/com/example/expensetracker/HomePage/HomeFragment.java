@@ -111,6 +111,10 @@ public class HomeFragment extends Fragment {
 
         // summary
         setUpSummaryAction();
+        if (selectedDateState == DateGridAdapter.ALL) {
+            prevDate.setVisibility(View.GONE);
+            nextDate.setVisibility(View.GONE);
+        }
 
         // apply filters
         setUpFilters();

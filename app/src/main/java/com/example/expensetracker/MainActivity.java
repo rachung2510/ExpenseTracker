@@ -600,12 +600,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             return;
         }
 
-        if (from == null) {
-            state = DateGridAdapter.MONTH;
-            from = getInitSelectedDates(DateGridAdapter.FROM, state);
-            to = getInitSelectedDates(DateGridAdapter.TO, state);
-        }
-
         String summaryDateText;
         float totalAmt;
         if (state == DateGridAdapter.ALL) {
