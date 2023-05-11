@@ -5,7 +5,6 @@
     android:initialLayout="@layout/widget_squircle"
     android:minWidth="40dp"
     android:minHeight="40dp"
-    android:previewImage="@drawable/example_appwidget_preview"
     android:previewLayout="@layout/widget_squircle"
     android:resizeMode="horizontal|vertical"
     android:targetCellWidth="1"

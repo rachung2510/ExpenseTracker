@@ -3,7 +3,6 @@
     android:description="@string/app_widget_description"
     android:initialKeyguardLayout="@layout/widget_static"
     android:initialLayout="@layout/widget_static"
-    android:previewImage="@drawable/example_appwidget_preview"
     android:previewLayout="@layout/widget_static"
     android:resizeMode="horizontal|vertical"
     android:minWidth="250dp"
