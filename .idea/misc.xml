@@ -140,7 +140,9 @@
         <entry key="app/src/main/res/drawable/cat_food.xml" value="0.197" />
         <entry key="app/src/main/res/drawable/cat_home.xml" value="0.2945" />
         <entry key="app/src/main/res/drawable/cat_shopping.xml" value="0.2945" />
+        <entry key="app/src/main/res/drawable/fade_red.xml" value="0.251" />
         <entry key="app/src/main/res/drawable/ic_action_update.xml" value="0.252" />
+        <entry key="app/src/main/res/drawable/ic_app_icon.xml" value="0.251" />
         <entry key="app/src/main/res/drawable/ic_baseline_add_24.xml" value="0.2535" />
         <entry key="app/src/main/res/drawable/ic_baseline_camera_alt_24.xml" value="0.2535" />
         <entry key="app/src/main/res/drawable/ic_baseline_cancel_24.xml" value="0.252" />
@@ -152,7 +154,11 @@
         <entry key="app/src/main/res/drawable/ic_baseline_star_outline_24.xml" value="0.166" />
         <entry key="app/src/main/res/drawable/ic_export.xml" value="0.314" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.204" />
+        <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.204" />
+        <entry key="app/src/main/res/drawable/ic_launcher_foreground2.xml" value="0.251" />
         <entry key="app/src/main/res/drawable/ic_select_all.xml" value="0.221" />
+        <entry key="app/src/main/res/drawable/ic_squircle.xml" value="0.251" />
+        <entry key="app/src/main/res/drawable/ic_squircle2.xml" value="0.251" />
         <entry key="app/src/main/res/drawable/selector_circle.xml" value="0.166" />
         <entry key="app/src/main/res/drawable/selector_circle_widget.xml" value="0.166" />
         <entry key="app/src/main/res/drawable/selector_fully_rounded_rectangle.xml" value="0.197" />

@@ -458,7 +458,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         expDateBtn = expView.findViewById(R.id.newExpDate);
         expSaveBtn =  expView.findViewById(R.id.newExpSave);
         expDesc.setOnFocusChangeListener((view, b) -> {
-            Log.e(TAG, "b=" + b);
             if (b) expDesc.setBackgroundResource(getResourceIdFromAttr(this, android.R.attr.colorBackground));
             else expDesc.setBackgroundResource(getResourceIdFromAttr(this, android.R.attr.selectableItemBackground));
         });
@@ -791,34 +790,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         });
         scanReceiptBtn.setOnClickListener(view -> {
             if (receiptItemAdapter == null) {
-                dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
-                View dialogView = getLayoutInflater().inflate(R.layout.dialog_camera, null);
-                LinearLayout cameraOpt, galleryOpt;
-                cameraOpt = dialogView.findViewById(R.id.cameraOpt);
-                galleryOpt = dialogView.findViewById(R.id.galleryOpt);
-                dialogBuilder.setView(dialogView)
-                        .setTitle(R.string.photo_dialog_title)
-                        .setPositiveButton(android.R.string.no, (dialogInterface, i) -> {
-
-                        });
-                AlertDialog dialog = dialogBuilder.show();
-                cameraOpt.setOnClickListener(view1 -> {
-                    dialog.dismiss();
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    File photoFile = FileUtils.createImageFile(this);
-                    if (photoFile == null) return;
-                    imageUri = FileProvider.getUriForFile(this,
-                            BuildConfig.APPLICATION_ID + ".provider",
-                            photoFile);
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                    accessPhoneFeatures(intent, cameraLauncher);
-                });
-                galleryOpt.setOnClickListener(view12 -> {
-                    dialog.dismiss();
-                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.setType("image/*");
-                    accessPhoneFeatures(intent, galleryLauncher);
-                });
+                Intent intent = getCameraGalleryIntent(this);
+                accessPhoneFeatures(this, intent, imageLauncher);
             } else {
                 chooseReceiptItems(receiptItemAdapter.getReceiptItems());
             }
@@ -1554,7 +1527,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
 
     /**
-     * Intent launchers
+     * Intents & launchers
      */
     private final ActivityResultLauncher<Intent> importLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -1585,7 +1558,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         })
                         .show();
             });
-    public static ActivityResultLauncher<Intent> createGalleryLauncher(Context context) {
+    public static ActivityResultLauncher<Intent> createImageLauncher(Context context) {
         return ((AppCompatActivity) context).registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -1593,46 +1566,43 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
                         return;
                     }
-                    Intent data = result.getData();
-                    if (data == null) {
-                        if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
-                        return;
-                    }
-                    Uri uri = data.getData();
+                    Uri uri = (result.getData() == null) ? imageUri : result.getData().getData();
                     try {
                         ByteArrayInputStream input = FileUtils.getInputStreamFromUri(context, uri);
                         postRequestImage(context, input);
                     } catch (IOException e) {
                         Log.e(TAG, e.toString());
-                        e.printStackTrace();
                         if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
                     }
                 });
     }
-    public static ActivityResultLauncher<Intent> createCameraLauncher(Context context) {
-        return ((AppCompatActivity) context).registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() != RESULT_OK) {
-                        if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
-                        return;
-                    }
-                    try {
-                        ByteArrayInputStream input = FileUtils.getInputStreamFromUri(context, imageUri);
-                        postRequestImage(context, input);
-                    } catch (IOException e) {
-                        Log.e(TAG, e.toString());
-                        e.printStackTrace();
-                        if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
-                    }
-                });
+    public static Intent getCameraGalleryIntent(Context context) {
+        Intent photoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        File photoFile = FileUtils.createImageFile(context);
+        if (photoFile == null) {
+            if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
+            return null;
+        }
+        Uri uri = FileProvider.getUriForFile(context,
+                BuildConfig.APPLICATION_ID + ".provider",
+                photoFile);
+        MainActivity.setImageUri(uri);
+        photoIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+        Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        getIntent.setType("image/*");
+        getIntent.putExtra("requestCode", "camera");
+        Intent pickIntent = new Intent(Intent.ACTION_PICK);
+        pickIntent.setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+        pickIntent.putExtra("requestCode", "gallery");
+        Intent chooserIntent = Intent.createChooser(getIntent, "Select image");
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {photoIntent});
+        return chooserIntent;
     }
 
     /**
      * Scan receipt
      */
-    public final ActivityResultLauncher<Intent> cameraLauncher = createCameraLauncher(this);
-    public final ActivityResultLauncher<Intent> galleryLauncher = createGalleryLauncher(this);
+    public final ActivityResultLauncher<Intent> imageLauncher = createImageLauncher(this);
     public static void postRequestImage(Context context, InputStream inputStream) throws IOException {
         Consumer<Boolean> showOverlay = (show) -> {
             if (context instanceof MainActivity) {
@@ -1681,8 +1651,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 .enqueue(new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "Error: " + e, Toast.LENGTH_SHORT).show());
                         showOverlay.accept(false);
+                        ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "Error: " + e, Toast.LENGTH_SHORT).show());
                         if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
                     }
 
@@ -1690,13 +1660,14 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     public void onResponse(@NonNull Call call, @NonNull final Response response) throws IOException {
                         String res = response.body().string();
 //                        Log.e(TAG, res);
+                        showOverlay.accept(false);
                         JSONObject results = null;
                         try {
                             results = new JSONObject(res);
                             if (results.has("ErrorMessage")) {
                                 String errorMessage = results.getJSONArray("ErrorMessage").getString(0);
                                 ((Activity) context).runOnUiThread(() -> Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show());
-                                showOverlay.accept(false);
+//                                showOverlay.accept(false);
                                 if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
                                 return;
                             }
@@ -1704,11 +1675,10 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                             e.printStackTrace();
                         }
                         ArrayList<ReceiptItem> receiptItems = parseJSON(results);
+//                        showOverlay.accept(false);
                         if (receiptItems.isEmpty()) {
                             ((Activity) context).runOnUiThread(() -> Toast.makeText(context, "OCR failed. Try taking another photo", Toast.LENGTH_LONG).show());
-                            showOverlay.accept(false);
                             if (context instanceof WidgetStaticActivity) ((WidgetStaticActivity) context).finish();
-                            return;
                         } else {
                             ((Activity) context).runOnUiThread(() -> {
                                 if (context instanceof MainActivity) ((MainActivity) context).chooseReceiptItems(receiptItems);
@@ -1716,7 +1686,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                                 if (context instanceof WidgetDialogActivity) ((WidgetDialogActivity) context).chooseReceiptItems(receiptItems);
                             });
                         }
-                        showOverlay.accept(false);
                     }
                 });
     }
