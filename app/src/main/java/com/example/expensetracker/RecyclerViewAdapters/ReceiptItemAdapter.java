@@ -124,6 +124,7 @@ public class ReceiptItemAdapter extends RecyclerView.Adapter<ReceiptItemAdapter.
             if (!(item.getCatName().isEmpty()) && item.getCatName().equals(receiptCat.getName())) {
                 holder.receiptItemCat.setBackground(MainActivity.getIconFromId(context, R.drawable.shape_circle_border_transparent));
                 holder.receiptItemCat.setBackgroundTintList(null);
+                holder.receiptItemCat.setForeground(null);
                 item.setCatName("");
             } else {
                 holder.receiptItemCat.setBackgroundTintList(MainActivity.getColorStateListFromHex(receiptCat.getColorHex()));

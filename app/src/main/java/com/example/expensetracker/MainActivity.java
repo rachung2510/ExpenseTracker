@@ -817,8 +817,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         expAccBox.setBackgroundColor(acc.getColor()); // set bg color
         expCatBox.setBackgroundColor(cat.getColor());
         expCurr.setText(acc.getCurrencySymbol());
-
         expDate.setText(getString(R.string.full_date,getRelativePrefix(exp.getDatetime()),exp.getDatetimeStr("dd MMMM yyyy")).toUpperCase());
+        if (isFavourite()) toggleFavouritesBtn(true);
 
         // actions
         favouritesBtn.setOnClickListener(favouritesListener);

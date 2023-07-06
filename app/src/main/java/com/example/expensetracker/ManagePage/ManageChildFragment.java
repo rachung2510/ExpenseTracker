@@ -5,14 +5,18 @@ import static androidx.recyclerview.widget.ItemTouchHelper.ACTION_STATE_IDLE;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.os.Parcelable;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.MainActivity;
@@ -142,6 +146,7 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
 
             @Override
             public void onSelectedChanged(@Nullable RecyclerView.ViewHolder viewHolder, int actionState) {
+//                super.onSelectedChanged(viewHolder, actionState);
                 if (actionState == ACTION_STATE_IDLE && !onMove)
                     recyclerView.post(() -> adapter.notifyItemRangeChanged(0, adapter.getItemCount() - 1));
                 onMove = false;
@@ -151,12 +156,14 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
                     viewHolder.itemView.setAlpha(0.7f);
                 else if (fromFinal == -1)
                     adapter.notifyItemRangeChanged(0, adapter.getItemCount()-1);
-                super.onSelectedChanged(viewHolder, actionState);
             }
 
             @Override
             public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+//                super.clearView(recyclerView, viewHolder);
                 if (fromFinal == -1) return;
+                Log.e(TAG, "fromFinal=" + fromFinal);
+                Log.e(TAG, "toFinal=" + toFinal);
                 viewHolder.itemView.setAlpha(1f);
                 SectionAdapter<E> adapter = (SectionAdapter <E>) recyclerView.getAdapter();
                 if (adapter == null)
@@ -165,9 +172,10 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
                 E section = sections.remove(fromFinal);
                 sections.add(toFinal, section);
                 adapter.setList(sections);
-                adapter.updatePositions();
-                adapter.notifyItemRangeChanged(0, adapter.getItemCount()-1);
-                super.clearView(recyclerView, viewHolder);
+                recyclerView.setHasFixedSize(true);
+                recyclerView.post(() -> {
+                    adapter.notifyItemRangeChanged(fromFinal, toFinal);
+                });
                 fromFinal = -1;
             }
 
