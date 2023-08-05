@@ -175,6 +175,7 @@ public class ManageChildFragment<T extends SectionAdapter<? extends Section>> ex
                 recyclerView.setHasFixedSize(true);
                 recyclerView.post(() -> {
                     adapter.notifyItemRangeChanged(fromFinal, toFinal);
+                    adapter.updatePositions();
                 });
                 fromFinal = -1;
             }
