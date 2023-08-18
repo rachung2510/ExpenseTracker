@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.util.Log;
+import android.util.Pair;
+import android.util.SizeF;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -54,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public class WidgetStaticActivity extends AppCompatActivity {
     private static final String TAG = "WidgetStaticActivity";
@@ -152,9 +155,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
                         return;
                     }
                     float floatInput = Float.parseFloat(input.getText().toString());
-                    RemoteViews views = getRemoteViews();
-                    views.setTextViewText(R.id.newExpAmt, String.format(MainActivity.locale, "%.2f", floatInput));
-                    updateView(views);
+                    updateView((views) -> {
+                        views.setTextViewText(R.id.newExpAmt, String.format(MainActivity.locale, "%.2f", floatInput));
+                        return views;
+                    });
                     storeValue(KEY_AMT, floatInput);
                     finish();
                 });
@@ -175,7 +179,6 @@ public class WidgetStaticActivity extends AppCompatActivity {
             input.setHint(getString(R.string.hint_description));
         input.setSelection(input.getText().length()); // set cursor to end of text
 
-        RemoteViews views = getRemoteViews();
         // favourites
         String[] favourites = MainActivity.getAllFavourites(this);
         if (favourites.length > 0) {
@@ -194,10 +197,12 @@ public class WidgetStaticActivity extends AppCompatActivity {
                     hideKeyboard(input);
 //                    views.setTextViewText(R.id.newExpDesc, input.getText().toString());
                     storeValue(KEY_DESC, input.getText().toString());
-                    Favourite action = MainActivity.getFavourite(this, input.getText().toString());
-                    if (action != null) setFavouriteViews(views, action);
-                    views.setTextViewText(R.id.newExpDesc, input.getText().toString());
-                    updateView(views);
+                    updateView((views) -> {
+                        Favourite action = MainActivity.getFavourite(this, input.getText().toString());
+                        if (action != null) views = setFavouriteViews(views, action);
+                        views.setTextViewText(R.id.newExpDesc, input.getText().toString());
+                        return views;
+                    });
                     finish();
                 });
         AlertDialog dialog = builder.create();
@@ -232,9 +237,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
         changeDate.setView(datePicker)
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                     finalCal.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth());
-                    RemoteViews views = getRemoteViews();
-                    views.setTextViewText(R.id.expDate, (MainActivity.getRelativePrefix(finalCal) + ", " + MainActivity.getDatetimeStr(finalCal, "dd MMMM yyyy")).toUpperCase());
-                    updateView(views);
+                    updateView((views) -> {
+                        views.setTextViewText(R.id.expDate, (MainActivity.getRelativePrefix(finalCal) + ", " + MainActivity.getDatetimeStr(finalCal, "dd MMMM yyyy")).toUpperCase());
+                        return views;
+                    });
                     storeValue(KEY_DATE, MainActivity.getDatetimeStr(finalCal, Expense.DATETIME_FORMAT));
                     finish();
                 })
@@ -298,7 +304,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
         }
         if (isFavourite()) {
             MainActivity.removeFavourite(this, desc);
-            toggleFavouritesBtn(false);
+            updateView((views) -> {
+                views = toggleFavouritesBtn(views, false);
+                return views;
+            });
         } else {
             String accName = getStringValue(KEY_ACC);
             String catName = getStringValue(KEY_CAT);
@@ -307,7 +316,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
                     (accName.isEmpty()) ? db.getDefaultAccName() : accName,
                     (catName.isEmpty()) ? db.getDefaultCatName() : catName,
                     (amount > 0f) ? String.format(MainActivity.locale, "%.2f", amount) : ""));
-            toggleFavouritesBtn(true);
+            updateView((views) -> {
+                views = toggleFavouritesBtn(views, true);
+                return views;
+            });
         }
         finish();
     }
@@ -335,13 +347,14 @@ public class WidgetStaticActivity extends AppCompatActivity {
 
         dialog.setOnCancelListener(dialog1 -> {
             Account acc = adapter.getSelected();
-            RemoteViews views = getRemoteViews();
-            views.setTextViewText(R.id.newExpAccName, acc.getName());
-            views.setInt(R.id.newExpAccBox,"setColorFilter", acc.getColor());
-            views.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
-            views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(acc.getIcon()));
-            views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
-            updateView(views);
+            updateView((views) -> {
+                views.setTextViewText(R.id.newExpAccName, acc.getName());
+                views.setInt(R.id.newExpAccBox,"setColorFilter", acc.getColor());
+                views.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
+                views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(acc.getIcon()));
+                views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
+                return views;
+            });
             storeValue(KEY_ACC, acc.getName());
             finish();
         });
@@ -366,12 +379,13 @@ public class WidgetStaticActivity extends AppCompatActivity {
 
         dialog.setOnCancelListener(dialog1 -> {
             Category cat = adapter.getSelected();
-            RemoteViews views = getRemoteViews();
-            views.setTextViewText(R.id.newExpCatName, cat.getName());
-            views.setInt(R.id.newExpCatBox,"setColorFilter", cat.getColor());
-            views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(cat.getIcon()));
-            views.setInt(R.id.newExpCatIcon,"setColorFilter", cat.getColor());
-            updateView(views);
+            updateView((views) -> {
+                views.setTextViewText(R.id.newExpCatName, cat.getName());
+                views.setInt(R.id.newExpCatBox,"setColorFilter", cat.getColor());
+                views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(cat.getIcon()));
+                views.setInt(R.id.newExpCatIcon,"setColorFilter", cat.getColor());
+                return views;
+            });
             storeValue(KEY_CAT, cat.getName());
             finish();
         });
@@ -435,10 +449,15 @@ public class WidgetStaticActivity extends AppCompatActivity {
     public void hideKeyboard(EditText view) {
         MainActivity.hideKeyboard(this, view);
     }
-    public RemoteViews getRemoteViews() {
-        return new RemoteViews(this.getPackageName(), R.layout.widget_static);
-    }
-    public void updateView(RemoteViews views) {
+    public void updateView(Function<RemoteViews, RemoteViews> func) {
+        Pair<Map<SizeF, RemoteViews>, RemoteViews> pair = WidgetStaticProvider.getResizedViews(this);
+        RemoteViews views = func.apply(pair.second); // default view
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            for (Map.Entry<SizeF, RemoteViews> e : pair.first.entrySet())
+                e.setValue(func.apply(e.getValue()));
+            views = new RemoteViews(pair.first);
+        }
+
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
         ComponentName thisWidget = new ComponentName(this, WidgetStaticProvider.class);
         int[] appWidgetId = appWidgetManager.getAppWidgetIds(thisWidget);
@@ -487,7 +506,6 @@ public class WidgetStaticActivity extends AppCompatActivity {
      * Scan receipt
      */
     public void chooseReceiptItems(ArrayList<ReceiptItem> receiptItems) {
-        RemoteViews views = getRemoteViews();
         String accName = getStringValue(KEY_ACC);
         Account acc = (accName.isEmpty()) ? db.getAccount(db.getDefaultAccName()) : db.getAccount(accName);
         receiptItemAdapter = new ReceiptItemAdapter(this, receiptItems, acc.getCurrencySymbol());
@@ -504,14 +522,16 @@ public class WidgetStaticActivity extends AppCompatActivity {
                 .setView(view)
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                     float amt = receiptItemAdapter.getTotalAmt();
-                    views.setTextViewText(R.id.newExpAmt, String.format(MainActivity.locale, "%.2f", amt));
-                    views.setImageViewBitmap(R.id.scanReceiptBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(this, R.drawable.ic_baseline_edit_24)));
-                    views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(this, R.drawable.cat_multi)));
-                    views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
-                    views.setTextViewText(R.id.newExpCatName, getString(R.string.multiple));
+                    updateView((views) -> {
+                        views.setTextViewText(R.id.newExpAmt, String.format(MainActivity.locale, "%.2f", amt));
+                        views.setImageViewBitmap(R.id.scanReceiptBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(this, R.drawable.ic_baseline_edit_24)));
+                        views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(this, R.drawable.cat_multi)));
+                        views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
+                        views.setTextViewText(R.id.newExpCatName, getString(R.string.multiple));
+                        return views;
+                    });
                     storeValue(KEY_AMT, amt);
                     storeReceiptItemAdapter(receiptItemAdapter);
-                    updateView(views);
                     finish();
                 })
                 .setNeutralButton(android.R.string.no, (dialogInterface, i) -> finish());
@@ -540,8 +560,8 @@ public class WidgetStaticActivity extends AppCompatActivity {
     private boolean isFavourite() {
         return MainActivity.isFavourite(this, getStringValue(KEY_DESC));
     }
-    private void setFavouriteViews(RemoteViews views, Favourite favourite) {
-        toggleFavouritesBtn(views, true);
+    private RemoteViews setFavouriteViews(RemoteViews views, Favourite favourite) {
+        views = toggleFavouritesBtn(views, true);
 
         String accName = favourite.getAccName();
         if (!accName.isEmpty()) {
@@ -552,12 +572,12 @@ public class WidgetStaticActivity extends AppCompatActivity {
                 views.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
                 views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(acc.getIcon()));
                 views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
-                updateView(views);
                 storeValue(KEY_ACC, acc.getName());
             }
         }
 
-        if (getReceiptItemAdapter() != null) return;
+        if (getReceiptItemAdapter() != null)
+            return views;
 
         String catName = favourite.getCatName();
         if (!catName.isEmpty()) {
@@ -567,7 +587,6 @@ public class WidgetStaticActivity extends AppCompatActivity {
                 views.setInt(R.id.newExpCatBox,"setColorFilter", cat.getColor());
                 views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(cat.getIcon()));
                 views.setInt(R.id.newExpCatIcon,"setColorFilter", cat.getColor());
-                updateView(views);
                 storeValue(KEY_CAT, cat.getName());
             }
         }
@@ -577,14 +596,12 @@ public class WidgetStaticActivity extends AppCompatActivity {
             views.setTextViewText(R.id.newExpAmt, amount);
             storeValue(KEY_AMT, Float.parseFloat(amount));
         }
+
+        return views;
     }
-    private void toggleFavouritesBtn(RemoteViews views, boolean show) {
+    private RemoteViews toggleFavouritesBtn(RemoteViews views, boolean show) {
         int id = (show) ? R.drawable.ic_baseline_star_24 : R.drawable.ic_baseline_star_outline_24;
         views.setImageViewBitmap(R.id.favouritesBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(this, id)));
-        updateView(views);
-    }
-    private void toggleFavouritesBtn(boolean show) {
-        RemoteViews views = getRemoteViews();
-        toggleFavouritesBtn(views, show);
+        return views;
     }
 }

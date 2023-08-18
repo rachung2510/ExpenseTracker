@@ -7,8 +7,14 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
+import android.util.ArrayMap;
 import android.util.Log;
+import android.util.Pair;
+import android.util.SizeF;
 import android.widget.RemoteViews;
+
+import androidx.annotation.RequiresApi;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
@@ -18,10 +24,13 @@ import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 
 import java.util.Calendar;
+import java.util.Map;
 
 public class WidgetStaticProvider extends AppWidgetProvider {
 
     private static final String TAG = "WidgetStaticProvider";
+
+    private RemoteViews remoteViews;
 
     public static final String KEY = "ACTION";
     public static final int EDIT_AMOUNT = 1;
@@ -34,7 +43,21 @@ public class WidgetStaticProvider extends AppWidgetProvider {
     public static final int SCAN_RECEIPT = 8;
     public static final int FAVOURITES = 9;
 
-    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+    /**
+     * Return remote views for different widget sizes, and also the default view
+     * @param context
+     * @return tuple containing dictionary of remote views with sizes as keys, and default view
+     */
+    public static Pair<Map<SizeF, RemoteViews>, RemoteViews> getResizedViews(Context context) {
+        RemoteViews defaultView = new RemoteViews(context.getPackageName(), R.layout.widget_static);
+        RemoteViews tallView = new RemoteViews(context.getPackageName(), R.layout.widget_static_tall);
+        Map<SizeF, RemoteViews> viewMapping = new ArrayMap<>();
+        viewMapping.put(new SizeF(250f, 250f), defaultView);
+        viewMapping.put(new SizeF(250f, 360f), tallView);
+        return new Pair<> (viewMapping, defaultView);
+    }
+
+    void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         // clear stored values
         SharedPreferences pref = context.getSharedPreferences(Constants.TMP, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -48,40 +71,52 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         editor.apply();
 
         // set interactions
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_static);
-        views.setOnClickPendingIntent(R.id.newExpAmt, getPendingIntent(context, EDIT_AMOUNT));
-        views.setOnClickPendingIntent(R.id.newExpDesc, getPendingIntent(context, EDIT_DESCRIPTION));
-        views.setOnClickPendingIntent(R.id.newExpAccBox, getPendingIntent(context, EDIT_ACCOUNT));
-        views.setOnClickPendingIntent(R.id.newExpCatBox, getPendingIntent(context, EDIT_CATEGORY));
-        views.setOnClickPendingIntent(R.id.newExpDate, getPendingIntent(context, EDIT_DATE));
-        views.setOnClickPendingIntent(R.id.newExpSave, getPendingIntent(context, SAVE));
-        views.setOnClickPendingIntent(R.id.update, getPendingSelfIntent(context));
-        views.setOnClickPendingIntent(R.id.scanReceiptBtn, getPendingIntent(context, SCAN_RECEIPT));
-        views.setOnClickPendingIntent(R.id.favouritesBtn, getPendingIntent(context, FAVOURITES));
+        Pair<Map<SizeF, RemoteViews>, RemoteViews> pair = getResizedViews(context);
+        Map<SizeF, RemoteViews> viewMapping = pair.first;
+        RemoteViews defaultView = pair.second;
 
-        // configure default values
         DatabaseHelper db = new DatabaseHelper(context);
         Account acc = db.getAccount(db.getDefaultAccName());
-        Category cat = db.getCategory(db.getDefaultCatName());
-        views.setTextViewText(R.id.newExpAccName, acc.getName());
-        views.setTextViewText(R.id.newExpCatName, cat.getName());
-        views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.shape_rounded_top_left_rectangle)));
-        views.setInt(R.id.newExpAccBox, "setColorFilter", acc.getColor());
-        views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.shape_rounded_top_right_rectangle)));
-        views.setInt(R.id.newExpCatBox, "setColorFilter", cat.getColor());
-        views.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
-        views.setTextViewText(R.id.newExpAmt, "");
-        views.setTextViewText(R.id.newExpDesc, "");
-        Calendar cal = Calendar.getInstance(MainActivity.locale);
-        views.setTextViewText(R.id.expDate, (MainActivity.getRelativePrefix(cal) + ", " + MainActivity.getDatetimeStr(cal, "dd MMMM yyyy")).toUpperCase());
-        views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(acc.getIcon()));
-        views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
-        views.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(cat.getIcon()));
-        views.setInt(R.id.newExpCatIcon,"setColorFilter", cat.getColor());
-        views.setImageViewBitmap(R.id.scanReceiptBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.ic_baseline_camera_alt_24)));
-        views.setImageViewBitmap(R.id.favouritesBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.ic_baseline_star_outline_24)));
+        for (Map.Entry<SizeF, RemoteViews> entry : viewMapping.entrySet()) {
+            RemoteViews view = entry.getValue();
+            view.setOnClickPendingIntent(R.id.newExpAmt, getPendingIntent(context, EDIT_AMOUNT));
+            view.setOnClickPendingIntent(R.id.newExpDesc, getPendingIntent(context, EDIT_DESCRIPTION));
+            view.setOnClickPendingIntent(R.id.newExpAccBox, getPendingIntent(context, EDIT_ACCOUNT));
+            view.setOnClickPendingIntent(R.id.newExpCatBox, getPendingIntent(context, EDIT_CATEGORY));
+            view.setOnClickPendingIntent(R.id.newExpDate, getPendingIntent(context, EDIT_DATE));
+            view.setOnClickPendingIntent(R.id.newExpSave, getPendingIntent(context, SAVE));
+            view.setOnClickPendingIntent(R.id.update, getPendingSelfIntent(context));
+            view.setOnClickPendingIntent(R.id.scanReceiptBtn, getPendingIntent(context, SCAN_RECEIPT));
+            view.setOnClickPendingIntent(R.id.favouritesBtn, getPendingIntent(context, FAVOURITES));
 
-        appWidgetManager.updateAppWidget(appWidgetId, views);
+            // configure default values
+            Category cat = db.getCategory(db.getDefaultCatName());
+            view.setTextViewText(R.id.newExpAccName, acc.getName());
+            view.setTextViewText(R.id.newExpCatName, cat.getName());
+            view.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.shape_rounded_top_left_rectangle)));
+            view.setInt(R.id.newExpAccBox, "setColorFilter", acc.getColor());
+            view.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.shape_rounded_top_right_rectangle)));
+            view.setInt(R.id.newExpCatBox, "setColorFilter", cat.getColor());
+            view.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
+            view.setTextViewText(R.id.newExpAmt, "");
+            view.setTextViewText(R.id.newExpDesc, "");
+            Calendar cal = Calendar.getInstance(MainActivity.locale);
+            view.setTextViewText(R.id.expDate, (MainActivity.getRelativePrefix(cal) + ", " + MainActivity.getDatetimeStr(cal, "dd MMMM yyyy")).toUpperCase());
+            view.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(acc.getIcon()));
+            view.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
+            view.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(cat.getIcon()));
+            view.setInt(R.id.newExpCatIcon,"setColorFilter", cat.getColor());
+            view.setImageViewBitmap(R.id.scanReceiptBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.ic_baseline_camera_alt_24)));
+            view.setImageViewBitmap(R.id.favouritesBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.ic_baseline_star_outline_24)));
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            remoteViews = new RemoteViews(viewMapping);
+            appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
+        } else {
+            remoteViews = defaultView;
+            appWidgetManager.updateAppWidget(appWidgetId, defaultView);
+        }
+
     }
 
     @Override

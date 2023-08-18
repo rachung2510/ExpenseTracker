@@ -20,10 +20,10 @@
 
             <LinearLayout
                 android:layout_width="fill_parent"
-                android:layout_height="@dimen/widgetBannerHeight"
+                android:layout_height="@dimen/widgetTallBannerHeight"
                 android:orientation="horizontal"
                 android:baselineAligned="false"
-                android:layout_marginTop="@dimen/widgetMargin"
+                android:layout_marginTop="@dimen/widgetTallMargin"
                 android:weightSum="2">
 
                 <LinearLayout
@@ -45,18 +45,18 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/widgetBannerHeightNeg"
+                            android:layout_marginTop="@dimen/widgetTallBannerHeightNeg"
                             android:orientation="vertical"
-                            android:paddingTop="@dimen/widgetTextSize"
-                            android:paddingBottom="@dimen/widgetTextSize"
-                            android:paddingLeft="@dimen/widgetTextSize"
-                            android:paddingRight="@dimen/widgetTextSize">
+                            android:paddingTop="@dimen/widgetTallTextSize"
+                            android:paddingBottom="@dimen/widgetTallTextSize"
+                            android:paddingLeft="@dimen/widgetTallTextSize"
+                            android:paddingRight="@dimen/widgetTallTextSize">
 
                             <TextView
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
                                 android:text="@string/Acc"
-                                android:textSize="@dimen/widgetTextSize"
+                                android:textSize="@dimen/widgetTallTextSize"
                                 android:textColor="#fff" />
 
                             <TextView
@@ -67,7 +67,7 @@
                                 android:text="@string/example_acc"
                                 android:singleLine="true"
                                 android:textColor="#fff"
-                                android:textSize="@dimen/widgetDisplayTextSize" />
+                                android:textSize="@dimen/widgetTallDisplayTextSize" />
 
                         </LinearLayout>
 
@@ -92,18 +92,18 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/widgetBannerHeightNeg"
+                        android:layout_marginTop="@dimen/widgetTallBannerHeightNeg"
                         android:orientation="vertical"
-                        android:paddingTop="@dimen/widgetTextSize"
-                        android:paddingBottom="@dimen/widgetTextSize"
-                        android:paddingLeft="@dimen/widgetTextSize"
-                        android:paddingRight="@dimen/widgetTextSize">
+                        android:paddingTop="@dimen/widgetTallTextSize"
+                        android:paddingBottom="@dimen/widgetTallTextSize"
+                        android:paddingLeft="@dimen/widgetTallTextSize"
+                        android:paddingRight="@dimen/widgetTallTextSize">
 
                         <TextView
                             android:layout_width="fill_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/Cat"
-                            android:textSize="@dimen/widgetTextSize"
+                            android:textSize="@dimen/widgetTallTextSize"
                             android:textColor="#fff" />
 
                         <TextView
@@ -114,7 +114,7 @@
                             android:text="@string/example_cat"
                             android:singleLine="true"
                             android:textColor="@color/white"
-                            android:textSize="@dimen/widgetDisplayTextSize" />
+                            android:textSize="@dimen/widgetTallDisplayTextSize" />
 
                     </LinearLayout>
 
@@ -136,17 +136,17 @@
                     android:layout_weight="1">
 
                     <ImageButton
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_marginEnd="-50dp"
+                        android:layout_width="@dimen/widgetTallSectionBtnSize"
+                        android:layout_height="@dimen/widgetTallSectionBtnSize"
+                        android:layout_marginEnd="@dimen/widgetTallSectionBtnSizeNeg"
                         android:background="@drawable/shape_rounded_square"
                         android:backgroundTint="@color/white"
                         android:clickable="false"
                         tools:ignore="ContentDescription" />
                     <ImageView
                         android:id="@+id/newExpAccIcon"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
+                        android:layout_width="@dimen/widgetTallSectionBtnSize"
+                        android:layout_height="@dimen/widgetTallSectionBtnSize"
                         android:layout_marginEnd="24dp"
                         android:src="@drawable/acc_cash"
                         android:scaleType="fitCenter"
@@ -161,17 +161,17 @@
                     android:layout_weight="1">
 
                     <ImageButton
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_marginEnd="-50dp"
+                        android:layout_width="@dimen/widgetTallSectionBtnSize"
+                        android:layout_height="@dimen/widgetTallSectionBtnSize"
+                        android:layout_marginEnd="@dimen/widgetTallSectionBtnSizeNeg"
                         android:background="@drawable/shape_circle"
                         android:backgroundTint="@color/white"
                         android:clickable="false"
                         tools:ignore="ContentDescription" />
                     <ImageView
                         android:id="@+id/newExpCatIcon"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
+                        android:layout_width="@dimen/widgetTallSectionBtnSize"
+                        android:layout_height="@dimen/widgetTallSectionBtnSize"
                         android:layout_marginEnd="24dp"
                         android:src="@drawable/cat_food"
                         android:scaleType="fitCenter"
@@ -204,10 +204,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    android:paddingTop="@dimen/widgetTextSize"
+                    android:paddingTop="@dimen/widgetTallTextSize"
                     android:text="@string/Exp"
                     android:textColor="@color/text_med_gray"
-                    android:textSize="@dimen/widgetTextSize" />
+                    android:textSize="@dimen/widgetTallTextSize" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -226,7 +226,7 @@
                         android:text="@string/default_currency"
                         android:textColor="@color/text_light_gray"
                         android:textFontWeight="600"
-                        android:textSize="10sp" />
+                        android:textSize="@dimen/widgetTallSmallTextSize" />
 
                     <TextView
                         android:id="@+id/newExpAmt"
@@ -240,7 +240,7 @@
                         android:hint="@string/hint_amt"
                         android:textColorHint="@color/text_color_hint"
                         android:textColor="@color/text_dark_gray"
-                        android:textSize="36sp" />
+                        android:textSize="@dimen/widgetTallExpenseTextSize" />
 
                 </LinearLayout>
 
@@ -248,8 +248,8 @@
 
             <ImageButton
                 android:id="@+id/favouritesBtn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="@dimen/widgetTallSideBtnSize"
+                android:layout_height="@dimen/widgetTallSideBtnSize"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="5dp"
@@ -260,8 +260,8 @@
 
             <ImageButton
                 android:id="@+id/scanReceiptBtn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="@dimen/widgetTallSideBtnSize"
+                android:layout_height="@dimen/widgetTallSideBtnSize"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="10dp"
@@ -295,9 +295,9 @@
                 android:textColor="@color/generic_icon_gray"
                 android:clickable="true"
                 android:hint="@string/hint_description"
-                android:textSize="14sp"
-                android:paddingTop="@dimen/widgetTextSize"
-                android:paddingBottom="@dimen/widgetTextSize" />
+                android:textSize="@dimen/widgetTallMediumTextSize"
+                android:paddingTop="@dimen/widgetTallMediumTextSize"
+                android:paddingBottom="@dimen/widgetTallMediumTextSize" />
 
         </LinearLayout>
 
@@ -318,7 +318,7 @@
                 android:textColor="@color/text_light_gray"
                 android:fontFamily="sans-serif-medium"
                 android:textFontWeight="600"
-                android:textSize="12sp"
+                android:textSize="@dimen/widgetTallTextSize"
                 android:text="@string/example_date" />
         </LinearLayout>
 
@@ -327,8 +327,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingTop="@dimen/widgetTextSize"
-            android:paddingBottom="@dimen/widgetTextSize"
+            android:paddingTop="@dimen/widgetTallTextSize"
+            android:paddingBottom="@dimen/widgetTallTextSize"
             android:paddingLeft="30dp"
             android:paddingRight="30dp"
             android:gravity="center"
@@ -344,8 +344,8 @@
                 android:orientation="vertical">
 
                 <ImageButton
-                    android:layout_width="@dimen/widgetBtnSize"
-                    android:layout_height="@dimen/widgetBtnSize"
+                    android:layout_width="@dimen/widgetTallBtnSize"
+                    android:layout_height="@dimen/widgetTallBtnSize"
                     android:background="@drawable/shape_circle"
                     android:backgroundTint="@color/action_yellow_bg"
                     android:clickable="false"
@@ -360,7 +360,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_med_gray"
                     android:layout_marginTop="3dp"
-                    android:textSize="@dimen/widgetTextSize"
+                    android:textSize="@dimen/widgetTallTextSize"
                     android:text="@string/opt_update" />
 
             </LinearLayout>
@@ -375,8 +375,8 @@
                 android:layout_weight="1">
 
                 <ImageButton
-                    android:layout_width="@dimen/widgetBtnSize"
-                    android:layout_height="@dimen/widgetBtnSize"
+                    android:layout_width="@dimen/widgetTallBtnSize"
+                    android:layout_height="@dimen/widgetTallBtnSize"
                     android:clickable="false"
                     android:src="@drawable/selector_circle_widget"
                     android:scaleType="fitCenter"
@@ -391,7 +391,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_med_gray"
                     android:layout_marginTop="3dp"
-                    android:textSize="@dimen/widgetTextSize"
+                    android:textSize="@dimen/widgetTallTextSize"
                     android:text="@string/sel_single" />
 
             </LinearLayout>
@@ -405,8 +405,8 @@
                 android:orientation="vertical">
 
                 <ImageButton
-                    android:layout_width="@dimen/widgetBtnSize"
-                    android:layout_height="@dimen/widgetBtnSize"
+                    android:layout_width="@dimen/widgetTallBtnSize"
+                    android:layout_height="@dimen/widgetTallBtnSize"
                     android:clickable="false"
                     android:src="@drawable/selector_circle_widget"
                     android:scaleType="fitCenter"
@@ -421,7 +421,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_med_gray"
                     android:layout_marginTop="3dp"
-                    android:textSize="@dimen/widgetTextSize"
+                    android:textSize="@dimen/widgetTallTextSize"
                     android:text="@string/opt_save" />
 
             </LinearLayout>

@@ -24,9 +24,15 @@
     <dimen name="spacing">5dp</dimen>
     <dimen name="cardCornerRadius">30dp</dimen>
     <dimen name="cardShadowOffset">2dp</dimen>
+    <dimen name="widgetSmallTextSize">10sp</dimen>
     <dimen name="widgetTextSize">12sp</dimen>
+    <dimen name="widgetMediumTextSize">14sp</dimen>
     <dimen name="widgetDisplayTextSize">24sp</dimen>
+    <dimen name="widgetExpenseTextSize">36sp</dimen>
+    <dimen name="widgetSideBtnSize">40dp</dimen>
     <dimen name="widgetBtnSize">46dp</dimen>
+    <dimen name="widgetSectionBtnSize">50dp</dimen>
+    <dimen name="widgetSectionBtnSizeNeg">-50dp</dimen>
     <dimen name="widgetMargin">18dp</dimen>
     <dimen name="widgetMarginTop">30dp</dimen>
     <dimen name="widgetCornerRadius">20dp</dimen>
@@ -35,5 +41,20 @@
     <dimen name="sideMenuMarginStart">15dp</dimen>
     <dimen name="sideMenuItemMargin">12dp</dimen>
     <dimen name="sideMenuItemMarginLarger">16dp</dimen>
+
+    <dimen name="widgetTallSmallTextSize">13sp</dimen>
+    <dimen name="widgetTallTextSize">16sp</dimen>
+    <dimen name="widgetTallMediumTextSize">18sp</dimen>
+    <dimen name="widgetTallDisplayTextSize">32sp</dimen>
+    <dimen name="widgetTallExpenseTextSize">48sp</dimen>
+    <dimen name="widgetTallSideBtnSize">53dp</dimen>
+    <dimen name="widgetTallBtnSize">54dp</dimen>
+    <dimen name="widgetTallSectionBtnSize">60dp</dimen>
+    <dimen name="widgetTallSectionBtnSizeNeg">-60dp</dimen>
+    <dimen name="widgetTallMargin">24dp</dimen>
+    <dimen name="widgetTallMarginTop">40dp</dimen>
+    <dimen name="widgetTallCornerRadius">27dp</dimen>
+    <dimen name="widgetTallBannerHeight">102dp</dimen>
+    <dimen name="widgetTallBannerHeightNeg">-102dp</dimen>
 
 </resources>
