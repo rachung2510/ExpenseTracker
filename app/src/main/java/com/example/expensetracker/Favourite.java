@@ -26,6 +26,6 @@ public class Favourite {
         return catName;
     }
     public String getAmount() {
-        return amount;
+        return String.format(MainActivity.locale, "%.2f", Float.parseFloat(amount));
     }
 }
