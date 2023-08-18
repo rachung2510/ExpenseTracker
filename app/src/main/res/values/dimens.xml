@@ -57,4 +57,19 @@
     <dimen name="widgetTallBannerHeight">102dp</dimen>
     <dimen name="widgetTallBannerHeightNeg">-102dp</dimen>
 
+    <dimen name="widgetPreviewSmallTextSize">8sp</dimen>
+    <dimen name="widgetPreviewTextSize">9.6sp</dimen>
+    <dimen name="widgetPreviewMediumTextSize">11.2sp</dimen>
+    <dimen name="widgetPreviewDisplayTextSize">19.2sp</dimen>
+    <dimen name="widgetPreviewExpenseTextSize">28.8sp</dimen>
+    <dimen name="widgetPreviewSideBtnSize">32dp</dimen>
+    <dimen name="widgetPreviewBtnSize">36.8dp</dimen>
+    <dimen name="widgetPreviewSectionBtnSize">40dp</dimen>
+    <dimen name="widgetPreviewSectionBtnSizeNeg">-40dp</dimen>
+    <dimen name="widgetPreviewMargin">14.4dp</dimen>
+    <dimen name="widgetPreviewMarginTop">24dp</dimen>
+    <dimen name="widgetPreviewCornerRadius">16dp</dimen>
+    <dimen name="widgetPreviewBannerHeight">61.6dp</dimen>
+    <dimen name="widgetPreviewBannerHeightNeg">-61.6dp</dimen>
+
 </resources>

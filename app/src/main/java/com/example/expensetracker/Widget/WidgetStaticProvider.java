@@ -52,7 +52,7 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         RemoteViews defaultView = new RemoteViews(context.getPackageName(), R.layout.widget_static);
         RemoteViews tallView = new RemoteViews(context.getPackageName(), R.layout.widget_static_tall);
         Map<SizeF, RemoteViews> viewMapping = new ArrayMap<>();
-        viewMapping.put(new SizeF(250f, 250f), defaultView);
+        viewMapping.put(new SizeF(250f, 240f), defaultView);
         viewMapping.put(new SizeF(250f, 360f), tallView);
         return new Pair<> (viewMapping, defaultView);
     }
