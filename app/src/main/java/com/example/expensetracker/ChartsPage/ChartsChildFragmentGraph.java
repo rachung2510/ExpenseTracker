@@ -3,6 +3,7 @@ package com.example.expensetracker.ChartsPage;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -137,8 +138,13 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
 
         setHasOptionsMenu(true);
         filterList = view.findViewById(R.id.sectionFilters);
+
         // to hide error msg "No adapter attached; skipping layout"
         filterList.setAdapter((new FilterAdapter(getActivity(), new ArrayList<>(), new ArrayList<>())));
+        FlexboxLayoutManager manager = new FlexboxLayoutManager(getActivity());
+        manager.setFlexDirection(FlexDirection.ROW);
+        manager.setJustifyContent(JustifyContent.FLEX_START);
+        filterList.setLayoutManager(manager);
 
         if (savedInstanceState != null) {
             Gson gson = new GsonBuilder().create();
@@ -242,12 +248,6 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     public void applyFilters(boolean isDelete) {
         if (accFilters.isEmpty() && catFilters.isEmpty() && !isDelete)
             return;
-        if (filterList.getAdapter() == null) {
-            FlexboxLayoutManager manager = new FlexboxLayoutManager(getActivity());
-            manager.setFlexDirection(FlexDirection.ROW);
-            manager.setJustifyContent(JustifyContent.FLEX_START);
-            filterList.setLayoutManager(manager);
-        }
         filterList.setAdapter(new FilterAdapter(getActivity(), accFilters, catFilters));
         if (!accFilters.isEmpty())
             updateCurrency(accFilters.get(0).getCurrencySymbol());
