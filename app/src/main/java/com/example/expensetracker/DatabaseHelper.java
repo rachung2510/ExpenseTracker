@@ -805,8 +805,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // average
-    public float[] getAverages(Calendar from, Calendar to) {
-        float totalAmt = getConvertedTotalAmtInDateRange(from, to, "");
+    public float[] getAverages(ArrayList<Account> accounts, ArrayList<Category> categories, Calendar from, Calendar to) {
+        float totalAmt = getConvertedFilteredTotalAmtInDateRange(accounts, categories, from, to, "");
         int numDays = getNumUnits(DateGridAdapter.DAY, from, to);
         int numWeeks = getNumUnits(DateGridAdapter.WEEK, from, to);
         int numMonths = getNumUnits(DateGridAdapter.MONTH, from, to);

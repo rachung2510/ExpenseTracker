@@ -502,7 +502,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
     private void updateAverages() {
         if (getActivity() == null)
             return;
-        float[] averages = ((MainActivity) getActivity()).db.getAverages(fromDate, toDate);
+        float[] averages = ((MainActivity) getActivity()).db.getAverages(accFilters, catFilters, fromDate, toDate);
         avgDay.setText((averages[0] < 0) ? "–" : String.format(MainActivity.locale,"%.2f", averages[0]));
         avgWeek.setText((averages[1] < 0) ? "–" : String.format(MainActivity.locale,"%.2f", averages[1]));
         avgMonth.setText((averages[2] < 0) ? "–" : String.format(MainActivity.locale,"%.2f", averages[2]));
