@@ -35,8 +35,8 @@ public class DateGridAdapter extends RecyclerView.Adapter<DateGridAdapter.ViewHo
 
     private final Context context;
     private final LayoutInflater inflater;
-    private int selectedPos;
-    private int state;
+    private int selectedPos; // this is the actual selected option (day, week, month, year, single, range)
+    private int state; // this is for single/range options; is it a single day, month or year?
     public boolean errorState = false;
     private final boolean[] disabledPos = { false,false,false,false,false,false };
 

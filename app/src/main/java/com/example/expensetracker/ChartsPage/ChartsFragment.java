@@ -218,6 +218,20 @@ public class ChartsFragment extends Fragment {
         ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS); // update summary
         ((MainActivity) getActivity()).updateDateRange(Constants.HOME, fromDate, toDate, selectedDatePos, selectedDateState);
     }
+    public void setDateRange(Calendar from, Calendar to, int selectedDatePos, int selectedDateState) {
+        // reset to default if selected state is ALL
+        if (selectedDateState == DateGridAdapter.ALL) {
+            this.selectedDatePos = DateGridAdapter.MONTH;
+            this.selectedDateState = DateGridAdapter.MONTH;
+            this.fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selectedDateState);
+            this.toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selectedDateState);
+        } else {
+            this.selectedDatePos = selectedDatePos;
+            this.selectedDateState = selectedDateState;
+            this.fromDate = from;
+            this.toDate = to;
+        }
+    }
     private void setUpChildFragments(Bundle savedInstanceState) {
         // load fragments
         ViewPagerAdapter adapter = new ViewPagerAdapter(this);
@@ -273,12 +287,6 @@ public class ChartsFragment extends Fragment {
                 currentPage = position;
             }
         });
-    }
-    public void setDateRange(Calendar from, Calendar to, int selectedDatePos, int selectedDateState) {
-        this.selectedDatePos = selectedDatePos;
-        this.selectedDateState = selectedDateState;
-        this.fromDate = from;
-        this.toDate = to;
     }
 
     /**

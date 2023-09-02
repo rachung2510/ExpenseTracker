@@ -285,6 +285,12 @@ public class HomeFragment extends Fragment {
         else placeholder.setVisibility(View.VISIBLE);
         ((MainActivity) getActivity()).updateSummaryData(Constants.HOME);
     }
+    public void updateDateRangeFromState() {
+        if (getActivity() == null)
+            return;
+        fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selectedDateState);
+        toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selectedDateState);
+    }
     private void setUpSummaryAction() {
         if (getActivity() == null)
             return;
@@ -338,16 +344,6 @@ public class HomeFragment extends Fragment {
             });
         });
     }
-    private void setUpFilters() {
-        FilterAdapter filterAdapter = new FilterAdapter(getActivity(), accFilters, catFilters);
-        FlexboxLayoutManager manager = new FlexboxLayoutManager(getActivity());
-        manager.setFlexDirection(FlexDirection.ROW);
-        manager.setJustifyContent(JustifyContent.FLEX_START);
-        filterList.setLayoutManager(manager);
-        filterList.setAdapter(filterAdapter);
-        String currencySymbol = ((MainActivity) getActivity()).getDefaultCurrencySymbol();
-        setSummaryCurr(currencySymbol);
-    }
     private void navDateOnClick(int direction) {
         if (getActivity() == null)
             return;
@@ -375,6 +371,25 @@ public class HomeFragment extends Fragment {
         updateData(); // update summary & expense list
         ((MainActivity) getActivity()).updateDateRange(Constants.CHARTS, fromDate, toDate, selectedDatePos, selectedDateState);
     }
+    public void setDateRange(Calendar from, Calendar to, int selectedDatePos, int selectedDateState) {
+        this.selectedDatePos = selectedDatePos;
+        this.selectedDateState = selectedDateState;
+        // bring back navDate buttons if previously invisible
+        prevDate.setVisibility(ImageButton.VISIBLE);
+        nextDate.setVisibility(ImageButton.VISIBLE);
+        this.fromDate = from;
+        this.toDate = to;
+    }
+    private void setUpFilters() {
+        FilterAdapter filterAdapter = new FilterAdapter(getActivity(), accFilters, catFilters);
+        FlexboxLayoutManager manager = new FlexboxLayoutManager(getActivity());
+        manager.setFlexDirection(FlexDirection.ROW);
+        manager.setJustifyContent(JustifyContent.FLEX_START);
+        filterList.setLayoutManager(manager);
+        filterList.setAdapter(filterAdapter);
+        String currencySymbol = ((MainActivity) getActivity()).getDefaultCurrencySymbol();
+        setSummaryCurr(currencySymbol);
+    }
     private void filterAccDialog(AccountAdapter adapter) {
         if (getActivity() == null)
             return;
@@ -400,18 +415,6 @@ public class HomeFragment extends Fragment {
         dialogBuilder.setNeutralButton(android.R.string.no, (((dialog, i) -> dialog.cancel())));
 
         dialogBuilder.show();
-    }
-    public void updateDateRangeFromState() {
-        if (getActivity() == null)
-            return;
-        fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selectedDateState);
-        toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selectedDateState);
-    }
-    public void setDateRange(Calendar from, Calendar to, int selectedDatePos, int selectedDateState) {
-        this.selectedDatePos = selectedDatePos;
-        this.selectedDateState = selectedDateState;
-        this.fromDate = from;
-        this.toDate = to;
     }
     private void updateClearFiltersMenuItem() {
         clearFilters.setVisible(!accFilters.isEmpty() || !catFilters.isEmpty());
