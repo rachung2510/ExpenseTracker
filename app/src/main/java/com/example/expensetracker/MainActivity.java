@@ -1452,7 +1452,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         if (amount.isEmpty()) return;
         expAmt.setText(amount);
 
-        if (!favourite.getCurrencyName().isEmpty())
+        if (!(favourite.getCurrencyName() == null))
             currencyName = favourite.getCurrencyName();
         Currency currency = db.getCurrency(currencyName);
         expCurr.setText(currency.getSymbol());
