@@ -220,11 +220,11 @@ public class ChartsFragment extends Fragment {
     }
     public void setDateRange(Calendar from, Calendar to, int selectedDatePos, int selectedDateState) {
         // reset to default if selected state is ALL
-        if (selectedDateState == DateGridAdapter.ALL) {
+        if (selectedDatePos == DateGridAdapter.ALL) {
             this.selectedDatePos = DateGridAdapter.MONTH;
             this.selectedDateState = DateGridAdapter.MONTH;
-            this.fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selectedDateState);
-            this.toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selectedDateState);
+            this.fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, this.selectedDateState);
+            this.toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, this.selectedDateState);
         } else {
             this.selectedDatePos = selectedDatePos;
             this.selectedDateState = selectedDateState;
