@@ -226,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         sideMenuValueFirst.setText((getDefaultFirstDayOfWeek() == Calendar.SUNDAY) ? "Sunday" : "Monday");
                         if (!(getCurrentFragment() instanceof HomeFragment))
                             return;
-                        ((HomeFragment) getCurrentFragment()).updateDateRange();
+                        ((HomeFragment) getCurrentFragment()).updateDateRangeFromState();
                         updateHomeData();
                     })
                     .show();
@@ -635,6 +635,17 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             ((HomeFragment) fragment).setSummaryData(summaryDateText.toUpperCase(), totalAmt);
         else if (page == Constants.CHARTS)
             ((ChartsFragment) fragment).setSummaryData(summaryDateText.toUpperCase(), totalAmt, true);
+    }
+    public void updateDateRange(int page, Calendar from, Calendar to, int selectedDatePos, int selectedDateState) {
+        if (page == Constants.HOME) {
+            HomeFragment homeFragment = (HomeFragment) getFragment(page);
+            homeFragment.setDateRange(from, to, selectedDatePos, selectedDateState);
+            updateHomeData();
+        } else if (page == Constants.CHARTS) {
+            ChartsFragment chartsFragment = (ChartsFragment) getFragment(page);
+            chartsFragment.setDateRange(from, to, selectedDatePos, selectedDateState);
+            updateSummaryData(page);
+        }
     }
     @SuppressWarnings("unchecked")
     public void updateAccountData() {

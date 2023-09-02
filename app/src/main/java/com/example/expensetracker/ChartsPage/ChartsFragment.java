@@ -178,6 +178,7 @@ public class ChartsFragment extends Fragment {
                     selectedDatePos = filterDateAdapter.getSelectedPos();
                     selectedDateState = filterDateAdapter.getSelectedState();
                     ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS); // update summary
+                    ((MainActivity) getActivity()).updateDateRange(Constants.HOME, fromDate, toDate, selectedDatePos, selectedDateState);
                 }
 
                 if (selectedDatePos == DateGridAdapter.ALL) {
@@ -215,6 +216,7 @@ public class ChartsFragment extends Fragment {
                 toDate.set(Calendar.DAY_OF_YEAR, toDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
         }
         ((MainActivity) getActivity()).updateSummaryData(Constants.CHARTS); // update summary
+        ((MainActivity) getActivity()).updateDateRange(Constants.HOME, fromDate, toDate, selectedDatePos, selectedDateState);
     }
     private void setUpChildFragments(Bundle savedInstanceState) {
         // load fragments
@@ -271,6 +273,12 @@ public class ChartsFragment extends Fragment {
                 currentPage = position;
             }
         });
+    }
+    public void setDateRange(Calendar from, Calendar to, int selectedDatePos, int selectedDateState) {
+        this.selectedDatePos = selectedDatePos;
+        this.selectedDateState = selectedDateState;
+        this.fromDate = from;
+        this.toDate = to;
     }
 
     /**

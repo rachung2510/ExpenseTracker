@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
+import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.Expense;
 import com.example.expensetracker.MainActivity;
@@ -324,6 +325,7 @@ public class HomeFragment extends Fragment {
                     selectedDatePos = filterDateAdapter.getSelectedPos();
                     selectedDateState = filterDateAdapter.getSelectedState();
                     updateData(); // update summary & expense list
+                    ((MainActivity) getActivity()).updateDateRange(Constants.CHARTS, fromDate, toDate, selectedDatePos, selectedDateState);
                 }
 
                 if (selectedDatePos == DateGridAdapter.ALL) {
@@ -371,6 +373,7 @@ public class HomeFragment extends Fragment {
                 toDate.set(Calendar.DAY_OF_YEAR, toDate.get(Calendar.DAY_OF_YEAR) + direction * 7);
         }
         updateData(); // update summary & expense list
+        ((MainActivity) getActivity()).updateDateRange(Constants.CHARTS, fromDate, toDate, selectedDatePos, selectedDateState);
     }
     private void filterAccDialog(AccountAdapter adapter) {
         if (getActivity() == null)
@@ -398,11 +401,17 @@ public class HomeFragment extends Fragment {
 
         dialogBuilder.show();
     }
-    public void updateDateRange() {
+    public void updateDateRangeFromState() {
         if (getActivity() == null)
             return;
         fromDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.FROM, selectedDateState);
         toDate = ((MainActivity) getActivity()).getInitSelectedDates(DateGridAdapter.TO, selectedDateState);
+    }
+    public void setDateRange(Calendar from, Calendar to, int selectedDatePos, int selectedDateState) {
+        this.selectedDatePos = selectedDatePos;
+        this.selectedDateState = selectedDateState;
+        this.fromDate = from;
+        this.toDate = to;
     }
     private void updateClearFiltersMenuItem() {
         clearFilters.setVisible(!accFilters.isEmpty() || !catFilters.isEmpty());
