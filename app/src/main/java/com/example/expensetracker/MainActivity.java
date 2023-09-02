@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         LinearLayout sideMenuItemXrate = findViewById(R.id.sideMenuItemXrate);
         sideMenuValueCurr = findViewById(R.id.sideMenuValueCurrency);
         sideMenuValueFirst = findViewById(R.id.sideMenuValueFirst);
-        sideMenuValueCurr.setText(getDefaultCurrency());
+        sideMenuValueCurr.setText(getDefaultCurrencyName());
         sideMenuValueFirst.setText((getDefaultFirstDayOfWeek() == Calendar.SUNDAY) ? "Sunday" : "Monday");
         sideMenuItemCurr.setOnClickListener(view2 -> {
             CurrencyAdapter adapter = new CurrencyAdapter(this, db.getAllCurrencies(), getDefaultCurrency());
@@ -194,9 +194,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                         SharedPreferences pref = getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = pref.edit();
-                        editor.putString(getString(R.string.key_default_currency), adapter.getSelected());
+                        editor.putString(getString(R.string.key_default_currency), adapter.getSelected().getName());
                         editor.apply();
-                        sideMenuValueCurr.setText(getDefaultCurrency());
+                        sideMenuValueCurr.setText(getDefaultCurrencyName());
                         db.updateAllCurrencyRates(getDefaultCurrency());
                         if (getCurrentFragment() instanceof HomeFragment) {
                             ((HomeFragment) getCurrentFragment()).setSummaryCurr(getDefaultCurrencySymbol());
@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             EditText editText = view1.findViewById(R.id.xrate);
             ArrayList<String> spinnerArray = new ArrayList<>();
             for (Currency c : db.getAllCurrencies())
-                if (!c.getName().equals(getDefaultCurrency())) spinnerArray.add(c.getName());
+                if (!c.equals(getDefaultCurrency())) spinnerArray.add(c.getName());
             ArrayAdapter<String> adapter = new ArrayAdapter<>(
                     this, android.R.layout.simple_spinner_item, spinnerArray);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -276,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             });
 
             dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
-            dialogBuilder.setTitle(getString(R.string.set_xrate_title, getDefaultCurrency()))
+            dialogBuilder.setTitle(getString(R.string.set_xrate_title, getDefaultCurrencyName()))
                     .setView(view1)
                     .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
                         Currency currency = db.getCurrency(spinner.getSelectedItem().toString());
@@ -518,7 +518,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             expAccIcon.setForeground(selectedAcc.getIcon()); // set icon
             expAccIcon.setForegroundTintList(getColorStateListFromName(MainActivity.this, selectedAcc.getColorName())); // set icon color
             expAccBox.setBackgroundColor(Color.parseColor("#" + selectedAcc.getColorHex())); // set bg color
-            expCurr.setText(selectedAcc.getCurrencySymbol());
+            expCurr.setText(selectedAcc.getCurrency().getSymbol());
         });
         dialog.show();
 
@@ -723,7 +723,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         expCatIcon.setForegroundTintList(getColorStateListFromHex(cat.getColorHex()));
         expAccBox.setBackgroundColor(acc.getColor()); // set bg color
         expCatBox.setBackgroundColor(cat.getColor());
-        expCurr.setText(acc.getCurrencySymbol());
+        expCurr.setText(acc.getCurrency().getSymbol());
         String[] favourites = getAllFavourites(this);
         if (favourites.length > 0) {
             ArrayAdapter<String> favAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favourites);
@@ -766,18 +766,19 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             else {
                 String desc = expDesc.getText().toString();
                 Account acc1 = db.getAccount(expAccName.getText().toString());
+                Currency currency = db.getCurrency(expCurr.getText().toString());
                 String datetime = getDatetimeStr(cal, "");
                 if (receiptItemAdapter == null || receiptItemAdapter.getTotalAmt() == 0f ) {
                     float amt = Float.parseFloat(expAmt.getText().toString());
                     Category cat1 = db.getCategory(expCatName.getText().toString());
-                    Expense expense = new Expense(amt, desc, acc1, cat1, datetime);
+                    Expense expense = new Expense(amt, desc, acc1, cat1, datetime, currency);
                     db.createExpense(expense);
                 } else {
                     ArrayList<Expense> expenses = new ArrayList<>();
                     HashMap<String,Float> receiptCatAmts = receiptItemAdapter.getReceiptCatAmts();
                     for (Map.Entry<String,Float> set : receiptCatAmts.entrySet()) {
                         Category cat1 = db.getCategory(set.getKey());
-                        expenses.add(new Expense(set.getValue(), desc, acc1, cat1, datetime));
+                        expenses.add(new Expense(set.getValue(), desc, acc1, cat1, datetime, currency));
                     }
                     db.createExpenses(expenses);
                 }
@@ -796,6 +797,21 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 chooseReceiptItems(receiptItemAdapter.getReceiptItems());
             }
             hideKeyboard(expAmt);
+        });
+        expCurr.setOnClickListener(view -> {
+            Currency selectedCurrency = db.getCurrency(expCurr.getText().toString());
+            CurrencyAdapter adapter = new CurrencyAdapter(MainActivity.this, db.getAllCurrencies(), selectedCurrency);
+            final View view1 = getLayoutInflater().inflate(R.layout.dialog_recyclerview, null);
+            RecyclerView currencyList = view1.findViewById(R.id.recyclerView);
+            currencyList.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.VERTICAL, false));
+            currencyList.setAdapter(adapter);
+
+            dialogBuilder = new AlertDialog.Builder(MainActivity.this, R.style.NormalDialog);
+            dialogBuilder.setTitle("Expense currency")
+                    .setView(view1)
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> expCurr.setText(adapter.getSelected().getSymbol()))
+                    .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {});
+            dialogBuilder.create().show();
         });
     }
     public void editExpense(int id) {
@@ -816,7 +832,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         expCatIcon.setForegroundTintList(getColorStateListFromHex(cat.getColorHex()));
         expAccBox.setBackgroundColor(acc.getColor()); // set bg color
         expCatBox.setBackgroundColor(cat.getColor());
-        expCurr.setText(acc.getCurrencySymbol());
+        expCurr.setText(exp.getCurrency().getSymbol());
         expDate.setText(getString(R.string.full_date,getRelativePrefix(exp.getDatetime()),exp.getDatetimeStr("dd MMMM yyyy")).toUpperCase());
         if (isFavourite()) toggleFavouritesBtn(true);
 
@@ -840,7 +856,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 Account acc1 = db.getAccount(expAccName.getText().toString());
                 Category cat1 = db.getCategory(expCatName.getText().toString());
                 desc = (desc.isEmpty()) ? cat1.getName() : desc;
-                Expense expense = new Expense(id, amt, desc, acc1, cat1, exp.getDatetime());
+                Currency currency = db.getCurrency(expCurr.getText().toString());
+                Expense expense = new Expense(id, amt, desc, acc1, cat1, exp.getDatetime(), currency);
                 db.updateExpense(expense);
                 updateHomeData(); // update data lists
                 setUpdateFragments(true);
@@ -883,6 +900,21 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             })
                     .show();
         });
+        expCurr.setOnClickListener(view -> {
+            Currency selectedCurrency = db.getCurrency(expCurr.getText().toString());
+            CurrencyAdapter adapter = new CurrencyAdapter(MainActivity.this, db.getAllCurrencies(), selectedCurrency);
+            final View view1 = getLayoutInflater().inflate(R.layout.dialog_recyclerview, null);
+            RecyclerView currencyList = view1.findViewById(R.id.recyclerView);
+            currencyList.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.VERTICAL, false));
+            currencyList.setAdapter(adapter);
+
+            dialogBuilder = new AlertDialog.Builder(MainActivity.this, R.style.NormalDialog);
+            dialogBuilder.setTitle("Expense currency")
+                    .setView(view1)
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> expCurr.setText(adapter.getSelected().getSymbol()))
+                    .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {});
+            dialogBuilder.create().show();
+        });
     }
     public void addAccount() {
         AlertDialog addAccDialog = sectionDialog();
@@ -892,11 +924,12 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         sectionName.setText("");
         sectionType.setText(getString(R.string.new_acc_title));
         setEditAccOptions(iconMap.get(R.drawable.acc_cash), colorMap.get(R.color.cat_bleu_de_france));
-        sectionCurr.setText(getDefaultCurrency());
+        sectionCurr.setText(getDefaultCurrencyName());
 
         // actions
         sectionCurrRow.setOnClickListener(view1 -> {
-            CurrencyAdapter adapter = new CurrencyAdapter(this, db.getAllCurrencies(), sectionCurr.getText().toString());
+            Currency selectedCurrency = db.getCurrency(sectionCurr.getText().toString());
+            CurrencyAdapter adapter = new CurrencyAdapter(MainActivity.this, db.getAllCurrencies(), selectedCurrency);
             final View view = getLayoutInflater().inflate(R.layout.dialog_recyclerview, null);
             RecyclerView currencyList = view.findViewById(R.id.recyclerView);
             currencyList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -905,7 +938,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
             dialogBuilder.setTitle("Account currency")
                     .setView(view)
-                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> sectionCurr.setText(adapter.getSelected()))
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> sectionCurr.setText(adapter.getSelected().getName()))
                     .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {});
             dialogBuilder.create().show();
 
@@ -940,14 +973,15 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         // set values of selected account
         sectionName.setText(acc.getName());
         sectionType.setText(getString(R.string.Acc));
-        sectionCurr.setText(acc.getCurrencyName());
+        sectionCurr.setText(acc.getCurrency().getName());
         setEditAccOptions(acc.getIconName(), acc.getColorName());
         if(acc.getName().equals(getDefaultAccName()))
             sectionDelBtn.setVisibility(View.GONE);
 
         // actions
         sectionCurrRow.setOnClickListener(view1 -> {
-            CurrencyAdapter adapter = new CurrencyAdapter(this, db.getAllCurrencies(), sectionCurr.getText().toString());
+            Currency selectedCurrency = db.getCurrency(sectionCurr.getText().toString());
+            CurrencyAdapter adapter = new CurrencyAdapter(MainActivity.this, db.getAllCurrencies(), selectedCurrency);
             final View view = getLayoutInflater().inflate(R.layout.dialog_recyclerview, null);
             RecyclerView currencyList = view.findViewById(R.id.recyclerView);
             currencyList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -956,7 +990,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
             dialogBuilder.setTitle("Account currency")
                     .setView(view)
-                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> sectionCurr.setText(adapter.getSelected()))
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> sectionCurr.setText(adapter.getSelected().getName()))
                     .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {});
             dialogBuilder.create().show();
 
@@ -1097,7 +1131,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             setFavourite(this, desc, new Favourite(
                     expAccName.getText().toString(),
                     expCatName.getText().toString(),
-                    expAmt.getText().toString()));
+                    expAmt.getText().toString(),
+                    db.getCurrency(expCurr.getText().toString()).getName()
+            ));
             toggleFavouritesBtn(true);
         }
     };
@@ -1113,18 +1149,20 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public float convertExpenseAmt(Expense exp) {
         if (exp.getId() == -1) return 0f;
-        Currency thisCurr = db.getCurrency(exp.getAccount().getCurrencyName());
-        if (thisCurr.getName().equals(getDefaultCurrency()))
+        Currency thisCurr = db.getCurrency(exp.getAccount().getCurrency().getName());
+        if (thisCurr.equals(getDefaultCurrency()))
             return exp.getAmount();
         else
             return exp.getAmount() * thisCurr.getRate();
     }
-    public float convertAmt(Float amt, Account acc) {
-        Currency thisCurr = db.getCurrency(acc.getCurrencyName());
-        if (thisCurr.getName().equals(getDefaultCurrency()))
+    public float convertAmtToDefaultCurrency(Float amt, Currency currency) {
+        return convertAmtToCurrency(amt, currency, getDefaultCurrency());
+    }
+    public float convertAmtToCurrency(Float amt, Currency fromCurrency, Currency toCurrency) {
+        if (fromCurrency.equals(toCurrency))
             return amt;
         else
-            return amt * thisCurr.getRate();
+            return amt * fromCurrency.getRate() / toCurrency.getRate();
     }
     public static int convertDpToPx(Context context, float dp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
@@ -1136,9 +1174,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public Currency getCurrencyFromName(String name) {
         return db.getCurrency(name);
-    }
-    public static Currency getCurrencyFromNameStatic(String name) {
-        return Constants.currency_map.get(name);
     }
     public <T extends Section> ArrayList<Integer> getFilterIds(ArrayList<T> arr) {
         return arr
@@ -1282,13 +1317,16 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public String getDefaultCatName() {
         return db.getDefaultCatName();
     }
-    public String getDefaultCurrency() {
-        return getDefaultCurrency(this);
+    public Currency getDefaultCurrency() {
+        return db.getCurrency(getDefaultCurrencyName());
+    }
+    public String getDefaultCurrencyName() {
+        return getDefaultCurrencyName(this);
     }
     public String getDefaultCurrencySymbol() {
-        return db.getCurrency(getDefaultCurrency()).getSymbol();
+        return getDefaultCurrency().getSymbol();
     }
-    public static String getDefaultCurrency(Context context) {
+    public static String getDefaultCurrencyName(Context context) {
         SharedPreferences pref = context.getSharedPreferences(Constants.SETTINGS, Context.MODE_PRIVATE);
         return pref.getString(context.getString(R.string.key_default_currency), context.getString(R.string.default_currency));
     }
@@ -1385,6 +1423,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         toggleFavouritesBtn(true);
 
         String accName = favourite.getAccName();
+        String currencyName = "";
         if (!accName.isEmpty()) {
             Account acc = db.getAccount(accName);
             if (acc.getId() != -1) {
@@ -1392,7 +1431,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 expAccIcon.setForeground(acc.getIcon());
                 expAccIcon.setForegroundTintList(getColorStateListFromName(this, acc.getColorName()));
                 expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex()));
-                expCurr.setText(acc.getCurrencySymbol());
+                currencyName = acc.getCurrency().getName();
             }
         }
 
@@ -1412,6 +1451,11 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         String amount = favourite.getAmount();
         if (amount.isEmpty()) return;
         expAmt.setText(amount);
+
+        if (!favourite.getCurrencyName().isEmpty())
+            currencyName = favourite.getCurrencyName();
+        Currency currency = db.getCurrency(currencyName);
+        expCurr.setText(currency.getSymbol());
     }
     private void toggleFavouritesBtn(boolean show) {
         int id = (show) ? R.drawable.ic_baseline_star_24 : R.drawable.ic_baseline_star_outline_24;
@@ -1497,7 +1541,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public void exportToCsv() {
         // content
-        StringBuilder data = new StringBuilder("Date,Account,Category,Description,Amount,Currency,Amount (" + getDefaultCurrency() + ")\n");
+        StringBuilder data = new StringBuilder("Date,Account,Category,Description,Amount,Currency,Amount (" + getDefaultCurrencyName() + ")\n");
         ArrayList<Expense> expenses = db.getSortedAllExpenses(Constants.DESCENDING, "");
         for (Expense e : expenses) {
             data.append(e.getDatetimeStr()).append(",");
@@ -1505,7 +1549,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             data.append(e.getCategory().getName()).append(",");
             data.append(e.getDescription()).append(",");
             data.append(String.format(locale, "%.2f", e.getAmount())).append(",");
-            data.append(e.getAccount().getCurrencyName()).append(",");
+            data.append(e.getAccount().getCurrency().getName()).append(",");
             data.append(String.format(locale, "%.2f", convertExpenseAmt(e))).append("\n");
         }
 
@@ -1691,7 +1735,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public void chooseReceiptItems(ArrayList<ReceiptItem> receiptItems) {
         String accName = expAccName.getText().toString();
-        String accCurr = db.getAccount(accName).getCurrencySymbol();
+        String accCurr = db.getAccount(accName).getCurrency().getSymbol();
         receiptItemAdapter = new ReceiptItemAdapter(this, receiptItems, accCurr);
         final View view = getLayoutInflater().inflate(R.layout.dialog_receipt, null);
         RecyclerView receiptItemList = view.findViewById(R.id.recyclerView);
@@ -1799,6 +1843,17 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             msg.append(t.getName());
         }
         Log.e(pageTag, arrayName + "={ " + msg + " }");
+    }
+    public static <T> void logArray(String tag, String arrayName, ArrayList<T> array) {
+        StringBuilder s = new StringBuilder("[");
+        for (int i = 0; i < array.size(); i++) {
+            T t = array.get(i);
+            s.append(t.toString());
+            if (i < array.size() - 1)
+                s.append(",");
+        }
+        s.append("]");
+        Log.e(TAG, arrayName + "=" + s);
     }
 
 }

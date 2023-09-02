@@ -250,7 +250,7 @@ public class ChartsChildFragmentGraph extends ChartsChildFragment {
             return;
         filterList.setAdapter(new FilterAdapter(getActivity(), accFilters, catFilters));
         if (!accFilters.isEmpty())
-            updateCurrency(accFilters.get(0).getCurrencySymbol());
+            updateCurrency(accFilters.get(0).getCurrency().getSymbol());
         else
             updateCurrency();
         if (clearFiltersMenuOption != null) // on view created

@@ -259,8 +259,8 @@ public class SectionAdapter<T extends Section> extends RecyclerView.Adapter<Recy
             holder.separator.setVisibility(View.GONE);
         } else {
             holder.listItemName.setText(section.getName());
-            holder.listItemCurr.setText(((Account) section).getCurrencySymbol());
-            float totalAmt = ((MainActivity) context).db.getTotalAmtByAccount((Account) section);
+            holder.listItemCurr.setText(((Account) section).getCurrency().getSymbol());
+            float totalAmt = ((MainActivity) context).db.getConvertedTotalAmtByAccount((Account) section);
             String truncatedAmt = (totalAmt <= 1000) ? String.format(MainActivity.locale, "%.2f", totalAmt) :
                     String.format(MainActivity.locale, "%.2f", totalAmt/1000) + "k";
             holder.listItemAmt.setText(truncatedAmt);

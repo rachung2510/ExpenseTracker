@@ -36,6 +36,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.Constants;
+import com.example.expensetracker.Currency;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.Expense;
 import com.example.expensetracker.Favourite;
@@ -45,6 +46,7 @@ import com.example.expensetracker.R;
 import com.example.expensetracker.ReceiptItem;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
+import com.example.expensetracker.RecyclerViewAdapters.CurrencyAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.ReceiptItemAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
 import com.example.expensetracker.Section;
@@ -66,6 +68,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
     public static final String KEY_DESC = "expense_description";
     public static final String KEY_ACC = "expense_account";
     public static final String KEY_CAT = "expense_category";
+    public static final String KEY_CURRENCY = "expense_currency";
     public static final String KEY_DATE = "expense_date";
     public static final String KEY_ADAPTER_LIST = "adapter_list";
     public static final String KEY_ADAPTER_CURR = "adapter_curr";
@@ -101,6 +104,10 @@ public class WidgetStaticActivity extends AppCompatActivity {
 
             case WidgetStaticProvider.EDIT_CATEGORY:
                 editCategory();
+                break;
+
+            case WidgetStaticProvider.EDIT_CURRENCY:
+                editCurrency();
                 break;
 
             case WidgetStaticProvider.EDIT_DATE:
@@ -224,6 +231,39 @@ public class WidgetStaticActivity extends AppCompatActivity {
         catAdapter.setSelected((storedValue.isEmpty()) ? getDefaultCatName() : storedValue);
         expenseCatDialog(catAdapter, new Expense(Calendar.getInstance()));
     }
+    public void editCurrency() {
+        String storedValue = getStringValue(KEY_CURRENCY);
+        String currencyName = storedValue;
+        if (currencyName.isEmpty()) {
+            String accountName = (getStringValue(KEY_ACC).isEmpty()) ? getDefaultAccName() : getStringValue(KEY_ACC);
+            Account account = db.getAccount(accountName, false);
+            currencyName = account.getCurrency().getName();
+        }
+
+        Currency selectedCurrency = db.getCurrency(currencyName);
+        CurrencyAdapter adapter = new CurrencyAdapter(this, db.getAllCurrencies(), selectedCurrency);
+        final View view1 = getLayoutInflater().inflate(R.layout.dialog_recyclerview, null);
+        RecyclerView currencyList = view1.findViewById(R.id.recyclerView);
+        currencyList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        currencyList.setAdapter(adapter);
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this, R.style.NormalDialog);
+        dialogBuilder.setTitle("Expense currency")
+                .setView(view1)
+                .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
+                    Currency newCurrency = adapter.getSelected();
+                    updateView((views) -> {
+                        views.setTextViewText(R.id.newExpCurrency, newCurrency.getSymbol());
+                        return views;
+                    });
+                    storeValue(KEY_CURRENCY, newCurrency.getName());
+                    finish();
+                })
+                .setNeutralButton(android.R.string.no, (dialogInterface, i) -> { finish(); });
+        AlertDialog dialog = dialogBuilder.create();
+        dialog.setOnDismissListener(dialogInterface -> finish());
+        dialog.show();
+    }
     public void editDate() {
         Calendar cal = Calendar.getInstance(MainActivity.locale);
         DatePicker datePicker = new DatePicker(this);
@@ -261,20 +301,21 @@ public class WidgetStaticActivity extends AppCompatActivity {
             String accName = getStringValue(KEY_ACC);
             String dateValue = getStringValue(KEY_DATE);
             Account acc = (accName.isEmpty()) ? db.getAccount(db.getDefaultAccName()) : db.getAccount(accName);
+            Currency currency = db.getCurrency(getStringValue(KEY_CURRENCY));
             Calendar cal = Calendar.getInstance(MainActivity.locale);
             String datetime = (dateValue.isEmpty()) ? MainActivity.getDatetimeStr(cal, Expense.DATETIME_FORMAT) : dateValue;
             ReceiptItemAdapter adapter = getReceiptItemAdapter();
             if (adapter == null || adapter.getTotalAmt() == 0f ) {
                 String catName = getStringValue(KEY_CAT);
                 Category cat = (catName.isEmpty()) ? db.getCategory(db.getDefaultCatName()) : db.getCategory(catName);
-                Expense expense = new Expense(amt, desc, acc, cat, datetime);
+                Expense expense = new Expense(amt, desc, acc, cat, datetime, currency);
                 db.createExpense(expense);
             } else {
                 ArrayList<Expense> expenses = new ArrayList<>();
                 HashMap<String,Float> receiptCatAmts = adapter.getReceiptCatAmts();
                 for (Map.Entry<String,Float> set : receiptCatAmts.entrySet()) {
                     Category cat = db.getCategory(set.getKey());
-                    expenses.add(new Expense(set.getValue(), desc, acc, cat, datetime));
+                    expenses.add(new Expense(set.getValue(), desc, acc, cat, datetime, currency));
                 }
                 db.createExpenses(expenses);
             }
@@ -310,12 +351,18 @@ public class WidgetStaticActivity extends AppCompatActivity {
             });
         } else {
             String accName = getStringValue(KEY_ACC);
+            accName = (accName.isEmpty()) ? db.getDefaultAccName() : accName;
             String catName = getStringValue(KEY_CAT);
+            catName = (catName.isEmpty()) ? db.getDefaultCatName() : catName;
             float amount = getFloatValue(KEY_AMT);
+            String currencyName = getStringValue(KEY_CURRENCY);
+            currencyName = (currencyName.isEmpty()) ? db.getAccount(accName).getCurrency().getName() : currencyName;
             MainActivity.setFavourite(this, desc, new Favourite(
-                    (accName.isEmpty()) ? db.getDefaultAccName() : accName,
-                    (catName.isEmpty()) ? db.getDefaultCatName() : catName,
-                    (amount > 0f) ? String.format(MainActivity.locale, "%.2f", amount) : ""));
+                    accName,
+                    catName,
+                    (amount > 0f) ? String.format(MainActivity.locale, "%.2f", amount) : "",
+                    currencyName
+            ));
             updateView((views) -> {
                 views = toggleFavouritesBtn(views, true);
                 return views;
@@ -350,12 +397,13 @@ public class WidgetStaticActivity extends AppCompatActivity {
             updateView((views) -> {
                 views.setTextViewText(R.id.newExpAccName, acc.getName());
                 views.setInt(R.id.newExpAccBox,"setColorFilter", acc.getColor());
-                views.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
+                views.setTextViewText(R.id.newExpCurrency, acc.getCurrency().getSymbol());
                 views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(acc.getIcon()));
                 views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
                 return views;
             });
             storeValue(KEY_ACC, acc.getName());
+            storeValue(KEY_CURRENCY, acc.getCurrency().getName());
             finish();
         });
         dialog.show();
@@ -508,7 +556,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
     public void chooseReceiptItems(ArrayList<ReceiptItem> receiptItems) {
         String accName = getStringValue(KEY_ACC);
         Account acc = (accName.isEmpty()) ? db.getAccount(db.getDefaultAccName()) : db.getAccount(accName);
-        receiptItemAdapter = new ReceiptItemAdapter(this, receiptItems, acc.getCurrencySymbol());
+        receiptItemAdapter = new ReceiptItemAdapter(this, receiptItems, acc.getCurrency().getSymbol());
         final View view = getLayoutInflater().inflate(R.layout.dialog_receipt, null);
         RecyclerView receiptItemList = view.findViewById(R.id.recyclerView);
         receiptItemList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -564,15 +612,17 @@ public class WidgetStaticActivity extends AppCompatActivity {
         views = toggleFavouritesBtn(views, true);
 
         String accName = favourite.getAccName();
+        String currencyName = "";
         if (!accName.isEmpty()) {
             Account acc = db.getAccount(accName);
             if (acc.getId() != -1) {
                 views.setTextViewText(R.id.newExpAccName, acc.getName());
                 views.setInt(R.id.newExpAccBox,"setColorFilter", acc.getColor());
-                views.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
+                views.setTextViewText(R.id.newExpCurrency, acc.getCurrency().getSymbol());
                 views.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(acc.getIcon()));
                 views.setInt(R.id.newExpAccIcon,"setColorFilter", acc.getColor());
                 storeValue(KEY_ACC, acc.getName());
+                currencyName = acc.getCurrency().getName();
             }
         }
 
@@ -596,6 +646,12 @@ public class WidgetStaticActivity extends AppCompatActivity {
             views.setTextViewText(R.id.newExpAmt, amount);
             storeValue(KEY_AMT, Float.parseFloat(amount));
         }
+
+        if (!favourite.getCurrencyName().isEmpty())
+            currencyName = favourite.getCurrencyName();
+        Currency currency = db.getCurrency(currencyName);
+        views.setTextViewText(R.id.newExpCurrency, currency.getSymbol());
+        storeValue(KEY_CURRENCY, currency.getName());
 
         return views;
     }

@@ -52,12 +52,12 @@ public class Constants {
     public static ArrayList<Currency> currencies = new ArrayList<>();
     public static HashMap<String, Currency> currency_map = new HashMap<>();
     static {
-        currencies.add(new Currency("SGD","S$",.702f,"Singaporean dollar"));
-        currencies.add(new Currency("GBP","£",1.117f,"British pound"));
-        currencies.add(new Currency("USD","$",1f,"United States dollar"));
-        currencies.add(new Currency("EUR","€",.98f,"Euro"));
-        currencies.add(new Currency("CNY","￥",.141f,"Chinese yuan"));
-        currencies.add(new Currency("JPY","¥",.007f,"Japanese yen"));
+        currencies.add(new Currency("SGD","S$",1f,"Singaporean dollar"));
+        currencies.add(new Currency("GBP","£",1.704f,"British pound"));
+        currencies.add(new Currency("USD","$",1.353f,"United States dollar"));
+        currencies.add(new Currency("EUR","€",1.459f,"Euro"));
+        currencies.add(new Currency("CNY","￥",.186f,"Chinese yuan"));
+        currencies.add(new Currency("JPY","¥",.00925f,"Japanese yen"));
         for (Currency c : currencies) currency_map.put(c.getName(), c);
     }
 

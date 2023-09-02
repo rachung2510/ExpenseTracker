@@ -6,11 +6,13 @@ public class Favourite {
     private final String accName;
     private final String catName;
     private final String amount;
+    private final String currencyName;
 
-    public Favourite(String accName, String catName, String amount) {
+    public Favourite(String accName, String catName, String amount, String currencyName) {
         this.accName = accName;
         this.catName = catName;
         this.amount = amount;
+        this.currencyName = currencyName;
     }
 
     @NonNull
@@ -27,5 +29,8 @@ public class Favourite {
     }
     public String getAmount() {
         return String.format(MainActivity.locale, "%.2f", Float.parseFloat(amount));
+    }
+    public String getCurrencyName() {
+        return currencyName;
     }
 }

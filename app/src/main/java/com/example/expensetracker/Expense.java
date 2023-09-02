@@ -15,36 +15,40 @@ public class Expense {
     private Category category;
     private Account account;
     private Calendar datetime;
+    private Currency currency;
 
     public static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
-    public Expense(float amount, String description, Account account, Category category, String datetime) {
+    public Expense(float amount, String description, Account account, Category category, String datetime, Currency currency) {
         this.id = -1;
         this.amount = amount;
         this.description = description.isEmpty() ? category.getName() : description;
         this.account = account;
         this.category = category;
+        this.currency = currency;
         this.datetime = MainActivity.getCalFromString(DATETIME_FORMAT, datetime);
     }
 
     // specify id (create expense with id from database)
     // datetime as String
-    public Expense(int id, float amount, String description, Account account, Category category, String datetime) {
+    public Expense(int id, float amount, String description, Account account, Category category, String datetime, Currency currency) {
         this.id = id;
         this.amount = amount;
         this.description = description;
         this.account = account;
         this.category = category;
+        this.currency = currency;
         this.datetime = MainActivity.getCalFromString(DATETIME_FORMAT, datetime);
     }
 
     // datetime as Calendar
-    public Expense(int id, float amount, String description, Account account, Category category, Calendar datetime) {
+    public Expense(int id, float amount, String description, Account account, Category category, Calendar datetime, Currency currency) {
         this.id = id;
         this.amount = amount;
         this.description = description;
         this.account = account;
         this.category = category;
+        this.currency = currency;
         this.datetime = datetime;
     }
 
@@ -55,6 +59,7 @@ public class Expense {
         this.description = "";
         this.account = null;
         this.category = null;
+        this.currency = null;
         this.datetime = datetime;
     }
 
@@ -65,6 +70,7 @@ public class Expense {
         this.description = "";
         this.account = null;
         this.category = null;
+        this.currency = null;
         this.datetime = Calendar.getInstance(MainActivity.locale);
     }
 
@@ -99,6 +105,7 @@ public class Expense {
     public int getId() {
         return id;
     }
+    public Currency getCurrency() { return currency; }
 
     /**
      * SETTERS
@@ -111,6 +118,9 @@ public class Expense {
     }
     public void setDatetime(Calendar datetime) {
         this.datetime = datetime;
+    }
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
     }
 
     @Override

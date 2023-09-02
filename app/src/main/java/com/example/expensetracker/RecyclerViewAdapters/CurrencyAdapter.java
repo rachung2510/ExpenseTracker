@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.expensetracker.Constants;
 import com.example.expensetracker.R;
 
 import java.util.ArrayList;
@@ -24,10 +23,14 @@ public class CurrencyAdapter extends RecyclerView.Adapter<CurrencyAdapter.ViewHo
     private final ArrayList<Currency> currencies;
     private int selectedPos;
 
-    public CurrencyAdapter(Context context, ArrayList<Currency> currencies, String selected) {
+    public CurrencyAdapter(Context context, ArrayList<Currency> currencies, Currency selected) {
         this.inflater = LayoutInflater.from(context);
         this.currencies = currencies;
-        this.selectedPos = currencies.indexOf(Constants.currency_map.get(selected));
+        try {
+            this.selectedPos = currencies.indexOf(selected);
+        } catch (Exception e) {
+            this.selectedPos = currencies.indexOf(selected);
+        }
     }
 
     @NonNull
@@ -72,7 +75,7 @@ public class CurrencyAdapter extends RecyclerView.Adapter<CurrencyAdapter.ViewHo
         });
     }
 
-    public String getSelected() {
-        return currencies.get(selectedPos).getName();
+    public Currency getSelected() {
+        return currencies.get(selectedPos);
     }
 }

@@ -3,6 +3,8 @@ package com.example.expensetracker.RecyclerViewAdapters;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,6 +22,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
 import com.example.expensetracker.Expense;
 import com.example.expensetracker.MainActivity;
@@ -37,6 +40,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private static final int VIEW_TYPE_DATE_HEADER = 0;
     private static final int VIEW_TYPE_ITEM = 1;
 
+//    private final ArrayList<Expense> expensesWithHeaders;
     private final ArrayList<Expense> expenses;
     private final Context context;
     private final LayoutInflater inflater;
@@ -138,7 +142,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         Expense exp = expenses.get(position);
         Category cat = exp.getCategory();
         holder.expAmt.setText(String.format(MainActivity.locale, "%.2f", exp.getAmount()));
-        holder.expCurr.setText(exp.getAccount().getCurrencySymbol());
+        holder.expCurr.setText(exp.getCurrency().getSymbol());
         holder.expDesc.setText(exp.getDescription());
         holder.expAccName.setText(exp.getAccount().getName());
         holder.expCatName.setText(cat.getName());
@@ -297,6 +301,9 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             confirmEdit.setPositiveButton(android.R.string.yes, (dialog1, which) -> {
                 for (int i = 0; i < selectedPos.size(); i++) {
                     Expense exp = expenses.get(selectedPos.get(i));
+                    // ignore dateheaders, which are selected when user "selects all"
+                    if (exp.getId() == -1)
+                        continue;
                     exp.setCategory(adapter.getSelected());
                     ((MainActivity) context).db.updateExpense(exp);
                 }
@@ -319,20 +326,38 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         dialog.setOnCancelListener(dialogInterface -> {
             if (adapter.getSelected() == null) return;
-            AlertDialog.Builder confirmEdit = new AlertDialog.Builder(context, R.style.NormalDialog);
-            confirmEdit.setMessage("Change account to " + adapter.getSelected().getName() + "?");
-            confirmEdit.setPositiveButton(android.R.string.yes, (dialog1, which) -> {
-                for (int i = 0; i < selectedPos.size(); i++) {
-                    Expense exp = expenses.get(selectedPos.get(i));
-                    exp.setAccount(adapter.getSelected());
-                    ((MainActivity) context).db.updateExpense(exp);
-                }
-                ((MainActivity) context).updateHomeData(); // update summary & expense list
-                dialog1.dismiss();
-                mode.finish();
+
+            // ask whether to change expense currencies to follow account
+            final boolean[] changeExpenseCurrencies = { false };
+            AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.NormalDialog);
+            AlertDialog chooseKeepCurrency = builder.setMessage("Keep expense currencies?")
+                    .setPositiveButton("yes", (dialog1, which) -> {})
+                    .setNeutralButton("no", (dialog1, which) -> { changeExpenseCurrencies[0] = true; })
+                    .create();
+            chooseKeepCurrency.setOnDismissListener(dialog1 -> {
+                AlertDialog.Builder confirmEdit = new AlertDialog.Builder(context, R.style.NormalDialog);
+                confirmEdit.setMessage("Change account to " + adapter.getSelected().getName() + "?")
+                        .setPositiveButton(android.R.string.yes, (dialog2, which) -> {
+                            Account account = adapter.getSelected();
+                            for (int i : selectedPos) {
+                                Expense exp = expenses.get(i);
+                                // ignore dateheaders, which are selected when user "selects all"
+                                if (exp.getId() == -1)
+                                    continue;
+                                exp.setAccount(account);
+                                if (changeExpenseCurrencies[0])
+                                    exp.setCurrency(account.getCurrency());
+                                ((MainActivity) context).db.updateExpense(exp);
+                            }
+                            ((MainActivity) context).updateHomeData(); // update summary & expense list
+                            ((MainActivity) context).setUpdateFragments(true); // update accounts total in MANAGE
+                            dialog1.dismiss();
+                            mode.finish();
+                        })
+                        .setNeutralButton(android.R.string.no, (dialog2, which) -> dialog1.cancel())
+                        .show();
             });
-            confirmEdit.setNeutralButton(android.R.string.no, (dialog1, which) -> dialog1.cancel());
-            confirmEdit.show();
+            chooseKeepCurrency.show();
         });
         dialog.show();
     }

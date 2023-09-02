@@ -20,6 +20,9 @@
     <dimen name="bottom_nav_height">104dp</dimen>
     <!--<dimen name="bottom_nav_height">56dp</dimen>-->
 
+    <dimen name="expenseCurrencyTextSize">16sp</dimen>
+    <dimen name="expenseCurrencyTextSizeTall">20.5sp</dimen>
+
     <dimen name="chooseCatMaxHeight">485dp</dimen>
     <dimen name="spacing">5dp</dimen>
     <dimen name="cardCornerRadius">30dp</dimen>

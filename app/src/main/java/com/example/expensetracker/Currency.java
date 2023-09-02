@@ -1,7 +1,6 @@
 package com.example.expensetracker;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -23,7 +22,7 @@ public class Currency {
     public Currency(Context context) {
         String defaultCurrName = "";
         if (context instanceof MainActivity)
-            defaultCurrName = ((MainActivity) context).getDefaultCurrency();
+            defaultCurrName = ((MainActivity) context).getDefaultCurrencyName();
         else if (context instanceof WidgetDialogActivity) {
             defaultCurrName = ((WidgetDialogActivity) context).getDefaultCurrency();
         }
@@ -60,9 +59,10 @@ public class Currency {
         if (o == this)
             return true;
         if (o instanceof String)
-            return this.getName().equals(o);
+            return this.getName().equals(o) || this.getSymbol().equals(o);
         else if (o instanceof Currency)
-            return this.getName().equals(((Currency) o).getName());
+            return this.getName().equals(((Currency) o).getName()) ||
+                    this.getSymbol().equals(((Currency) o).getSymbol());
         else
             return false;
     }

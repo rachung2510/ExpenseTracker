@@ -61,10 +61,5 @@ public class Account extends Section {
     /**
      * Getters/setters
      */
-    public String getCurrencyName() {
-        return currency.getName();
-    }
-    public String getCurrencySymbol() {
-        return currency.getSymbol();
-    }
+    public Currency getCurrency() { return currency; }
 }

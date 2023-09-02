@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -70,7 +71,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + KEY_DESC + " TEXT NOT NULL,"
                     + KEY_ACC_ID + " INTEGER NOT NULL,"
                     + KEY_CAT_ID + " INTEGER NOT NULL,"
-                    + KEY_DATETIME + " TEXT NOT NULL"
+                    + KEY_DATETIME + " TEXT NOT NULL,"
+                    + KEY_CURRENCY + " TEXT NOT NULL"
                     + ")";
 
     // CATEGORIES table create statement
@@ -124,8 +126,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CURRENCY);
-        db.execSQL(CREATE_TABLE_CURRENCY);
+        if (!(oldVersion == 1 && newVersion == 2))
+            return;
+        db.execSQL("ALTER TABLE " + TABLE_EXPENSE + " ADD " + KEY_CURRENCY + " TEXT NOT NULL DEFAULT 0");
     }
     @Override
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -159,7 +162,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void createAccount(Account account, boolean notify) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = createSectionValues(account);
-        values.put(KEY_CURRENCY, account.getCurrencyName());
+        values.put(KEY_CURRENCY, account.getCurrency().getName());
         long res = db.insert(TABLE_ACCOUNT, null, values);
         if (notify) {
             String toast = (res == -1) ? "Error: Failed to create account " : "Account created: ";
@@ -219,6 +222,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String query = getQueryFromFiltersInDateRange("*", accs, cats, from, to, KEY_DATETIME + " " + KEY_DIRECTION, "", search);
 //        Log.e(TAG, query);
         Cursor c = getCursorFromQueryOrNull(query, "");
+        if (c == null)
+            return expenses;
+        while (c.moveToNext())
+            expenses.add(getExpenseFromCursor(c));
+        c.close();
+        return expenses;
+    }
+    public ArrayList<Expense> getAllExpenses() {
+        ArrayList<Expense> expenses = new ArrayList<>();
+        Cursor c = getCursorFromQueryOrNull(getQuerySelectAll(TABLE_EXPENSE), "");
         if (c == null)
             return expenses;
         while (c.moveToNext())
@@ -295,22 +308,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         HashMap<Integer, Pair<Float,Integer>> catIdAmtMap = new HashMap<>();
         Cursor c = getCursorFromQueryOrNull(
-                "SELECT " + KEY_CAT_ID + "," + KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + "), COUNT(*) FROM " + TABLE_EXPENSE +
-                        " GROUP BY " + KEY_CAT_ID + "," + KEY_ACC_ID,
+                "SELECT " +
+                        KEY_CAT_ID + ", " +
+                        KEY_CURRENCY + ", " +
+                        "SUM(" + KEY_AMOUNT + "), " +
+                        "COUNT(*) FROM " +
+                        TABLE_EXPENSE +
+                    " GROUP BY " + KEY_CAT_ID + "," + KEY_CURRENCY,
                 "");
         if (c == null)
             return categories;
         while (c.moveToNext()) {
             int catId = c.getInt(0);
+            Currency currency = getCurrency(c.getString(1));
+            float sum = c.getFloat(2);
+            int numExpenses = c.getInt(3);
+
             float catAmt = 0;
             int catNumExp = 0;
             if (catIdAmtMap.containsKey(catId)) {
                 catAmt = catIdAmtMap.get(catId).first;
                 catNumExp = catIdAmtMap.get(catId).second;
             }
-            Account acc = getAccount(c.getInt(1));
-            catAmt += ((MainActivity) context).convertAmt(c.getFloat(2), acc);
-            catNumExp += c.getInt(3);
+
+            catAmt += ((MainActivity) context).convertAmtToDefaultCurrency(sum, currency);
+            catNumExp += numExpenses;
             catIdAmtMap.put(catId, new Pair<>(catAmt, catNumExp));
         }
         c.close();
@@ -333,23 +355,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String fromStr = MainActivity.getDatetimeStr(from, Expense.DATETIME_FORMAT);
         String toStr = MainActivity.getDatetimeStr(to, Expense.DATETIME_FORMAT);
         Cursor c = getCursorFromQueryOrNull(
-                "SELECT " + KEY_CAT_ID + "," + KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + "), COUNT(*) FROM " + TABLE_EXPENSE +
-                        " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr +
-                        "' GROUP BY " + KEY_CAT_ID + "," + KEY_ACC_ID,
+                "SELECT " +
+                        KEY_CAT_ID + ", " +
+                        KEY_CURRENCY + ", " +
+                        "SUM(" + KEY_AMOUNT + "), " +
+                        "COUNT(*) FROM " +
+                        TABLE_EXPENSE +
+                    " WHERE " + KEY_DATETIME + " BETWEEN '" + fromStr + "' AND '" + toStr + "'" +
+                    " GROUP BY " + KEY_CAT_ID + "," + KEY_CURRENCY,
                 "");
         if (c == null)
             return categories;
         while (c.moveToNext()) {
             int catId = c.getInt(0);
+            Currency currency = getCurrency(c.getString(1));
+            float sum = c.getFloat(2);
+            int numExpenses = c.getInt(3);
+
             float catAmt = 0;
             int catNumExp = 0;
             if (catIdAmtMap.containsKey(catId)) {
                 catAmt = catIdAmtMap.get(catId).first;
                 catNumExp = catIdAmtMap.get(catId).second;
             }
-            Account acc = getAccount(c.getInt(1));
-            catAmt += ((MainActivity) context).convertAmt(c.getFloat(2), acc);
-            catNumExp += c.getInt(3);
+            catAmt += ((MainActivity) context).convertAmtToDefaultCurrency(sum, currency);
+            catNumExp += numExpenses;
             catIdAmtMap.put(catId, new Pair<>(catAmt, catNumExp));
         }
         c.close();
@@ -367,10 +397,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Currencies
-    public Currency getCurrency(String name) {
+    public Currency getCurrency(String key) {
         Currency currency = new Currency(context);
         Cursor c = getCursorFromQuery(
-                getQuerySelectName(TABLE_CURRENCY, KEY_NAME, name),"");
+                "SELECT * FROM " + TABLE_CURRENCY + " WHERE " +
+                        KEY_NAME + " = '" + key + "' OR " +
+                        KEY_CURRENCY + " = '" + key + "'",
+                "");
         if (c.moveToFirst()) currency = getCurrencyFromCursor(c);
         c.close();
         return currency;
@@ -403,7 +436,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void updateAccount(Account account) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = createSectionValues(account);
-        values.put(KEY_CURRENCY, account.getCurrencyName());
+        values.put(KEY_CURRENCY, account.getCurrency().getName());
         db.update(TABLE_ACCOUNT, values, KEY_ID + " = ?",
                 new String[] { String.valueOf(account.getId()) });
     }
@@ -419,8 +452,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.update(TABLE_CURRENCY, values, KEY_NAME + " = ?",
                 new String[] { currency.getName() });
     }
-    public void updateAllCurrencyRates(String defaultCurrencyName) {
-        Currency defaultCurrency = getCurrency(defaultCurrencyName);
+    public void updateAllCurrencyRates(Currency defaultCurrency) {
         for (Currency c : getAllCurrencies()) {
             float newRate = (c.equals(defaultCurrency)) ? 1f : c.getRate() / defaultCurrency.getRate();
             c.setRate(newRate);
@@ -531,6 +563,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_DESC, expense.getDescription());
         values.put(KEY_ACC_ID, expense.getAccount().getId());
         values.put(KEY_CAT_ID, expense.getCategory().getId());
+        values.put(KEY_CURRENCY, expense.getCurrency().getName());
         values.put(KEY_DATETIME, expense.getDatetimeStr());
         return values;
     }
@@ -559,7 +592,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String icon = c.getString(c.getColumnIndexOrThrow(KEY_ICON));
         String color = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
         int pos = c.getInt(c.getColumnIndexOrThrow(KEY_POSITION));
-        Currency currency = MainActivity.getCurrencyFromNameStatic(c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY)));
+        String currencyName = c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY));
+        Currency currency = Constants.currency_map.get(name);
+        try {
+            currency = getCurrency(currencyName);
+        } catch (Exception ignored) {
+        }
         return new Account(context, id, name, icon, color, pos, currency);
     }
     public Category getCategoryFromCursor(Cursor c) {
@@ -587,7 +625,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Account acc = getAccount(c.getInt(c.getColumnIndexOrThrow(KEY_ACC_ID)));
         Category cat = getCategory(c.getInt(c.getColumnIndexOrThrow(KEY_CAT_ID)));
         String datetime = c.getString(c.getColumnIndexOrThrow(KEY_DATETIME));
-        return new Expense(id, amt, desc, acc, cat, datetime);
+        String currencyName = c.getString(c.getColumnIndexOrThrow(KEY_CURRENCY));
+        Currency currency = (currencyName.equals("0")) ? null: getCurrency(currencyName);
+        return new Expense(id, amt, desc, acc, cat, datetime, currency);
     }
     public Cursor getCursorFromQueryOrNull(String query, String toast) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -605,6 +645,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Toast.makeText(context, toast, Toast.LENGTH_SHORT).show();
         return c;
     }
+
+    /**
+     * Defaults
+     */
     public String getDefaultAccName() {
         return getDefaultSectionName(TABLE_ACCOUNT, 0);
     }
@@ -619,10 +663,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (c.moveToFirst()) name = c.getString(0);
         return name;
     }
-    public String getQueryFromFilters(String select, ArrayList<Account> accs, ArrayList<Category> cats, String order, String group, String search) {
-        return getQueryFromFiltersInDateRange(select, accs, cats, null, null, order, group, search);
+
+    /**
+     * Query functions
+     */
+    public String getQueryFromFilters(String select, ArrayList<Account> accs, ArrayList<Category> cats, String orderBy, String groupBy, String searchQuery) {
+        return getQueryFromFiltersInDateRange(select, accs, cats, null, null, orderBy, groupBy, searchQuery);
     }
-    public String getQueryFromFiltersInDateRange(String select, ArrayList<Account> accs, ArrayList<Category> cats, Calendar from, Calendar to, String order, String group, String search) {
+    public String getQueryFromFiltersInDateRange(String select, ArrayList<Account> accs, ArrayList<Category> cats, Calendar from, Calendar to, String orderBy, String groupBy, String searchQuery) {
 
         String query = "SELECT " + select + " FROM " + TABLE_EXPENSE;
 
@@ -661,18 +709,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         // search description
-        if (!search.isEmpty()) {
+        if (!searchQuery.isEmpty()) {
             query += (where) ? " AND " : " WHERE ";
-            query += getQueryForSearch(search);
+            query += getQueryForSearch(searchQuery);
         }
 
         // group by
-        if (!group.isEmpty())
-            query += " GROUP BY " + group;
+        if (!groupBy.isEmpty())
+            query += " GROUP BY " + groupBy;
 
         // order by
-        if (!order.isEmpty())
-            query += " ORDER BY " + order;
+        if (!orderBy.isEmpty())
+            query += " ORDER BY " + orderBy;
 
         return query;
     }
@@ -917,102 +965,96 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // totals
-    public float getTotalAmtByAccount(Account acc) {
+    public float getConvertedTotalAmtByAccount(Account acc) {
+        ArrayList<Account> accs = new ArrayList<>();
+        accs.add(acc);
+        String query = getQueryFromFilters(
+                KEY_CURRENCY + ", SUM(" + KEY_AMOUNT + ")",
+                accs, new ArrayList<>(),
+                "", KEY_CURRENCY, ""
+        );
+        float totalAmt = getTotalAmtFromQuery(query, acc.getCurrency());
+        return totalAmt;
+    }
+    public float getTotalAmtFromQuery(String query, Currency toCurrency) {
         float totalAmt = 0;
-        Cursor c = getCursorFromQuery(
-                "SELECT SUM(" + KEY_AMOUNT + ") FROM " + TABLE_EXPENSE +
-                " WHERE " + KEY_ACC_ID + "=" + acc.getId(),
-                "");
-        if (c.moveToFirst()) totalAmt = c.getFloat(0);
+        Cursor c = getCursorFromQueryOrNull(query,"");
+        if (c == null)
+            return totalAmt;
+        while (c.moveToNext()) {
+            if (c.isNull(0)) return totalAmt; // first item is null
+            Currency currency = getCurrency(c.getString(0));
+            float sum = c.getFloat(1);
+            totalAmt += ((MainActivity) context).convertAmtToCurrency(sum, currency, toCurrency);
+        }
         c.close();
         return totalAmt;
+
+    }
+    public float getTotalAmtFromQuery(String query) {
+        return getTotalAmtFromQuery(query, ((MainActivity) context).getDefaultCurrency());
     }
     public float getConvertedTotalAmt(String search) {
-        float totalAmt = 0;
-        String query = getQueryFromFilters(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")",
+        String query = getQueryFromFilters(
+                KEY_CURRENCY + ", SUM(" + KEY_AMOUNT + ")",
                 new ArrayList<>(), new ArrayList<>(),
-                "", KEY_ACC_ID, search);
-        Cursor c = getCursorFromQueryOrNull(query,"");
-        if (c == null)
-            return totalAmt;
-        while (c.moveToNext()) {
-            if (c.isNull(0)) return totalAmt; // first item is null
-            Account acc = getAccount(c.getInt(0));
-            totalAmt += ((MainActivity) context).convertAmt(c.getFloat(1), acc);
-        }
-        c.close();
-        return totalAmt;
+                "", KEY_CURRENCY, search
+        );
+        return getTotalAmtFromQuery(query);
     }
     public float getConvertedTotalAmtInDateRange(Calendar from, Calendar to, String search) {
-        float totalAmt = 0;
-        String query = getQueryFromFiltersInDateRange(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")",
+        String query = getQueryFromFiltersInDateRange(
+                KEY_CURRENCY + ", SUM(" + KEY_AMOUNT + ")",
                 new ArrayList<>(), new ArrayList<>(),
-                from, to, "", KEY_ACC_ID, search);
+                from, to,
+                "", KEY_CURRENCY, search
+        );
 //        Log.e(TAG, query);
-        Cursor c = getCursorFromQueryOrNull(query,"");
-        if (c == null)
-            return totalAmt;
-        while (c.moveToNext()) {
-            if (c.isNull(0)) return totalAmt; // first item is null
-            Account acc = getAccount(c.getInt(0));
-            totalAmt += ((MainActivity) context).convertAmt(c.getFloat(1), acc);
-        }
-        c.close();
-        return totalAmt;
+        return getTotalAmtFromQuery(query);
     }
     public float getConvertedFilteredTotalAmt(ArrayList<Account> accs, ArrayList<Category> cats, String search) {
         if (accs.isEmpty() && cats.isEmpty()) // no filters
             return getConvertedTotalAmt(search);
-        float totalAmt = 0;
-        String query = getQueryFromFilters(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")",
-                accs, cats, "", KEY_ACC_ID, search);
-        Cursor c = getCursorFromQueryOrNull(query, "");
-        if (c == null)
-            return totalAmt;
-        while (c.moveToNext()) {
-            if (c.isNull(0)) return totalAmt; // first item is null
-            Account acc = getAccount(c.getInt(0));
-            totalAmt += ((MainActivity) context).convertAmt(c.getFloat(1), acc);
-        }
-        c.close();
-        return totalAmt;
+        String query = getQueryFromFilters(
+                KEY_CURRENCY + ", SUM(" + KEY_AMOUNT + ")",
+                accs, cats,
+                "", KEY_CURRENCY, search
+        );
+        return getTotalAmtFromQuery(query);
     }
     public float getConvertedFilteredTotalAmtInDateRange(ArrayList<Account> accs, ArrayList<Category> cats, Calendar from, Calendar to, String search) {
         if (accs.isEmpty() && cats.isEmpty()) // no filters
             return getConvertedTotalAmtInDateRange(from, to, search);
-        float totalAmt = 0;
-        String query = getQueryFromFiltersInDateRange(KEY_ACC_ID + ", SUM(" + KEY_AMOUNT + ")", accs, cats, from, to, "", KEY_ACC_ID, search);
-        Cursor c = getCursorFromQueryOrNull(query, "");
-        if (c == null)
-            return totalAmt;
-        while (c.moveToNext()) {
-            if (c.isNull(0)) return totalAmt; // first item is null
-            Account acc = getAccount(c.getInt(0));
-            totalAmt += ((MainActivity) context).convertAmt(c.getFloat(1), acc);
-        }
-        c.close();
-        return totalAmt;
+        String query = getQueryFromFiltersInDateRange(
+                KEY_CURRENCY + ", SUM(" + KEY_AMOUNT + ")",
+                accs, cats,
+                from, to,
+                "", KEY_CURRENCY, search
+        );
+        return getTotalAmtFromQuery(query);
     }
     public HashMap<String, Float> getSortedAmountsByDateRange(Calendar from, Calendar to, String dateFormat) {
         HashMap<String, Float> dateAmtMap = new HashMap<>();
         String query = getQueryFromFiltersInDateRange(
-                KEY_ACC_ID + ", strftime('" + dateFormat + "', " + KEY_DATETIME + "), SUM(" + KEY_AMOUNT + ")",
+                KEY_CURRENCY + ", strftime('" + dateFormat + "', " + KEY_DATETIME + "), SUM(" + KEY_AMOUNT + ")",
                 new ArrayList<>(), new ArrayList<>(),
                 from, to,
                 "",
-                "strftime('" + dateFormat + "', " + KEY_DATETIME + "), " + KEY_ACC_ID,
-                "");
+                "strftime('" + dateFormat + "', " + KEY_DATETIME + "), " + KEY_CURRENCY,
+                ""
+        );
 //        Log.e(TAG, query);
         Cursor c = getCursorFromQueryOrNull(query,"");
         if (c == null)
             return dateAmtMap;
         while (c.moveToNext()) {
-            Account acc = getAccount(c.getInt(0));
+            Currency currency = getCurrency(c.getString(0));
             String date = c.getString(1);
+            float sum = c.getFloat(2);
             float dateAmt = 0;
             if (dateAmtMap.containsKey(date))
                 dateAmt = dateAmtMap.get(date);
-            dateAmt += ((MainActivity) context).convertAmt(c.getFloat(2), acc);
+            dateAmt += ((MainActivity) context).convertAmtToDefaultCurrency(sum, currency);
             dateAmtMap.put(date, dateAmt);
         }
         c.close();
@@ -1023,22 +1065,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return getSortedAmountsByDateRange(from, to, dateFormat);
         HashMap<String, Float> dateAmtMap = new HashMap<>();
         String query = getQueryFromFiltersInDateRange(
-                KEY_ACC_ID + ", strftime('" + dateFormat + "', " + KEY_DATETIME + "), SUM(" + KEY_AMOUNT + ")",
+                KEY_CURRENCY + ", strftime('" + dateFormat + "', " + KEY_DATETIME + "), SUM(" + KEY_AMOUNT + ")",
                 accs, cats, from, to,
                 "strftime('" + dateFormat + "', " + KEY_DATETIME + ")",
-                "strftime('" + dateFormat + "', " + KEY_DATETIME + "), " + KEY_ACC_ID,
+                "strftime('" + dateFormat + "', " + KEY_DATETIME + "), " + KEY_CURRENCY,
                 "");
 //        Log.e(TAG, query);
         Cursor c = getCursorFromQueryOrNull(query, "");
         if (c == null)
             return dateAmtMap;
         while (c.moveToNext()) {
-            Account acc = getAccount(c.getInt(0));
+            Currency currency = getCurrency(c.getString(0));
             String date = c.getString(1);
+            float sum = c.getFloat(2);
             float dateAmt = 0;
             if (dateAmtMap.containsKey(date))
                 dateAmt = dateAmtMap.get(date);
-            dateAmt += ((MainActivity) context).convertAmt(c.getFloat(2), acc);
+            dateAmt += ((MainActivity) context).convertAmtToDefaultCurrency(sum, currency);
             dateAmtMap.put(date, dateAmt);
         }
         c.close();
@@ -1058,7 +1101,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         File oldDb = getDatabaseFile();
         OutputStream out = null;
         try {
-            out = new FileOutputStream(newDb);
+            out = Files.newOutputStream(newDb.toPath());
             byte[] buf = new byte[1024];
             int len;
             while((len = in.read(buf)) >0) out.write(buf,0,len);

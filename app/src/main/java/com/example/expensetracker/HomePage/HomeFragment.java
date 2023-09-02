@@ -343,12 +343,8 @@ public class HomeFragment extends Fragment {
         manager.setJustifyContent(JustifyContent.FLEX_START);
         filterList.setLayoutManager(manager);
         filterList.setAdapter(filterAdapter);
-        if (!accFilters.isEmpty()) {
-            summaryCurr.setText(accFilters.get(0).getCurrencySymbol()); // get currency of first filter
-        } else {
-            String currencySymbol = ((MainActivity) getActivity()).getDefaultCurrencySymbol();
-            summaryCurr.setText(currencySymbol); // default
-        }
+        String currencySymbol = ((MainActivity) getActivity()).getDefaultCurrencySymbol();
+        setSummaryCurr(currencySymbol);
     }
     private void navDateOnClick(int direction) {
         if (getActivity() == null)

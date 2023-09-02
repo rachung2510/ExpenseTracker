@@ -37,11 +37,12 @@ public class WidgetStaticProvider extends AppWidgetProvider {
     public static final int EDIT_DESCRIPTION = 2;
     public static final int EDIT_ACCOUNT = 3;
     public static final int EDIT_CATEGORY = 4;
-    public static final int EDIT_DATE = 5;
-    public static final int SAVE = 6;
-    public static final int UPDATE = 7;
-    public static final int SCAN_RECEIPT = 8;
-    public static final int FAVOURITES = 9;
+    public static final int EDIT_CURRENCY = 5;
+    public static final int EDIT_DATE = 6;
+    public static final int SAVE = 7;
+    public static final int UPDATE = 9;
+    public static final int SCAN_RECEIPT = 9;
+    public static final int FAVOURITES = 10;
 
     /**
      * Return remote views for different widget sizes, and also the default view
@@ -77,12 +78,14 @@ public class WidgetStaticProvider extends AppWidgetProvider {
 
         DatabaseHelper db = new DatabaseHelper(context);
         Account acc = db.getAccount(db.getDefaultAccName());
+        Category cat = db.getCategory(db.getDefaultCatName());
         for (Map.Entry<SizeF, RemoteViews> entry : viewMapping.entrySet()) {
             RemoteViews view = entry.getValue();
             view.setOnClickPendingIntent(R.id.newExpAmt, getPendingIntent(context, EDIT_AMOUNT));
             view.setOnClickPendingIntent(R.id.newExpDesc, getPendingIntent(context, EDIT_DESCRIPTION));
             view.setOnClickPendingIntent(R.id.newExpAccBox, getPendingIntent(context, EDIT_ACCOUNT));
             view.setOnClickPendingIntent(R.id.newExpCatBox, getPendingIntent(context, EDIT_CATEGORY));
+            view.setOnClickPendingIntent(R.id.newExpCurrency, getPendingIntent(context, EDIT_CURRENCY));
             view.setOnClickPendingIntent(R.id.newExpDate, getPendingIntent(context, EDIT_DATE));
             view.setOnClickPendingIntent(R.id.newExpSave, getPendingIntent(context, SAVE));
             view.setOnClickPendingIntent(R.id.update, getPendingSelfIntent(context));
@@ -90,14 +93,13 @@ public class WidgetStaticProvider extends AppWidgetProvider {
             view.setOnClickPendingIntent(R.id.favouritesBtn, getPendingIntent(context, FAVOURITES));
 
             // configure default values
-            Category cat = db.getCategory(db.getDefaultCatName());
             view.setTextViewText(R.id.newExpAccName, acc.getName());
             view.setTextViewText(R.id.newExpCatName, cat.getName());
             view.setImageViewBitmap(R.id.newExpAccIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.shape_rounded_top_left_rectangle)));
             view.setInt(R.id.newExpAccBox, "setColorFilter", acc.getColor());
             view.setImageViewBitmap(R.id.newExpCatIcon, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.shape_rounded_top_right_rectangle)));
             view.setInt(R.id.newExpCatBox, "setColorFilter", cat.getColor());
-            view.setTextViewText(R.id.newExpCurrency, acc.getCurrencySymbol());
+            view.setTextViewText(R.id.newExpCurrency, acc.getCurrency().getSymbol());
             view.setTextViewText(R.id.newExpAmt, "");
             view.setTextViewText(R.id.newExpDesc, "");
             Calendar cal = Calendar.getInstance(MainActivity.locale);

@@ -31,6 +31,7 @@ import android.widget.Toast;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
+import com.example.expensetracker.Currency;
 import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.Expense;
 import com.example.expensetracker.Favourite;
@@ -40,6 +41,7 @@ import com.example.expensetracker.R;
 import com.example.expensetracker.ReceiptItem;
 import com.example.expensetracker.RecyclerViewAdapters.AccountAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.CategoryAdapter;
+import com.example.expensetracker.RecyclerViewAdapters.CurrencyAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.ReceiptItemAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
 import com.example.expensetracker.Section;
@@ -96,7 +98,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         expCatIcon.setForegroundTintList(ColorStateList.valueOf(Color.parseColor("#" + cat.getColorHex())));
         expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex())); // set bg color
         expCatBox.setBackgroundColor(Color.parseColor("#" + cat.getColorHex()));
-        expCurr.setText(acc.getCurrencySymbol());
+        expCurr.setText(acc.getCurrency().getSymbol());
         String[] favourites = MainActivity.getAllFavourites(this);
         if (favourites.length > 0) {
             ArrayAdapter<String> favAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favourites);
@@ -124,7 +126,9 @@ public class WidgetDialogActivity extends AppCompatActivity {
                 MainActivity.setFavourite(this, desc, new Favourite(
                         expAccName.getText().toString(),
                         expCatName.getText().toString(),
-                        expAmt.getText().toString()));
+                        expAmt.getText().toString(),
+                        db.getCurrency(expCurr.getText().toString()).getName()
+                        ));
                 toggleFavouritesBtn(true);
             }
         });
@@ -155,18 +159,19 @@ public class WidgetDialogActivity extends AppCompatActivity {
             else {
                 String desc = expDesc.getText().toString();
                 Account acc1 = db.getAccount(expAccName.getText().toString());
+                Currency currency = db.getCurrency(expCurr.getText().toString());
                 String datetime = MainActivity.getDatetimeStr(cal, "");
                 if (receiptItemAdapter == null || receiptItemAdapter.getTotalAmt() == 0f ) {
                     float amt = Float.parseFloat(expAmt.getText().toString());
                     Category cat1 = db.getCategory(expCatName.getText().toString());
-                    Expense expense = new Expense(amt, desc, acc1, cat1, datetime);
+                    Expense expense = new Expense(amt, desc, acc1, cat1, datetime, currency);
                     db.createExpense(expense);
                 } else {
                     ArrayList<Expense> expenses = new ArrayList<>();
                     HashMap<String,Float> receiptCatAmts = receiptItemAdapter.getReceiptCatAmts();
                     for (Map.Entry<String,Float> set : receiptCatAmts.entrySet()) {
                         Category cat1 = db.getCategory(set.getKey());
-                        expenses.add(new Expense(set.getValue(), desc, acc1, cat1, datetime));
+                        expenses.add(new Expense(set.getValue(), desc, acc1, cat1, datetime, currency));
                     }
                     db.createExpenses(expenses);
                 }
@@ -183,6 +188,21 @@ public class WidgetDialogActivity extends AppCompatActivity {
                 chooseReceiptItems(receiptItemAdapter.getReceiptItems());
             }
             hideKeyboard(expAmt);
+        });
+        expCurr.setOnClickListener(view -> {
+            Currency selectedCurrency = db.getCurrency(expCurr.getText().toString());
+            CurrencyAdapter adapter = new CurrencyAdapter(WidgetDialogActivity.this, db.getAllCurrencies(), selectedCurrency);
+            final View view1 = getLayoutInflater().inflate(R.layout.dialog_recyclerview, null);
+            RecyclerView currencyList = view1.findViewById(R.id.recyclerView);
+            currencyList.setLayoutManager(new LinearLayoutManager(WidgetDialogActivity.this, LinearLayoutManager.VERTICAL, false));
+            currencyList.setAdapter(adapter);
+
+            dialogBuilder = new AlertDialog.Builder(WidgetDialogActivity.this, R.style.NormalDialog);
+            dialogBuilder.setTitle("Expense currency")
+                    .setView(view1)
+                    .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> expCurr.setText(adapter.getSelected().getSymbol()))
+                    .setNeutralButton(android.R.string.no, (dialogInterface, i) -> {});
+            dialogBuilder.create().show();
         });
     }
 
@@ -265,7 +285,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
             expAccIcon.setForeground(selectedAcc.getIcon()); // set icon
             expAccIcon.setForegroundTintList(MainActivity.getColorStateListFromName(this, selectedAcc.getColorName())); // set icon color
             expAccItem.setBackgroundColor(Color.parseColor("#" + selectedAcc.getColorHex())); // set bg color
-            expCurr.setText(selectedAcc.getCurrencySymbol());
+            expCurr.setText(selectedAcc.getCurrency().getSymbol());
         });
 
         dialog.show();
@@ -339,7 +359,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         return new AccountAdapter(this, sortSections(db.getAllAccounts()));
     }
     public String getDefaultCurrency() {
-        return MainActivity.getDefaultCurrency(this);
+        return MainActivity.getDefaultCurrencyName(this);
     }
     public String getDefaultAccName() {
         return db.getDefaultAccName();
@@ -361,6 +381,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
         toggleFavouritesBtn(true);
 
         String accName = favourite.getAccName();
+        String currencyName = "";
         if (!accName.isEmpty()) {
             Account acc = db.getAccount(accName);
             if (acc.getId() != -1) {
@@ -368,7 +389,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
                 expAccIcon.setForeground(acc.getIcon());
                 expAccIcon.setForegroundTintList(MainActivity.getColorStateListFromName(this, acc.getColorName()));
                 expAccBox.setBackgroundColor(Color.parseColor("#" + acc.getColorHex()));
-                expCurr.setText(acc.getCurrencySymbol());
+                currencyName = acc.getCurrency().getName();
             }
         }
 
@@ -388,6 +409,11 @@ public class WidgetDialogActivity extends AppCompatActivity {
         String amount = favourite.getAmount();
         if (amount.isEmpty()) return;
         expAmt.setText(amount);
+
+        if (!favourite.getCurrencyName().isEmpty())
+            currencyName = favourite.getCurrencyName();
+        Currency currency = db.getCurrency(currencyName);
+        expCurr.setText(currency.getSymbol());
     }
     private void toggleFavouritesBtn(boolean show) {
         int id = (show) ? R.drawable.ic_baseline_star_24 : R.drawable.ic_baseline_star_outline_24;
@@ -405,7 +431,7 @@ public class WidgetDialogActivity extends AppCompatActivity {
     }
     public void chooseReceiptItems(ArrayList<ReceiptItem> receiptItems) {
         String accName = expAccName.getText().toString();
-        String accCurr = db.getAccount(accName).getCurrencySymbol();
+        String accCurr = db.getAccount(accName).getCurrency().getSymbol();
         receiptItemAdapter = new ReceiptItemAdapter(this, receiptItems, accCurr);
         final View view = getLayoutInflater().inflate(R.layout.dialog_receipt, null);
         RecyclerView receiptItemList = view.findViewById(R.id.recyclerView);
