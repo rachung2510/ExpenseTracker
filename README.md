@@ -18,5 +18,4 @@ A simple expense tracker for android which has three pages.
 - Calendar section in CHARTS page
 
 ## Bug fixes
-- Erroneous computation of amounts
 
