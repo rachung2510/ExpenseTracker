@@ -1,19 +1,21 @@
 package com.example.expensetracker.ManagePage;
 
+import android.graphics.Insets;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+import android.view.WindowInsets;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.expensetracker.Constants;
+import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
 import com.example.expensetracker.RecyclerViewAdapters.SectionAdapter;
 import com.example.expensetracker.RecyclerViewAdapters.ViewPagerAdapter;
@@ -64,20 +66,26 @@ public class ManageFragment extends Fragment {
                 (tab, position) -> tab.setText((position == 0) ? getString(R.string.ACCS) : getString(R.string.CATS))
         ).attach();
 
+        // padding for top status bar
+        final float[] statusBarHeight = {33};
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            view.setOnApplyWindowInsetsListener((view1, windowInsets) -> {
+                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                statusBarHeight[0] = insets.top;
+                ((MainActivity) getActivity()).setStatusBarPadding(Constants.MANAGE, view, (int) statusBarHeight[0]);
+                return WindowInsets.CONSUMED;
+            });
+        }
+
         // toolbar
         toolbar = view.findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.manage_options);
         toolbar.setTitle(getString(R.string.title_manage));
         ((ImageView) view.findViewById(R.id.toolbarBg)).setImageResource(R.drawable.red_background_material2);
-        view.findViewById(R.id.summary).setVisibility(ConstraintLayout.GONE);
-        ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                (int) getActivity().getResources().getDimension(R.dimen.actionBarSize));
-        view.findViewById(R.id.toolbarContainer).setLayoutParams(params);
 
-        // side menu
-        ImageButton menuBtn = view.findViewById(R.id.menu_btn);
-        menuBtn.setVisibility(View.GONE);
+        // hide summary and menu
+        view.findViewById(R.id.summaryDateBlk).setVisibility(View.GONE);
+        view.findViewById(R.id.menuBtn).setVisibility(View.GONE);
 
         return view;
     }

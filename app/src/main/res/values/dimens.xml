@@ -5,20 +5,10 @@
     <dimen name="nav_header_vertical_spacing">8dp</dimen>
     <dimen name="nav_header_height">190dp</dimen>
 
-    <!-- Affected by edge-to-edge (padding=33dp) -->
-    <dimen name="statusBarHeight">32dp</dimen>
-    <dimen name="summaryHeight">129dp</dimen>
-    <!--<dimen name="summaryHeight">97dp</dimen>-->
-    <dimen name="actionBarSize">88dp</dimen>
-    <!--<dimen name="actionBarSize">56dp</dimen>-->
-    <dimen name="chartsPageMarginTop">142dp</dimen>
-    <!--<dimen name="chartsPageMarginTop">110dp</dimen>-->
-    <dimen name="menuBtnMarginTop">38dp</dimen>
-    <!--<dimen name="menuBtnMarginTop">6dp</dimen>-->
-
-    <dimen name="navBarHeight">48dp</dimen>
-    <dimen name="bottom_nav_height">104dp</dimen>
-    <!--<dimen name="bottom_nav_height">56dp</dimen>-->
+    <!-- Without accounting edge-to-edge -->
+    <dimen name="summaryHeight">95dp</dimen>
+    <dimen name="chartsPageMarginTop">110dp</dimen>
+    <dimen name="toolbarHeight">50dp</dimen>
 
     <dimen name="expenseCurrencyTextSize">16sp</dimen>
     <dimen name="expenseCurrencyTextSizeTall">20.5sp</dimen>

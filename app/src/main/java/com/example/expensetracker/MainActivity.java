@@ -35,6 +35,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,6 +45,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -74,6 +76,7 @@ import com.example.expensetracker.ManagePage.SectionOptDialogFragment;
 import com.example.expensetracker.RecyclerViewAdapters.ViewPagerAdapter;
 import com.example.expensetracker.Widget.WidgetDialogActivity;
 import com.example.expensetracker.Widget.WidgetStaticActivity;
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.gson.Gson;
@@ -724,6 +727,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     public AccountAdapter getAccountData(int mode) {
         return new AccountAdapter(this, sortSections(db.getAllAccounts()), mode);
     }
+    public int getBottomNavHeight() { return bottomNavHeight; }
 
     /**
      * Add/edit functions
@@ -1842,6 +1846,30 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public void hideProgressOverlay() {
         progressDialog.dismiss();
+    }
+    public void setStatusBarPadding(int page, View view, int topPadding) {
+        // summaryHeight
+        RelativeLayout toolbarContainer = view.findViewById(R.id.toolbarContainer);
+        ViewGroup.LayoutParams params =  toolbarContainer.getLayoutParams();
+        if (page == Constants.HOME)
+            params.height = (int) (getResources().getDimension(R.dimen.summaryHeight) + topPadding);
+        else
+            params.height = (int) (getResources().getDimension(R.dimen.toolbarHeight) + topPadding);
+        toolbarContainer.setLayoutParams(params);
+
+        // padding for summary block
+        ConstraintLayout summaryBlk = view.findViewById(R.id.summaryBlk);
+        ViewGroup.MarginLayoutParams marginParams = (ViewGroup.MarginLayoutParams) summaryBlk.getLayoutParams();
+        marginParams.topMargin = topPadding;
+        summaryBlk.setLayoutParams(marginParams);
+
+        // chartsPageMarginTop
+        if (page == Constants.CHARTS) {
+            ViewPager2 viewPager = view.findViewById(R.id.viewPager);
+            marginParams = (ViewGroup.MarginLayoutParams) viewPager.getLayoutParams();
+            marginParams.topMargin = (int) (getResources().getDimension(R.dimen.chartsPageMarginTop) + topPadding);
+            viewPager.setLayoutParams(marginParams);
+        }
     }
 
     /**

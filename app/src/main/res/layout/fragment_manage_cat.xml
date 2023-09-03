@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="?android:attr/colorBackground">
+    android:background="?android:attr/colorBackground"
+    android:paddingTop="20dp">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/catGrid"
@@ -11,7 +12,7 @@
         android:layout_height="wrap_content"
         android:overScrollMode="never"
         android:gravity="center"
-        android:layout_marginTop="20dp"
+        android:translationY="-10dp"
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
         android:paddingBottom="15dp"

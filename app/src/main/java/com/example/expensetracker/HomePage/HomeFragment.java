@@ -1,12 +1,12 @@
 package com.example.expensetracker.HomePage;
 
+import android.graphics.Insets;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -167,7 +168,18 @@ public class HomeFragment extends Fragment {
         createOptionsMenu(view.findViewById(R.id.toolbar));
 
         // side menu
-        context.setupMenuBtn(view.findViewById(R.id.menu_btn));
+        context.setupMenuBtn(view.findViewById(R.id.menuBtn));
+
+        // Add padding for top status bar
+        final float[] statusBarHeight = {33};
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            view.setOnApplyWindowInsetsListener((view1, windowInsets) -> {
+                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                statusBarHeight[0] = insets.top;
+                ((MainActivity) getActivity()).setStatusBarPadding(Constants.HOME, view, (int) statusBarHeight[0]);
+                return WindowInsets.CONSUMED;
+            });
+        }
 
         // update data
         updateData(); // update summary & expense list
@@ -253,7 +265,7 @@ public class HomeFragment extends Fragment {
         toggleFloatingButtons(true);
     }
     public void expandExpenseListLayout(boolean show) {
-        int bottom = (show) ? (int) getResources().getDimension(R.dimen.bottom_nav_height) : 0;
+        int bottom = (show) ? (int) ((MainActivity) getActivity()).getBottomNavHeight() : 0;
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) expenseListLayout.getLayoutParams();
         params.setMargins(params.leftMargin, params.topMargin, params.rightMargin, bottom);
         expenseListLayout.setLayoutParams(params);

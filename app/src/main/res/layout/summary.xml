@@ -19,27 +19,41 @@
             android:src="@drawable/red_background_material"
             tools:ignore="ContentDescription" />
 
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/appBarLayout"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/summaryBlk"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/statusBarHeight"
-            app:elevation="0dp"
-            android:background="@null">
+            android:layout_height="match_parent"
+            android:clipChildren="false">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="@dimen/toolbarHeight"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 android:theme="@style/ToolbarStyle"/>
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/summary"
+                android:id="@+id/summaryDateBlk"
                 android:layout_width="match_parent"
-                android:layout_height="90dp"
-                android:layout_marginTop="-50dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="8dp">
+                android:layout_height="@dimen/toolbarHeight"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <ImageButton
+                    android:id="@+id/menuBtn"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_marginStart="5dp"
+                    android:background="@drawable/shape_circle"
+                    android:backgroundTint="@android:color/transparent"
+                    android:foreground="@drawable/ic_menu"
+                    android:foregroundTint="@color/white"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/selector_circle" />
 
                 <ImageButton
                     android:id="@+id/prevDate"
@@ -53,8 +67,8 @@
                     android:background="@drawable/shape_circle"
                     android:backgroundTint="@android:color/transparent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/summaryDate"
-                    app:layout_constraintBottom_toBottomOf="@id/summaryDate"/>
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
 
                 <ImageButton
                     android:id="@+id/nextDate"
@@ -68,13 +82,13 @@
                     android:background="@drawable/shape_circle"
                     android:backgroundTint="@android:color/transparent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/summaryDate"
-                    app:layout_constraintBottom_toBottomOf="@id/summaryDate"/>
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
 
                 <TextView
                     android:id="@+id/summaryDate"
                     android:layout_width="200dp"
-                    android:layout_height="24dp"
+                    android:layout_height="wrap_content"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
                     android:text="@string/example_date"
@@ -82,9 +96,10 @@
                     android:textSize="14sp"
                     android:fontFamily="sans-serif"
                     android:textFontWeight="600"
-                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
 
                 <LinearLayout
                     android:id="@+id/summaryAmtBlk"
@@ -92,9 +107,9 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="bottom"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent">
+                    app:layout_constraintTop_toBottomOf="@id/summaryDate">
 
                     <TextView
                         android:id="@+id/summaryCurrency"
@@ -121,20 +136,7 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <ImageButton
-            android:id="@+id/menu_btn"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginTop="@dimen/menuBtnMarginTop"
-            android:background="@drawable/shape_circle"
-            android:backgroundTint="@android:color/transparent"
-            android:foreground="@drawable/ic_menu"
-            android:foregroundTint="@color/white"
-            android:scaleType="fitCenter"
-            android:src="@drawable/selector_circle" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </RelativeLayout>
 

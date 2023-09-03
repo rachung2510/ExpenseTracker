@@ -1,11 +1,11 @@
 package com.example.expensetracker.ChartsPage;
 
+import android.graphics.Insets;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -14,7 +14,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -76,14 +76,7 @@ public class ChartsFragment extends Fragment {
         nextDate = view.findViewById(R.id.nextDate);
         prevDate.setOnClickListener((l) -> navDateAction(Constants.PREV));
         nextDate.setOnClickListener((l) -> navDateAction(Constants.NEXT));
-        view.findViewById(R.id.summaryAmtBlk).setVisibility(LinearLayout.GONE);
-        ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                (int) getResources().getDimension(R.dimen.actionBarSize));
-        view.findViewById(R.id.toolbarContainer).setLayoutParams(params);
         toolbar = view.findViewById(R.id.toolbar);
-        ImageButton menuBtn = view.findViewById(R.id.menu_btn);
-        menuBtn.setVisibility(View.GONE);
 
         // Restore state if saved
         if (savedInstanceState != null) {
@@ -105,6 +98,21 @@ public class ChartsFragment extends Fragment {
             tabLayoutParams.leftMargin = currentPage * indicatorWidth;
             tabIndicator.setLayoutParams(tabLayoutParams);
         });
+
+        // Add padding for top status bar
+        final float[] statusBarHeight = {33};
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            view.setOnApplyWindowInsetsListener((view1, windowInsets) -> {
+                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                statusBarHeight[0] = insets.top;
+                ((MainActivity) getActivity()).setStatusBarPadding(Constants.CHARTS, view, (int) statusBarHeight[0]);
+                return WindowInsets.CONSUMED;
+            });
+        }
+
+        // hide summary amount and menu button
+        view.findViewById(R.id.summaryAmtBlk).setVisibility(LinearLayout.GONE);
+        view.findViewById(R.id.menuBtn).setVisibility(View.GONE);
 
         return view;
     }
