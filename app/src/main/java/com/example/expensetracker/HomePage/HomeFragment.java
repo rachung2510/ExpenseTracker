@@ -1,6 +1,8 @@
 package com.example.expensetracker.HomePage;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,7 +23,6 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
-import com.example.expensetracker.ChartsPage.ChartsFragment;
 import com.example.expensetracker.Constants;
 import com.example.expensetracker.Expense;
 import com.example.expensetracker.MainActivity;
@@ -60,7 +61,7 @@ public class HomeFragment extends Fragment {
     private ImageButton prevDate, nextDate;
     private RecyclerView filterList;
     private MenuItem clearFilters;
-    private LinearLayout expenseListLayout, searchBg;
+    private LinearLayout fragmentLayout, expenseListLayout, searchBg;
     private SearchView searchView;
     private FloatingActionButton addExpBtn, searchBtn;
     private View dummyView;
@@ -79,6 +80,7 @@ public class HomeFragment extends Fragment {
         // Define all views
         MainActivity context = (MainActivity) getActivity();
         View view = inflater.inflate(R.layout.fragment_home, container, false);
+        fragmentLayout = view.findViewById(R.id.homeFragLinearLayout);
         summaryAmt = view.findViewById(R.id.summaryAmt);
         summaryCurr = view.findViewById(R.id.summaryCurrency);
         summaryDate = view.findViewById(R.id.summaryDate);
@@ -475,6 +477,12 @@ public class HomeFragment extends Fragment {
         setUpFilters();
         updateClearFiltersMenuItem();
         updateData();
+    }
+
+    public void setFragmentHeight(int bottomMargin) {
+        ViewGroup.MarginLayoutParams marginParams = (ViewGroup.MarginLayoutParams) fragmentLayout.getLayoutParams();
+        marginParams.setMargins(marginParams.leftMargin, marginParams.topMargin, marginParams.rightMargin, bottomMargin);
+        fragmentLayout.setLayoutParams(marginParams);
     }
 
     /**

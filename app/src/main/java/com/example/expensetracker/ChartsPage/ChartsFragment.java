@@ -327,5 +327,10 @@ public class ChartsFragment extends Fragment {
             if (lineChartFrag.isInitialised()) lineChartFrag.updateDateRange();
         }
     }
+    public void setFragmentHeight(int bottomMargin) {
+        ViewGroup.MarginLayoutParams marginParams = (ViewGroup.MarginLayoutParams) viewPager.getLayoutParams();
+        marginParams.setMargins(marginParams.leftMargin, marginParams.topMargin, marginParams.rightMargin, bottomMargin);
+        viewPager.setLayoutParams(marginParams);
+    }
 
 }

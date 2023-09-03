@@ -57,7 +57,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="@dimen/chartsPageMarginTop"
-        android:layout_marginBottom="@dimen/bottom_nav_height"
+        android:layout_marginBottom="0dp"
         android:backgroundTint="@color/red_500"
         app:layout_constraintTop_toBottomOf="@id/frameLayout"
         app:layout_constraintBottom_toBottomOf="parent"/>

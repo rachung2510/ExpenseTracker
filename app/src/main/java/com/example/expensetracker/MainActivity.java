@@ -141,6 +141,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     private ViewPagerAdapter viewPagerAdapter;
     private boolean updateFragments = false;
 
+    // Others
+    int bottomNavHeight = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -167,6 +170,12 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         bottomNavView = findViewById(R.id.bottom_nav_view);
         viewPager = findViewById(R.id.viewPager);
         bottomNavView.setOnItemSelectedListener(this);
+        bottomNavView.post(() -> {
+            bottomNavHeight = (int) bottomNavView.getMeasuredHeight();
+            ((HomeFragment) getFragment(Constants.HOME)).setFragmentHeight(bottomNavHeight);
+            ((ChartsFragment) getFragment(Constants.CHARTS)).setFragmentHeight(bottomNavHeight);
+            ((ManageFragment) getFragment(Constants.MANAGE)).setFragmentHeight(bottomNavHeight);
+        });
         getTabs(savedInstanceState);
 
         // Initialise menu
@@ -1181,7 +1190,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     }
     public static float convertPxToDp(Context context, int px) {
         float dpToPx = convertDpToPx(context, 1f);
-        return (int) (px / dpToPx);
+        return px / dpToPx;
     }
     public Currency getCurrencyFromName(String name) {
         return db.getCurrency(name);

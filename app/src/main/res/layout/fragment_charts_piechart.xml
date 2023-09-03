@@ -15,21 +15,23 @@
         <RelativeLayout
             android:id="@+id/pieChartBlk"
             android:layout_width="match_parent"
-            android:layout_height="320dp"
+            android:layout_height="300dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@null" />
+<!--            <ImageView-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:scaleType="centerCrop"-->
+<!--                android:src="@null" />-->
 
             <com.github.mikephil.charting.charts.PieChart
                 android:id="@+id/pieChart"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:layout_width="360dp"
+                android:layout_height="360dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
