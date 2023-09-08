@@ -232,8 +232,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
         expenseCatDialog(catAdapter, new Expense(Calendar.getInstance()));
     }
     public void editCurrency() {
-        String storedValue = getStringValue(KEY_CURRENCY);
-        String currencyName = storedValue;
+        String currencyName = getStringValue(KEY_CURRENCY);
         if (currencyName.isEmpty()) {
             String accountName = (getStringValue(KEY_ACC).isEmpty()) ? getDefaultAccName() : getStringValue(KEY_ACC);
             Account account = db.getAccount(accountName, false);
@@ -259,7 +258,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
                     storeValue(KEY_CURRENCY, newCurrency.getName());
                     finish();
                 })
-                .setNeutralButton(android.R.string.no, (dialogInterface, i) -> { finish(); });
+                .setNeutralButton(android.R.string.no, (dialogInterface, i) -> finish());
         AlertDialog dialog = dialogBuilder.create();
         dialog.setOnDismissListener(dialogInterface -> finish());
         dialog.show();
@@ -647,7 +646,7 @@ public class WidgetStaticActivity extends AppCompatActivity {
             storeValue(KEY_AMT, Float.parseFloat(amount));
         }
 
-        if (!favourite.getCurrencyName().isEmpty())
+        if (favourite.getCurrencyName() != null)
             currencyName = favourite.getCurrencyName();
         Currency currency = db.getCurrency(currencyName);
         views.setTextViewText(R.id.newExpCurrency, currency.getSymbol());
