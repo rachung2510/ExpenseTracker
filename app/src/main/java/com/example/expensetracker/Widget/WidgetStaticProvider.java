@@ -7,14 +7,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.util.Pair;
 import android.util.SizeF;
 import android.widget.RemoteViews;
-
-import androidx.annotation.RequiresApi;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
@@ -30,8 +27,6 @@ public class WidgetStaticProvider extends AppWidgetProvider {
 
     private static final String TAG = "WidgetStaticProvider";
 
-    private RemoteViews remoteViews;
-
     public static final String KEY = "ACTION";
     public static final int EDIT_AMOUNT = 1;
     public static final int EDIT_DESCRIPTION = 2;
@@ -46,7 +41,6 @@ public class WidgetStaticProvider extends AppWidgetProvider {
 
     /**
      * Return remote views for different widget sizes, and also the default view
-     * @param context
      * @return tuple containing dictionary of remote views with sizes as keys, and default view
      */
     public static Pair<Map<SizeF, RemoteViews>, RemoteViews> getResizedViews(Context context) {
@@ -66,6 +60,7 @@ public class WidgetStaticProvider extends AppWidgetProvider {
         editor.remove(WidgetStaticActivity.KEY_DESC);
         editor.remove(WidgetStaticActivity.KEY_ACC);
         editor.remove(WidgetStaticActivity.KEY_CAT);
+        editor.remove(WidgetStaticActivity.KEY_CURRENCY);
         editor.remove(WidgetStaticActivity.KEY_DATE);
         editor.remove(WidgetStaticActivity.KEY_ADAPTER_LIST);
         editor.remove(WidgetStaticActivity.KEY_ADAPTER_CURR);
@@ -111,6 +106,7 @@ public class WidgetStaticProvider extends AppWidgetProvider {
             view.setImageViewBitmap(R.id.scanReceiptBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.ic_baseline_camera_alt_24)));
             view.setImageViewBitmap(R.id.favouritesBtn, MainActivity.drawableToBitmap(MainActivity.getIconFromId(context, R.drawable.ic_baseline_star_outline_24)));
         }
+        RemoteViews remoteViews;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             remoteViews = new RemoteViews(viewMapping);
             appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
