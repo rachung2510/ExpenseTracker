@@ -29,7 +29,7 @@ public class CurrencyAdapter extends RecyclerView.Adapter<CurrencyAdapter.ViewHo
         try {
             this.selectedPos = currencies.indexOf(selected);
         } catch (Exception e) {
-            this.selectedPos = currencies.indexOf(selected);
+            this.selectedPos = -1;
         }
     }
 
@@ -69,7 +69,7 @@ public class CurrencyAdapter extends RecyclerView.Adapter<CurrencyAdapter.ViewHo
             if (b) {
                 int oldPos = selectedPos;
                 selectedPos = holder.getAdapterPosition();
-                notifyItemChanged(oldPos);
+                if (oldPos >= 0) notifyItemChanged(oldPos);
                 notifyItemChanged(selectedPos);
             }
         });

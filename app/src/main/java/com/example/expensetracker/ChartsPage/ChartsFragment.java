@@ -2,6 +2,7 @@ package com.example.expensetracker.ChartsPage;
 
 import android.graphics.Insets;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -131,6 +132,7 @@ public class ChartsFragment extends Fragment {
      * Functions
      */
     public void updateData() {
+        Log.e(TAG, "updating chart data");
         ChartsChildFragmentPie pieFrag = getChildFragmentPie();
         pieFrag.updateDateRange();
         pieFrag.updateCurrency();

@@ -24,6 +24,9 @@
             <item
                 android:id="@+id/changeDate"
                 android:title="Change date" />
+            <item
+                android:id="@+id/changeCurrency"
+                android:title="Change currency" />
         </menu>
     </item>
 

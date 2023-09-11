@@ -3,7 +3,6 @@ package com.example.expensetracker.RecyclerViewAdapters;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -20,10 +19,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.expensetracker.Account;
 import com.example.expensetracker.Category;
+import com.example.expensetracker.Currency;
+import com.example.expensetracker.DatabaseHelper;
 import com.example.expensetracker.Expense;
 import com.example.expensetracker.MainActivity;
 import com.example.expensetracker.R;
@@ -225,6 +227,10 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 bulkChangeDate(mode);
                 return true;
             }
+            if (id == R.id.changeCurrency) {
+                bulkChangeCurrency(mode);
+                return true;
+            }
             return false;
         }
 
@@ -257,6 +263,32 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         });
         confirmDel.show();
     }
+    private void bulkChangeCurrency(ActionMode mode) {
+        bulkNoAction();
+        DatabaseHelper db = ((MainActivity) context).db;
+        CurrencyAdapter adapter = new CurrencyAdapter(context, db.getAllCurrencies(), null);
+        final View view1 = inflater.inflate(R.layout.dialog_recyclerview, null);
+        RecyclerView currencyList = view1.findViewById(R.id.recyclerView);
+        currencyList.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        currencyList.setAdapter(adapter);
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context, R.style.NormalDialog);
+        dialogBuilder.setTitle("Change currency to")
+                .setView(view1)
+                .setPositiveButton(android.R.string.yes, (dialogInterface, which) -> {
+                    Currency newCurrency = adapter.getSelected();
+                    for (int i = 0; i < selectedPos.size(); i++) {
+                        Expense e = expenses.get(selectedPos.get(i));
+                        e.setCurrency(newCurrency);
+                        db.updateExpense(e);
+                    }
+                    mode.finish();
+                    ((MainActivity) context).updateHomeData(); // update summary & expense list
+                    ((MainActivity) context).setUpdateFragments(true); // update CHARTS fragment
+                })
+                .setNeutralButton(android.R.string.no, (dialogInterface, i) -> dialogInterface.cancel());
+        dialogBuilder.create().show();
+    }
     private void bulkChangeDate(ActionMode mode) {
         bulkNoAction();
         AlertDialog.Builder changeDate = new AlertDialog.Builder(context, R.style.NormalDialog);
@@ -277,6 +309,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
                 mode.finish();
                 ((MainActivity) context).updateHomeData(); // update summary & expense list
+                ((MainActivity) context).setUpdateFragments(true); // update CHARTS fragment
             });
             confirmChangeDate.setNeutralButton(android.R.string.no, (dialog, which1) -> dialogInterface.dismiss());
             confirmChangeDate.show();
@@ -308,6 +341,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     ((MainActivity) context).db.updateExpense(exp);
                 }
                 ((MainActivity) context).updateHomeData(); // update summary & expense list
+                ((MainActivity) context).setUpdateFragments(true); // update CHARTS fragment
                 dialog1.dismiss();
                 mode.finish();
             });
@@ -332,7 +366,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.NormalDialog);
             AlertDialog chooseKeepCurrency = builder.setMessage("Keep expense currencies?")
                     .setPositiveButton("yes", (dialog1, which) -> {})
-                    .setNeutralButton("no", (dialog1, which) -> { changeExpenseCurrencies[0] = true; })
+                    .setNeutralButton("no", (dialog1, which) -> changeExpenseCurrencies[0] = true)
                     .create();
             chooseKeepCurrency.setOnDismissListener(dialog1 -> {
                 AlertDialog.Builder confirmEdit = new AlertDialog.Builder(context, R.style.NormalDialog);
